@@ -1,0 +1,414 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+{% load ledger_tags %}
+
+{% block title %}Payments &amp; Collections — Sky Vision Admin{% endblock %}
+{% block page_title %}Payments &amp; Collections{% endblock %}
+{% block breadcrumb_title %}Billing &amp; Finance / Payments{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS for grid, forms & components -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  /* Page Header */
+  .ledger-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .ledger-title-group h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ledger-title-group p {
+    font-size: 13px;
+    color: #64748B;
+    margin: 0;
+  }
+
+  /* Stat KPI Grid (4 Columns) */
+  .ledger-stat-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 992px) {
+    .ledger-stat-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 576px) {
+    .ledger-stat-grid-4 { grid-template-columns: repeat(1, 1fr); }
+  }
+
+  .ledger-stat-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .ledger-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .ledger-stat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ledger-stat-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .ledger-stat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .ledger-stat-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0F172A;
+    line-height: 1.2;
+  }
+  .ledger-stat-sub {
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+  }
+
+  /* Navigation Tabs */
+  .ledger-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #FFFFFF;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    margin-bottom: 16px;
+  }
+  .ledger-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .ledger-tab:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+  }
+  .ledger-tab.active {
+    background: #2563EB;
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+  }
+
+  /* Controls Bar / Filters */
+  .ledger-controls-wrap {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+
+  /* Table Card & Responsive Styling */
+  .ledger-table-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .ledger-table-responsive {
+    overflow-x: auto;
+  }
+  .ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+    table-layout: fixed;
+  }
+  .ledger-table thead th {
+    background: #F8FAFC;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 8px 6px;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+  .ledger-table tbody td {
+    padding: 7px 6px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #1E293B;
+    vertical-align: middle;
+    font-size: 11.5px;
+    line-height: 1.25;
+    box-sizing: border-box;
+  }
+  .ledger-table tbody tr:hover {
+    background: #F8FAFC;
+  }
+  .ledger-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="ledger-header-bar">
+  <div class="ledger-title-group">
+    <h3><i class="ti ti-wallet text-success"></i> Payments &amp; Collections</h3>
+    <p>Review all commission payments received, receipts generated, and fully paid candidates.</p>
+  </div>
+  <div>
+    <a href="/api/admin/ledger/export/?type=payments&{{ request.GET.urlencode }}" class="btn btn-success rounded-pill btn-sm px-3 shadow-sm text-white fw-semibold">
+      <i class="ti ti-file-spreadsheet me-1"></i> Export Payments CSV
+    </a>
+  </div>
+</div>
+
+<!-- Summary Cards Grid -->
+<div class="ledger-stat-grid-4">
+  <!-- Card 1 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Total Received</span>
+      <div class="ledger-stat-icon bg-success-subtle text-success"><i class="ti ti-cash"></i></div>
+    </div>
+    <div class="ledger-stat-num text-success">{{ total_received|indian_currency }}</div>
+    <div class="ledger-stat-sub bg-success-subtle text-success">All Time Collected</div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Received This Month</span>
+      <div class="ledger-stat-icon bg-primary-subtle text-primary"><i class="ti ti-calendar"></i></div>
+    </div>
+    <div class="ledger-stat-num text-primary">{{ received_this_month|indian_currency }}</div>
+    <div class="ledger-stat-sub bg-primary-subtle text-primary">Current Month</div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Number of Payments</span>
+      <div class="ledger-stat-icon bg-info-subtle text-info"><i class="ti ti-receipt"></i></div>
+    </div>
+    <div class="ledger-stat-num">{{ total_payments_count }}</div>
+    <div class="ledger-stat-sub bg-info-subtle text-info">Receipts Issued</div>
+  </div>
+
+  <!-- Card 4 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Fully Paid Candidates</span>
+      <div class="ledger-stat-icon bg-success-subtle text-success"><i class="ti ti-circle-check"></i></div>
+    </div>
+    <div class="ledger-stat-num">{{ fully_paid_count }}</div>
+    <div class="ledger-stat-sub bg-success-subtle text-success">Zero Balance</div>
+  </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="ledger-tabs-bar">
+  <a class="ledger-tab {% if active_tab == 'received' or not active_tab %}active{% endif %}" href="?tab=received">
+    <i class="ti ti-cash"></i> Payments Received ({{ total_payments_count }})
+  </a>
+  <a class="ledger-tab {% if active_tab == 'paid' %}active{% endif %}" href="?tab=paid">
+    <i class="ti ti-circle-check"></i> Fully Paid Candidates ({{ fully_paid_count }})
+  </a>
+</div>
+
+<!-- Filters Bar -->
+<div class="ledger-controls-wrap">
+  <form method="GET" action="/admin-panel/ledger/payments/" class="row g-2 align-items-center">
+    <input type="hidden" name="tab" value="{{ active_tab }}">
+    <div class="col-md-3">
+      <input type="text" name="q" value="{{ filters.q }}" class="form-control form-control-sm rounded-pill px-3" placeholder="Search candidate, company, receipt no...">
+    </div>
+    <div class="col-md-2">
+      <select name="mode" class="form-select form-select-sm rounded-pill px-3">
+        <option value="">All Modes</option>
+        <option value="Bank Transfer" {% if filters.mode == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
+        <option value="UPI" {% if filters.mode == 'UPI' %}selected{% endif %}>UPI / GPay</option>
+        <option value="Cash" {% if filters.mode == 'Cash' %}selected{% endif %}>Cash</option>
+        <option value="Cheque" {% if filters.mode == 'Cheque' %}selected{% endif %}>Cheque</option>
+        <option value="Other" {% if filters.mode == 'Other' %}selected{% endif %}>Other</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="date" name="date_from" value="{{ filters.date_from }}" class="form-control form-control-sm rounded-pill px-3" title="From Date">
+    </div>
+    <div class="col-md-2">
+      <input type="date" name="date_to" value="{{ filters.date_to }}" class="form-control form-control-sm rounded-pill px-3" title="To Date">
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-fill fw-semibold"><i class="ti ti-filter me-1"></i> Filter</button>
+      <a href="/admin-panel/ledger/payments/?tab={{ active_tab }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold"><i class="ti ti-rotate me-1"></i> Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Tab Content -->
+{% if active_tab == 'paid' %}
+  <!-- Tab (b): Fully Paid Candidates -->
+  <div class="ledger-table-card">
+    <div class="ledger-table-responsive">
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th style="width:3.5%; min-width:30px;" class="ps-2">#</th>
+            <th style="width:16.5%;">Candidate Name</th>
+            <th style="width:18%;">Company &amp; Role</th>
+            <th style="width:9%; min-width:80px;">Joining Date</th>
+            <th style="width:12%; min-width:95px;">Total Commission</th>
+            <th style="width:12%; min-width:95px;">Total Received</th>
+            <th style="width:9%; min-width:80px;">Paid On Date</th>
+            <th style="width:10%; min-width:85px; text-align:center;">Status</th>
+            <th style="width:10%; min-width:90px; text-align:center;" class="pe-2">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if fully_paid_commissions %}
+            {% for c in fully_paid_commissions %}
+              <tr>
+                <td class="ps-2 text-muted" style="font-size:10.5px;">#{{ c.id }}</td>
+                <td class="fw-bold text-dark text-truncate" style="font-size:11.5px; max-width:100%;" title="{{ c.candidate_name }}">{{ c.candidate_name }}</td>
+                <td>
+                  <div class="fw-semibold text-dark text-truncate" style="font-size:11.5px; max-width:100%;" title="{{ c.company_name }}">{{ c.company_name }}</div>
+                  <div class="text-muted text-truncate" style="font-size:10px; max-width:100%;" title="{{ c.position|default:'Staff' }}">{{ c.position|default:"Staff" }}</div>
+                </td>
+                <td class="text-muted" style="white-space:nowrap; font-size:11px;">{{ c.joining_date|date:"d M Y"|default:"N/A" }}</td>
+                <td class="fw-bold text-dark" style="font-size:11.5px; white-space:nowrap;">{{ c.commission_amount|indian_currency }}</td>
+                <td class="fw-bold text-success" style="font-size:11.5px; white-space:nowrap;">{{ c.total_received|indian_currency }}</td>
+                <td class="text-muted" style="white-space:nowrap; font-size:11px;">{{ c.paid_on_date|date:"d M Y"|default:"Completed" }}</td>
+                <td style="text-align:center;"><span class="badge bg-success rounded-pill px-2.5 py-1" style="font-size:9.5px;">PAID (Zero Bal)</span></td>
+                <td class="pe-2 text-center">
+                  <a href="/admin-panel/ledger/{{ c.id }}/" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size:10.5px; white-space:nowrap;">
+                    <i class="ti ti-notebook me-1"></i> View Ledger
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="9" class="text-center py-5 text-muted">
+                <i class="ti ti-circle-check fs-1 text-muted d-block mb-2"></i>
+                <h6 class="fw-bold">No fully paid candidates found matching filters.</h6>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <!-- Tab (a): Payments Received -->
+  <div class="ledger-table-card">
+    <div class="ledger-table-responsive">
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th style="width:12%; min-width:110px;" class="ps-2">Receipt No.</th>
+            <th style="width:8.5%; min-width:75px;">Date</th>
+            <th style="width:16%;">Candidate Name</th>
+            <th style="width:13.5%;">Company</th>
+            <th style="width:11%; min-width:95px;">Amount Received</th>
+            <th style="width:8.5%; min-width:75px;">Payment Mode</th>
+            <th style="width:12%; min-width:100px;">Reference No.</th>
+            <th style="width:7.5%; min-width:65px;">Received By</th>
+            <th style="width:11%; min-width:100px; text-align:center;" class="pe-2">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if payments %}
+            {% for p in payments %}
+              <tr>
+                <td class="ps-2 font-monospace fw-bold text-primary text-truncate" style="font-size:11px; white-space:nowrap;" title="{{ p.receipt_no }}">{{ p.receipt_no }}</td>
+                <td class="text-muted" style="font-size:11px; white-space:nowrap;">{{ p.entry_date|date:"d M Y" }}</td>
+                <td>
+                  <div class="fw-bold text-dark text-truncate d-inline-block align-middle" style="font-size:11.5px; max-width:calc(100% - 50px);" title="{{ p.commission.candidate_name }}">{{ p.commission.candidate_name }}</div>
+                  {% if p.commission.balance > 0 %}
+                    <span class="badge bg-info-subtle text-info border ms-1" style="font-size:9.5px; padding:1.5px 5px;">Partial</span>
+                  {% else %}
+                    <span class="badge bg-success-subtle text-success border ms-1" style="font-size:9.5px; padding:1.5px 5px;">Full</span>
+                  {% endif %}
+                </td>
+                <td class="fw-semibold text-secondary text-truncate" style="font-size:11.5px; max-width:100%;" title="{{ p.commission.company_name }}">{{ p.commission.company_name }}</td>
+                <td class="fw-bold text-success" style="font-size:11.5px; white-space:nowrap;">{{ p.amount|indian_currency }}</td>
+                <td><span class="badge bg-light text-dark border px-2 py-0.5" style="font-size:10px;">{{ p.payment_mode }}</span></td>
+                <td class="text-muted font-monospace text-truncate" style="font-size:10.5px; max-width:100%;" title="{{ p.reference_no|default:'-' }}">{{ p.reference_no|default:"-" }}</td>
+                <td class="text-muted text-truncate" style="font-size:11px; max-width:100%;" title="{{ p.created_by|default:'Admin' }}">{{ p.created_by|default:"Admin" }}</td>
+                <td class="pe-2 text-center">
+                  <div class="d-flex gap-1 justify-content-center align-items-center">
+                    <a href="/admin-panel/ledger/receipt/{{ p.id }}/" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-0.5 fw-semibold" style="font-size:10.5px; white-space:nowrap;">
+                      <i class="ti ti-printer me-1"></i> Receipt
+                    </a>
+                    <a href="/admin-panel/ledger/{{ p.commission.id }}/" class="btn btn-outline-primary btn-sm rounded-circle p-1 d-inline-flex align-items-center justify-content-center" style="width:26px; height:26px; flex-shrink:0;" title="View Candidate Ledger">
+                      <i class="ti ti-notebook" style="font-size:12px;"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="9" class="text-center py-5 text-muted">
+                <i class="ti ti-wallet-off fs-1 text-muted d-block mb-2"></i>
+                <h6 class="fw-bold">No payment records found.</h6>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

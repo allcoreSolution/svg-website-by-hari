@@ -1,0 +1,1430 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Compose Broadcast — Sky Vision Admin{% endblock %}
+{% block page_title %}Bulk Messaging &amp; Communication{% endblock %}
+{% block breadcrumb_title %}Communication / Broadcast Composer{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin/communication-admin.css' %}?v=1.4">
+<style>
+  .comm-var-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #eef2ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1.4;
+    vertical-align: baseline;
+    user-select: all;
+    box-shadow: 0 1px 2px rgba(67, 56, 202, 0.08);
+  }
+  .comm-var-badge i {
+    color: #4f46e5;
+    font-size: 11px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0 mb-5">
+
+  <!-- Top Page Header with Compact SMTP & Usage Box on Right -->
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+        <i class="ti ti-send text-primary fs-3"></i> Bulk Broadcast Composer
+      </h3>
+      <p class="text-muted mb-2 small">Create &amp; dispatch personalized announcements across Dashboard Inbox and Gmail SMTP.</p>
+      <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+        <button type="button" class="btn btn-outline-info rounded-pill btn-sm px-3 fw-semibold" onclick="openTestEmailModal()">
+          <i class="ti ti-mail-forward me-1"></i> Send Test Email
+        </button>
+        <a href="/admin-panel/communication/templates/" class="btn btn-outline-secondary rounded-pill btn-sm px-3 fw-semibold">
+          <i class="ti ti-template me-1"></i> Templates
+        </a>
+        <a href="/admin-panel/communication/history/" class="btn btn-outline-primary rounded-pill btn-sm px-3 fw-semibold">
+          <i class="ti ti-history me-1"></i> Sent History
+        </a>
+        <a href="/admin-panel/communication/settings/" class="btn btn-outline-dark rounded-pill btn-sm px-3 fw-semibold">
+          <i class="ti ti-adjustments me-1"></i> Delivery Settings
+        </a>
+      </div>
+    </div>
+
+    <!-- Compact Gmail SMTP & Today's Usage Box -->
+    <div class="ms-auto">
+      {% if not is_gmail_configured %}
+        <div class="bg-white shadow-sm rounded-4 px-3 py-2 border border-warning border-start border-4 d-flex align-items-center gap-2.5" style="min-width: 280px; max-width: 380px;">
+          <div class="p-2 bg-warning bg-opacity-20 text-warning-emphasis rounded-circle flex-shrink-0">
+            <i class="ti ti-alert-triangle fs-5"></i>
+          </div>
+          <div class="lh-sm">
+            <div class="fw-bold text-dark" style="font-size: 12.5px;">Test Mode (Console Backend)</div>
+            <div class="text-muted" style="font-size: 11.5px;">
+              Today's Usage: <strong>{{ daily_sent }} / {{ daily_limit }}</strong> ({{ daily_remaining }} left)
+              &bull; <a href="/admin-panel/communication/settings/" class="text-primary fw-semibold text-decoration-none">Configure</a>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="bg-white shadow-sm rounded-4 px-3 py-2 border border-success-subtle border-start border-4 border-success d-flex align-items-center gap-2.5" style="min-width: 290px; max-width: 400px;">
+          <div class="p-2 bg-success bg-opacity-10 text-success rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+            <i class="ti ti-circle-check fs-5"></i>
+          </div>
+          <div class="lh-sm">
+            <div class="fw-bold text-dark text-truncate" style="font-size: 12.5px; max-width: 320px;" title="{{ email_host_user }}">
+              Gmail SMTP: <span class="text-primary">{{ email_host_user }}</span>
+            </div>
+            <div class="text-muted mt-1" style="font-size: 11.5px;">
+              Today's Usage: <strong class="text-dark">{{ daily_sent }} / {{ daily_limit }}</strong> sent (<strong class="text-success">{{ daily_remaining }}</strong> left)
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quota Exceeded Warning Banner (Hidden by default, shown via JS if needed) -->
+  <div id="quotaWarningBanner" class="alert alert-warning border-0 shadow-sm rounded-4 p-3 mb-4 d-none">
+    <div class="d-flex align-items-center gap-2">
+      <i class="ti ti-alert-circle text-warning fs-4"></i>
+      <div>
+        <strong class="text-dark">Daily Quota Notice:</strong>
+        <span class="small text-dark" id="quotaWarningText">Targeted recipients exceed remaining daily email limit. Excess recipients will stay Pending and can be resumed tomorrow.</span>
+      </div>
+    </div>
+  </div>
+
+  <form id="composeForm" enctype="multipart/form-data" onsubmit="event.preventDefault();">
+    {% csrf_token %}
+    <input type="hidden" name="idempotency_key" id="idempotencyKey" value="">
+
+    <div class="row g-4">
+      
+      <!-- 3-Step Compose Flow -->
+      <div class="col-12">
+        
+        <!-- STEP 1: AUDIENCE TYPE & CATEGORY -->
+        <div class="comm-step-card">
+          <div class="comm-step-header">
+            <div class="comm-step-badge">1</div>
+            <div>
+              <h5 class="comm-step-title">Select Audience Type &amp; Criteria</h5>
+              <p class="comm-step-subtitle">Choose whether this announcement is targeted to Candidates or Employers, and pick the audience category.</p>
+            </div>
+          </div>
+          <div class="comm-step-body py-3 px-3">
+            <div class="row g-3">
+              
+              <!-- Left Column: Candidates + Category Dropdown Inside Same Box -->
+              <div class="col-md-6">
+                <div class="comm-select-card w-100 py-2.5 px-3 rounded-3 {% if initial_audience == 'candidate' %}active{% endif %}" id="cardCandidate" onclick="selectAudience('candidate')">
+                  <input type="radio" name="audience_type" id="audCandidate" value="candidate" class="d-none" {% if initial_audience == 'candidate' %}checked{% endif %}>
+                  <input class="d-none" type="checkbox" id="candIncludePending" name="include_pending" value="true" onchange="selectAudience('candidate'); handleCandidateDropdownChange();">
+                  <span class="d-none" id="candFilterBadge">Register Candidate</span>
+
+                  <div class="d-flex align-items-center justify-content-between gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                        <i class="ti ti-users fs-5"></i>
+                      </div>
+                      <h6 class="fw-bold mb-0 text-dark" style="font-size: 14.5px;">Candidates</h6>
+                    </div>
+
+                    <div onclick="event.stopPropagation(); selectAudience('candidate');" style="min-width: 190px; max-width: 220px; width: 100%;">
+                      <select class="form-select form-select-sm rounded-pill border-primary bg-white fw-semibold shadow-sm" style="font-size: 12px;" id="candFilterSelect" name="candidate_filter" onmousedown="this._wasOpen = !this._wasOpen; if (!this._wasOpen) { selectAudience('candidate'); handleCandidateDropdownChange(); }" onblur="this._wasOpen = false;" onchange="this._wasOpen = false; selectAudience('candidate'); handleCandidateDropdownChange();">
+                        <option value="registered" {% if initial_cand_filter == 'registered' or not initial_cand_filter %}selected{% endif %}>Register Candidate</option>
+                        <option value="shortlisted" {% if initial_cand_filter == 'shortlisted' %}selected{% endif %}>Shortlisted Candidate</option>
+                        <option value="selected" {% if initial_cand_filter == 'selected' %}selected{% endif %}>Selected Candidate</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div id="specificCandidateSelectWrap" class="mt-2.5 pt-2 border-top d-none" onclick="event.stopPropagation();">
+                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                      <label class="d-inline-flex align-items-center gap-1.5 mb-0 fw-bold text-primary" style="font-size: 11.5px; cursor: pointer;">
+                        <input type="checkbox" class="form-check-input mt-0" id="candBulkSelectAll" onchange="toggleBulkCandidates(this.checked)">
+                        <span>Select All (Bulk)</span>
+                      </label>
+                      <span class="badge bg-secondary-subtle text-secondary rounded-pill" style="font-size:10px;" id="candCategoryCountBadge">{{ candidates_sample|length }} Candidate(s)</span>
+                    </div>
+
+                    <div id="candidateCheckboxList" class="border rounded-3 bg-white p-1" style="max-height: 110px; overflow-y: auto;">
+                      {% for c in candidates_sample %}
+                        <label class="d-flex align-items-center gap-2 px-2 py-1 rounded-2 mb-0" style="font-size: 12px; cursor: pointer;">
+                          <input type="checkbox" class="form-check-input mt-0 cand-item-chk" value="{{ c.id }}" onchange="handleIndividualCandidateCheck()">
+                          <span class="text-truncate">{{ c.full_name }} ({{ c.email }})</span>
+                        </label>
+                      {% empty %}
+                        <div class="text-muted small px-2 py-1" style="font-size: 11.5px;">No candidates found in this category</div>
+                      {% endfor %}
+                    </div>
+
+                    <select class="d-none" id="specificCandidateSelect" name="specific_candidate_ids" multiple>
+                      {% for c in candidates_sample %}
+                        <option value="{{ c.id }}">{{ c.full_name }} ({{ c.email }})</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Employers + Category Dropdown Inside Same Box -->
+              <div class="col-md-6">
+                <div class="comm-select-card w-100 py-2.5 px-3 rounded-3 {% if initial_audience == 'employer' %}active{% endif %}" id="cardEmployer" onclick="selectAudience('employer')">
+                  <input type="radio" name="audience_type" id="audEmployer" value="employer" class="d-none" {% if initial_audience == 'employer' %}checked{% endif %}>
+                  <span class="d-none" id="empFilterBadge">All Approval Employer</span>
+
+                  <div class="d-flex align-items-center justify-content-between gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                        <i class="ti ti-building fs-5"></i>
+                      </div>
+                      <h6 class="fw-bold mb-0 text-dark" style="font-size: 14.5px;">Employers</h6>
+                    </div>
+
+                    <div onclick="event.stopPropagation(); selectAudience('employer');" style="min-width: 190px; max-width: 220px; width: 100%;">
+                      <select class="form-select form-select-sm rounded-pill border-info bg-white fw-semibold shadow-sm" style="font-size: 12px;" id="empFilterDropdown" name="employer_filter" onmousedown="this._wasOpen = !this._wasOpen; if (!this._wasOpen) { selectAudience('employer'); handleEmployerDropdownChange(); }" onblur="this._wasOpen = false;" onchange="this._wasOpen = false; selectAudience('employer'); handleEmployerDropdownChange();">
+                        <option value="all_approved" {% if initial_cand_filter == 'all_approved' or initial_cand_filter == 'registered' or not initial_cand_filter %}selected{% endif %}>All Approval Employer</option>
+                        <option value="specific" {% if initial_cand_filter == 'specific' %}selected{% endif %}>Specific Employer</option>
+                        <option value="pending" {% if initial_cand_filter == 'pending' %}selected{% endif %}>Pending Approval Employer</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div id="specificEmployerSelectWrap" class="mt-2.5 pt-2 border-top {% if initial_cand_filter != 'specific' %}d-none{% endif %}" onclick="event.stopPropagation();">
+                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                      <label class="d-inline-flex align-items-center gap-1.5 mb-0 fw-bold text-info" style="font-size: 11.5px; cursor: pointer;">
+                        <input type="checkbox" class="form-check-input mt-0" id="empBulkSelectAll" onchange="toggleBulkEmployers(this.checked)">
+                        <span>Select All (Bulk)</span>
+                      </label>
+                      <span class="badge bg-secondary-subtle text-secondary rounded-pill" style="font-size:10px;" id="empCategoryCountBadge">{{ approved_employers|length }} Employer(s)</span>
+                    </div>
+
+                    <div id="employerCheckboxList" class="border rounded-3 bg-white p-1" style="max-height: 110px; overflow-y: auto;">
+                      {% for emp in approved_employers %}
+                        <label class="d-flex align-items-center gap-2 px-2 py-1 rounded-2 mb-0" style="font-size: 12px; cursor: pointer;">
+                          <input type="checkbox" class="form-check-input mt-0 emp-item-chk" value="{{ emp.id }}" onchange="handleIndividualEmployerCheck()">
+                          <span class="text-truncate">{{ emp.company_name }} — {{ emp.contact_name }} ({{ emp.email }})</span>
+                        </label>
+                      {% empty %}
+                        <div class="text-muted small px-2 py-1" style="font-size: 11.5px;">No employers found in this category</div>
+                      {% endfor %}
+                    </div>
+
+                    <select id="employerSelect" name="employer_ids" class="d-none" multiple>
+                      {% for emp in approved_employers %}
+                        <option value="{{ emp.id }}">{{ emp.company_name }} — {{ emp.contact_name }} ({{ emp.email }})</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: DELIVERY CHANNELS -->
+        <div class="comm-step-card">
+          <div class="comm-step-header justify-content-between flex-wrap gap-3 border-bottom-0">
+            <div class="d-flex align-items-center gap-3">
+              <div class="comm-step-badge">2</div>
+              <div>
+                <h5 class="comm-step-title">Select Delivery Channels</h5>
+                <p class="comm-step-subtitle">Choose one or both channels to broadcast this announcement.</p>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+              <!-- Channel: Dashboard -->
+              <label class="comm-channel-chip active" id="chipDash" style="padding: 7px 14px; font-size: 12.5px;">
+                <input type="checkbox" id="chanDash" name="channels" value="dashboard" checked onchange="toggleChannelChip('chipDash', this)">
+                <i class="ti ti-app-window fs-5"></i>
+                <span>Dashboard Notification</span>
+              </label>
+
+              <!-- Channel: Email -->
+              <label class="comm-channel-chip active" id="chipEmail" style="padding: 7px 14px; font-size: 12.5px;">
+                <input type="checkbox" id="chanEmail" name="channels" value="email" checked onchange="toggleChannelChip('chipEmail', this)">
+                <i class="ti ti-mail fs-5"></i>
+                <span>Email (Gmail SMTP)</span>
+              </label>
+
+              {% if sms_whatsapp_enabled %}
+                <label class="comm-channel-chip" id="chipSMS" style="padding: 7px 14px; font-size: 12.5px;">
+                  <input type="checkbox" id="chanSMS" name="channels" value="sms" onchange="toggleChannelChip('chipSMS', this)">
+                  <i class="ti ti-message fs-5"></i>
+                  <span>SMS</span>
+                </label>
+                <label class="comm-channel-chip" id="chipWA" style="padding: 7px 14px; font-size: 12.5px;">
+                  <input type="checkbox" id="chanWA" name="channels" value="whatsapp" onchange="toggleChannelChip('chipWA', this)">
+                  <i class="ti ti-brand-whatsapp fs-5"></i>
+                  <span>WhatsApp</span>
+                </label>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: MESSAGE CONTENT & ATTACHMENT -->
+        <div class="comm-step-card">
+          <div class="comm-step-header">
+            <div class="comm-step-badge">3</div>
+            <div>
+              <h5 class="comm-step-title">Message Details &amp; Content</h5>
+              <p class="comm-step-subtitle">Write your broadcast message, insert dynamic placeholders, or load from a saved template.</p>
+            </div>
+          </div>
+          <div class="comm-step-body">
+            
+            <!-- Template Quick Loader -->
+            <div class="mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2 p-2.5 bg-light rounded-3 border">
+              <div class="d-flex align-items-center gap-2">
+                <i class="ti ti-template text-primary fs-5"></i>
+                <span class="small fw-bold text-dark">Apply Saved Template:</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <select id="templatePickerSelect" class="form-select form-select-sm rounded-pill" style="min-width: 220px;" onchange="loadSelectedTemplate(this.value)">
+                  <option value="">-- Choose a template to load --</option>
+                  {% for tpl in templates_list %}
+                    <option value="{{ tpl.id }}">{{ tpl.name }} ({{ tpl.audience_type|title }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Subject Line & Internal Title Side-by-Side -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-dark">Email / Message Subject <span class="text-danger">*</span></label>
+                <input type="text" id="msgSubject" name="subject" class="form-control rounded-3" value="{{ initial_subject }}" placeholder="Subject seen by candidates or employers (e.g. Important Announcement &amp; Updates)" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-dark">Internal Reference Title <span class="text-danger">*</span></label>
+                <input type="text" id="msgTitle" name="title" class="form-control rounded-3" value="{{ initial_title }}" placeholder="e.g. October Hiring Drive &amp; Shortlist Updates" required>
+              </div>
+            </div>
+
+            <!-- Dynamic Placeholders Bar -->
+            <div class="mb-2">
+              <span class="small fw-bold text-muted me-2">Insert Personalization Tags:</span>
+              <div class="d-inline-flex flex-wrap gap-1.5 align-items-center">
+                {% verbatim %}
+                <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertPlaceholder('{{name}}')" title="Insert Name"><i class="ti ti-user text-primary"></i> Full Name</button>
+                <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertPlaceholder('{{email}}')" title="Insert Email"><i class="ti ti-mail text-info"></i> Email Address</button>
+                <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertPlaceholder('{{company_name}}')" title="Insert Company Name"><i class="ti ti-building text-success"></i> Company Name</button>
+                <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertPlaceholder('{{job_title}}')" title="Insert Job Title"><i class="ti ti-briefcase text-warning"></i> Job Title</button>
+                <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertPlaceholder('{{status}}')" title="Insert Status"><i class="ti ti-circle-check text-purple"></i> Status</button>
+                {% endverbatim %}
+              </div>
+            </div>
+
+            <!-- Rich Formatting Toolbar + Optional Attachment -->
+            <div class="comm-toolbar">
+              <button type="button" id="btnFormatBold" class="comm-toolbar-btn" title="Bold" onmousedown="event.preventDefault()" onclick="formatText('bold')"><i class="ti ti-bold"></i> Bold</button>
+              <button type="button" id="btnFormatItalic" class="comm-toolbar-btn" title="Italic" onmousedown="event.preventDefault()" onclick="formatText('italic')"><i class="ti ti-italic"></i> Italic</button>
+              <button type="button" id="btnFormatUnderline" class="comm-toolbar-btn" title="Underline" onmousedown="event.preventDefault()" onclick="formatText('underline')"><i class="ti ti-underline"></i> Underline</button>
+              <span class="text-muted">|</span>
+              <button type="button" id="btnFormatH3" class="comm-toolbar-btn" title="Heading 3" onmousedown="event.preventDefault()" onclick="formatText('h3')"><i class="ti ti-heading"></i> H3</button>
+              <button type="button" id="btnFormatUl" class="comm-toolbar-btn" title="Bullet List" onmousedown="event.preventDefault()" onclick="formatText('ul')"><i class="ti ti-list"></i> Bullet List</button>
+              <button type="button" id="btnFormatOl" class="comm-toolbar-btn" title="Numbered List" onmousedown="event.preventDefault()" onclick="formatText('ol')"><i class="ti ti-list-numbers"></i> Numbered List</button>
+              <button type="button" class="comm-toolbar-btn" title="Add Link" onmousedown="event.preventDefault()" onclick="formatLink()"><i class="ti ti-link"></i> Link</button>
+
+              <label for="msgAttachment" class="ms-auto mb-0 d-flex align-items-center gap-1.5 bg-white border rounded-2 px-2 py-1" style="cursor: pointer;" title="PDF, DOC, DOCX, JPG, PNG • Max {{ max_attachment_mb }} MB">
+                <i class="ti ti-paperclip text-primary"></i>
+                <span class="fw-bold text-dark text-nowrap" style="font-size: 11.5px;">Optional</span>
+                <span class="badge bg-light text-dark border fw-semibold text-truncate" id="attachmentFileBadge" style="font-size: 11px; max-width: 110px;">Choose file</span>
+                <input type="file" id="msgAttachment" name="attachment" class="d-none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleAttachmentChange(this)">
+              </label>
+            </div>
+
+            <!-- Message Body Rich Editor -->
+            <div class="mb-0">
+              <div id="msgBodyEditor" class="comm-textarea" contenteditable="true" data-placeholder="Compose message content here..." style="min-height: 210px; overflow-y: auto;">{{ initial_body|safe }}</div>
+              <textarea id="msgBody" name="body" class="d-none">{{ initial_body }}</textarea>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- BOTTOM ACTION CONTROLS -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 bg-white rounded-4 shadow-sm border mb-4">
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="btnMainSend" onclick="openConfirmModal()">
+              <i class="ti ti-send me-1"></i> Send Now
+            </button>
+            <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold border" onclick="saveDraft()">
+              <i class="ti ti-file-text me-1"></i> Save Draft
+            </button>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-info rounded-pill px-3 btn-sm fw-semibold" onclick="sendTestPreview()">
+              <i class="ti ti-eye me-1"></i> Test Preview
+            </button>
+            <button type="button" class="btn btn-outline-danger rounded-circle p-2" title="Reset form" onclick="resetForm()">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </form>
+
+</div>
+
+<!-- Confirmation Send Modal -->
+<div class="modal fade" id="confirmSendModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="ti ti-send text-primary me-2"></i>Confirm Broadcast Dispatch</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-muted small">You are about to dispatch this announcement. Please review the broadcast configuration:</p>
+
+        <div class="bg-light p-3 rounded-3 border mb-3">
+          <div class="small mb-1"><strong>Internal Title:</strong> <span id="modalMsgTitle"></span></div>
+          <div class="small mb-1"><strong>Target Audience:</strong> <span id="modalAudience" class="text-capitalize fw-bold"></span></div>
+          <div class="small mb-1"><strong>Filter Criteria:</strong> <span id="modalFilter" class="text-capitalize"></span></div>
+          <div class="small mb-1"><strong>Total Eligible Recipients:</strong> <span id="modalRecipientCount" class="fw-bold text-primary"></span></div>
+          <div class="small mb-1"><strong>Selected Channels:</strong> <span id="modalChannels" class="text-success fw-bold"></span></div>
+          <div class="small d-none" id="modalAttachmentRow"><strong>Attachment:</strong> <span id="modalAttachmentName" class="text-dark"></span></div>
+        </div>
+
+        <div class="alert alert-info border-0 p-3 rounded-3 mb-0 small">
+          <i class="ti ti-info-circle me-1"></i> Deliveries will begin immediately in the background with automatic retries and progress tracking.
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 p-4">
+        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="btnConfirmSend" class="btn btn-primary rounded-pill px-4 fw-bold text-white shadow-sm" onclick="submitSendMessage()">
+          <i class="ti ti-check me-1"></i> Confirm &amp; Dispatch Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Send Real Test Email Modal -->
+<div class="modal fade" id="testEmailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="ti ti-mail-forward text-primary me-2"></i>Send Test Email</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-muted small">Send a live test email to verify your SMTP configuration, formatting, and layout.</p>
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-dark">Target Recipient Email:</label>
+          <input type="email" id="testToEmail" class="form-control rounded-3" value="{{ email_host_user }}" placeholder="your-email@gmail.com">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-dark">Subject:</label>
+          <input type="text" id="testSubject" class="form-control rounded-3" value="Sky Vision SMTP Connection Test">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-dark">Message Body:</label>
+          <textarea id="testBody" class="form-control rounded-3" rows="3">Hello! This is a test email sent from Sky Vision Group Bulk Messaging Module.</textarea>
+        </div>
+        <div id="testResultAlert" class="alert d-none small mb-0"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0 p-4">
+        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="btnSubmitTestEmail" class="btn btn-primary rounded-pill px-4 fw-bold text-white shadow-sm" onclick="submitTestEmail()">
+          <i class="ti ti-send me-1"></i> Send Test Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  let confirmModal;
+  let testEmailModal;
+  let previewDebounceTimer = null;
+  const DAILY_REMAINING_EMAILS = {{ daily_remaining }};
+
+  document.addEventListener('DOMContentLoaded', () => {
+    confirmModal = new bootstrap.Modal(document.getElementById('confirmSendModal'));
+    testEmailModal = new bootstrap.Modal(document.getElementById('testEmailModal'));
+
+    generateIdempotencyKey();
+
+    document.getElementById('msgTitle').addEventListener('input', updateMockupCard);
+    document.getElementById('msgSubject').addEventListener('input', updateMockupCard);
+    const editor = document.getElementById('msgBodyEditor');
+    if (editor) {
+      // Auto convert any initial code placeholders to clean visual badges
+      editor.innerHTML = convertPlaceholdersToBadges(editor.innerHTML);
+      editor.addEventListener('input', () => {
+        syncEditorToTextarea();
+        updateToolbarState();
+      });
+      editor.addEventListener('keyup', updateToolbarState);
+      editor.addEventListener('mouseup', updateToolbarState);
+    }
+
+    updateMockupCard();
+    updatePreview(true);
+  });
+
+  function generateIdempotencyKey() {
+    const key = 'idem_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now();
+    document.getElementById('idempotencyKey').value = key;
+  }
+
+  function escapeHtmlText(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function getAudiencePayload() {
+    const audTypeInput = document.querySelector('input[name="audience_type"]:checked');
+    const audType = audTypeInput ? audTypeInput.value : 'candidate';
+
+    let candFilter = 'registered';
+    let includePending = false;
+    let specificCandidateIds = [];
+    let employerIds = [];
+
+    if (audType === 'candidate') {
+      const candSelect = document.getElementById('candFilterSelect');
+      if (candSelect && candSelect.value) {
+        candFilter = candSelect.value;
+      } else {
+        candFilter = 'registered';
+      }
+      const incPendingCheckbox = document.getElementById('candIncludePending');
+      if (incPendingCheckbox) {
+        includePending = incPendingCheckbox.checked;
+      }
+
+      const candMulti = document.getElementById('specificCandidateSelect');
+      if (candMulti) {
+        specificCandidateIds = Array.from(candMulti.selectedOptions).map(opt => opt.value).filter(val => val !== "");
+      }
+    } else {
+      const empSelect = document.getElementById('empFilterDropdown');
+      const empFilterVal = empSelect ? empSelect.value : 'all_approved';
+
+      if (empFilterVal === 'pending') {
+        candFilter = 'pending';
+      } else if (empFilterVal === 'specific') {
+        candFilter = 'specific';
+      } else {
+        candFilter = 'all_approved';
+      }
+      const empMulti = document.getElementById('employerSelect');
+      if (empMulti) {
+        employerIds = Array.from(empMulti.selectedOptions).map(opt => opt.value).filter(val => val !== "");
+      }
+    }
+
+    return {
+      audience_type: audType,
+      candidate_filter: candFilter,
+      include_pending: includePending,
+      specific_candidate_ids: specificCandidateIds,
+      employer_ids: employerIds,
+      job_id: null,
+      company_id: null,
+    };
+  }
+
+  function debouncedUpdatePreview(refreshCandidateSelect = false) {
+    clearTimeout(previewDebounceTimer);
+    previewDebounceTimer = setTimeout(() => updatePreview(refreshCandidateSelect), 200);
+  }
+
+  function selectAudience(type) {
+    const candRadio = document.getElementById('audCandidate');
+    const empRadio = document.getElementById('audEmployer');
+    const candCard = document.getElementById('cardCandidate');
+    const empCard = document.getElementById('cardEmployer');
+    const candBox = document.getElementById('candidateFilterBox');
+    const empBox = document.getElementById('employerFilterBox');
+    const candWrap = document.getElementById('specificCandidateSelectWrap');
+    const empWrap = document.getElementById('specificEmployerSelectWrap');
+
+    if (type === 'candidate') {
+      if (candRadio) candRadio.checked = true;
+      if (candCard) candCard.classList.add('active');
+      if (empCard) empCard.classList.remove('active');
+      if (candBox) candBox.classList.remove('opacity-50');
+      if (empBox) empBox.classList.add('opacity-50');
+      if (empWrap) empWrap.classList.add('d-none');
+    } else {
+      if (empRadio) empRadio.checked = true;
+      if (empCard) empCard.classList.add('active');
+      if (candCard) candCard.classList.remove('active');
+      if (candBox) candBox.classList.add('opacity-50');
+      if (empBox) empBox.classList.remove('opacity-50');
+      if (candWrap) candWrap.classList.add('d-none');
+    }
+    updatePreview(false);
+  }
+
+  function handleCandidateDropdownChange() {
+    const candSelect = document.getElementById('candFilterSelect');
+    const badge = document.getElementById('candFilterBadge');
+    const candWrap = document.getElementById('specificCandidateSelectWrap');
+    if (candSelect && badge) {
+      if (candSelect.value === 'shortlisted') {
+        badge.innerText = 'Shortlisted Candidate';
+      } else if (candSelect.value === 'selected') {
+        badge.innerText = 'Selected Candidate';
+      } else {
+        badge.innerText = 'Register Candidate';
+      }
+      if (candWrap) {
+        if (candSelect.value) {
+          candWrap.classList.remove('d-none');
+        } else {
+          candWrap.classList.add('d-none');
+        }
+      }
+    }
+    const bulkChk = document.getElementById('candBulkSelectAll');
+    if (bulkChk) {
+      bulkChk.checked = false;
+      bulkChk.indeterminate = false;
+    }
+    document.querySelectorAll('.cand-item-chk').forEach(chk => { chk.checked = false; });
+    const candMulti = document.getElementById('specificCandidateSelect');
+    if (candMulti) {
+      Array.from(candMulti.options).forEach(opt => { opt.selected = false; });
+    }
+    updatePreview(true);
+  }
+
+  function syncCandidateCheckboxesToSelect() {
+    const checkboxes = Array.from(document.querySelectorAll('.cand-item-chk'));
+    const checkedValues = new Set(checkboxes.filter(c => c.checked).map(c => String(c.value)));
+    const candMulti = document.getElementById('specificCandidateSelect');
+    if (candMulti) {
+      Array.from(candMulti.options).forEach(opt => {
+        opt.selected = checkedValues.has(String(opt.value));
+      });
+    }
+    const bulkChk = document.getElementById('candBulkSelectAll');
+    if (bulkChk) {
+      if (checkboxes.length === 0) {
+        bulkChk.checked = false;
+        bulkChk.indeterminate = false;
+      } else if (checkedValues.size === checkboxes.length) {
+        bulkChk.checked = true;
+        bulkChk.indeterminate = false;
+      } else if (checkedValues.size > 0) {
+        bulkChk.checked = false;
+        bulkChk.indeterminate = true;
+      } else {
+        bulkChk.checked = false;
+        bulkChk.indeterminate = false;
+      }
+    }
+    const catCountBadge = document.getElementById('candCategoryCountBadge');
+    if (catCountBadge) {
+      if (checkedValues.size > 0) {
+        catCountBadge.innerText = `${checkedValues.size} / ${checkboxes.length} Selected`;
+      } else {
+        catCountBadge.innerText = `${checkboxes.length} Candidate(s)`;
+      }
+    }
+  }
+
+  function toggleBulkCandidates(isChecked) {
+    selectAudience('candidate');
+    document.querySelectorAll('.cand-item-chk').forEach(chk => {
+      chk.checked = isChecked;
+    });
+    syncCandidateCheckboxesToSelect();
+    debouncedUpdatePreview(false);
+  }
+
+  function handleIndividualCandidateCheck() {
+    selectAudience('candidate');
+    syncCandidateCheckboxesToSelect();
+    debouncedUpdatePreview(false);
+  }
+
+  function syncEmployerCheckboxesToSelect() {
+    const checkboxes = Array.from(document.querySelectorAll('.emp-item-chk'));
+    const checkedValues = new Set(checkboxes.filter(c => c.checked).map(c => String(c.value)));
+    const empMulti = document.getElementById('employerSelect');
+    if (empMulti) {
+      Array.from(empMulti.options).forEach(opt => {
+        opt.selected = checkedValues.has(String(opt.value));
+      });
+    }
+    const bulkChk = document.getElementById('empBulkSelectAll');
+    if (bulkChk) {
+      if (checkboxes.length === 0) {
+        bulkChk.checked = false;
+        bulkChk.indeterminate = false;
+      } else if (checkedValues.size === checkboxes.length) {
+        bulkChk.checked = true;
+        bulkChk.indeterminate = false;
+      } else if (checkedValues.size > 0) {
+        bulkChk.checked = false;
+        bulkChk.indeterminate = true;
+      } else {
+        bulkChk.checked = false;
+        bulkChk.indeterminate = false;
+      }
+    }
+    const empCountBadge = document.getElementById('empCategoryCountBadge');
+    if (empCountBadge) {
+      if (checkedValues.size > 0) {
+        empCountBadge.innerText = `${checkedValues.size} / ${checkboxes.length} Selected`;
+      } else {
+        empCountBadge.innerText = `${checkboxes.length} Employer(s)`;
+      }
+    }
+  }
+
+  function toggleBulkEmployers(isChecked) {
+    selectAudience('employer');
+    document.querySelectorAll('.emp-item-chk').forEach(chk => {
+      chk.checked = isChecked;
+    });
+    syncEmployerCheckboxesToSelect();
+    debouncedUpdatePreview(false);
+  }
+
+  function handleIndividualEmployerCheck() {
+    selectAudience('employer');
+    syncEmployerCheckboxesToSelect();
+    debouncedUpdatePreview(false);
+  }
+
+  function handleEmployerDropdownChange() {
+    const empSelect = document.getElementById('empFilterDropdown');
+    const badge = document.getElementById('empFilterBadge');
+    const specificWrap = document.getElementById('specificEmployerSelectWrap');
+    if (empSelect) {
+      if (badge) {
+        if (empSelect.value === 'specific') {
+          badge.innerText = 'Specific Employer';
+        } else if (empSelect.value === 'pending') {
+          badge.innerText = 'Pending Approval Employer';
+        } else {
+          badge.innerText = 'All Approval Employer';
+        }
+      }
+      if (specificWrap) {
+        if (empSelect.value) {
+          specificWrap.classList.remove('d-none');
+        } else {
+          specificWrap.classList.add('d-none');
+        }
+      }
+    }
+    const bulkChk = document.getElementById('empBulkSelectAll');
+    if (bulkChk) {
+      bulkChk.checked = false;
+      bulkChk.indeterminate = false;
+    }
+    document.querySelectorAll('.emp-item-chk').forEach(chk => { chk.checked = false; });
+    const empMulti = document.getElementById('employerSelect');
+    if (empMulti) {
+      Array.from(empMulti.options).forEach(opt => { opt.selected = false; });
+    }
+    updatePreview(true);
+  }
+
+  function toggleChannelChip(chipId, inputParam) {
+    const chip = document.getElementById(chipId);
+    if (!chip) return;
+    const input = (typeof inputParam === 'string') ? document.getElementById(inputParam) : inputParam;
+    if (!input) return;
+
+    if (input.checked) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+    checkQuotaWarning();
+  }
+
+  function getSelectedChannels() {
+    const chans = [];
+    const chanDash = document.getElementById('chanDash');
+    if (chanDash && chanDash.checked) chans.push('dashboard');
+    const chanEmail = document.getElementById('chanEmail');
+    if (chanEmail && chanEmail.checked) chans.push('email');
+    const chanSMS = document.getElementById('chanSMS');
+    if (chanSMS && chanSMS.checked) chans.push('sms');
+    const chanWA = document.getElementById('chanWA');
+    if (chanWA && chanWA.checked) chans.push('whatsapp');
+    return chans;
+  }
+
+  let currentRecipientCount = 0;
+  function checkQuotaWarning() {
+    const chans = getSelectedChannels();
+    const quotaBanner = document.getElementById('quotaWarningBanner');
+    if (chans.includes('email') && currentRecipientCount > DAILY_REMAINING_EMAILS) {
+      quotaBanner.classList.remove('d-none');
+      document.getElementById('quotaWarningText').innerText = 
+        `You are sending to ${currentRecipientCount} recipients, but only ${DAILY_REMAINING_EMAILS} email(s) remain in today's daily limit. Excess recipients will stay Pending and can be resumed tomorrow.`;
+    } else {
+      quotaBanner.classList.add('d-none');
+    }
+  }
+
+  async function updatePreview(refreshCandidateSelect = false) {
+    const payload = getAudiencePayload();
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch('/admin-panel/communication/preview-recipients/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        currentRecipientCount = data.count;
+
+        if (refreshCandidateSelect && Array.isArray(data.candidates) && payload.audience_type === 'candidate') {
+          const candMulti = document.getElementById('specificCandidateSelect');
+          const chkList = document.getElementById('candidateCheckboxList');
+          const catCountBadge = document.getElementById('candCategoryCountBadge');
+          const bulkChk = document.getElementById('candBulkSelectAll');
+          if (bulkChk) {
+            bulkChk.checked = false;
+            bulkChk.indeterminate = false;
+          }
+          if (catCountBadge) {
+            catCountBadge.innerText = `${data.candidates.length} Candidate(s)`;
+          }
+          if (chkList) {
+            if (data.candidates.length === 0) {
+              chkList.innerHTML = '<div class="text-muted small px-2 py-1" style="font-size: 11.5px;">No candidates found in this category</div>';
+            } else {
+              chkList.innerHTML = data.candidates.map(c => `
+                <label class="d-flex align-items-center gap-2 px-2 py-1 rounded-2 mb-0" style="font-size: 12px; cursor: pointer;">
+                  <input type="checkbox" class="form-check-input mt-0 cand-item-chk" value="${c.id}" onchange="handleIndividualCandidateCheck()">
+                  <span class="text-truncate">${escapeHtmlText(c.full_name)} (${escapeHtmlText(c.email)})</span>
+                </label>
+              `).join('');
+            }
+          }
+          if (candMulti) {
+            if (data.candidates.length === 0) {
+              candMulti.innerHTML = '';
+            } else {
+              candMulti.innerHTML = data.candidates.map(c =>
+                `<option value="${c.id}">${escapeHtmlText(c.full_name)} (${escapeHtmlText(c.email)})</option>`
+              ).join('');
+            }
+          }
+        }
+
+        if (refreshCandidateSelect && Array.isArray(data.employers) && payload.audience_type === 'employer') {
+          const empMulti = document.getElementById('employerSelect');
+          const empChkList = document.getElementById('employerCheckboxList');
+          const empCountBadge = document.getElementById('empCategoryCountBadge');
+          const empBulkChk = document.getElementById('empBulkSelectAll');
+          if (empBulkChk) {
+            empBulkChk.checked = false;
+            empBulkChk.indeterminate = false;
+          }
+          if (empCountBadge) {
+            empCountBadge.innerText = `${data.employers.length} Employer(s)`;
+          }
+          if (empChkList) {
+            if (data.employers.length === 0) {
+              empChkList.innerHTML = '<div class="text-muted small px-2 py-1" style="font-size: 11.5px;">No employers found in this category</div>';
+            } else {
+              empChkList.innerHTML = data.employers.map(e => `
+                <label class="d-flex align-items-center gap-2 px-2 py-1 rounded-2 mb-0" style="font-size: 12px; cursor: pointer;">
+                  <input type="checkbox" class="form-check-input mt-0 emp-item-chk" value="${e.id}" onchange="handleIndividualEmployerCheck()">
+                  <span class="text-truncate">${escapeHtmlText(e.company_name)} — ${escapeHtmlText(e.contact_name)} (${escapeHtmlText(e.email)})</span>
+                </label>
+              `).join('');
+            }
+          }
+          if (empMulti) {
+            if (data.employers.length === 0) {
+              empMulti.innerHTML = '';
+            } else {
+              empMulti.innerHTML = data.employers.map(e =>
+                `<option value="${e.id}">${escapeHtmlText(e.company_name)} — ${escapeHtmlText(e.contact_name)} (${escapeHtmlText(e.email)})</option>`
+              ).join('');
+            }
+          }
+        }
+
+        const countBadge = document.getElementById('recipientCountBadge');
+        if (countBadge) countBadge.innerText = `${data.count} Recipients`;
+        const list = document.getElementById('recipientPreviewList');
+        const warn = document.getElementById('noRecipientsWarning');
+        const skippedNotice = document.getElementById('skippedNotice');
+
+        if (warn && list) {
+          if (data.count === 0) {
+            warn.classList.remove('d-none');
+            list.innerHTML = '<div class="p-3 text-muted text-center small">No recipients match current filter.</div>';
+          } else {
+            warn.classList.add('d-none');
+            list.innerHTML = data.preview.map(item => `
+              <div class="list-group-item p-2 d-flex align-items-center gap-2 border-0 border-bottom">
+                <div class="comm-step-badge" style="width:24px; height:24px; font-size:11px;">${item.substring(0,1).toUpperCase()}</div>
+                <div class="text-truncate small fw-semibold text-dark">${item}</div>
+              </div>
+            `).join('');
+          }
+        }
+
+        // Skipped analysis display
+        if (skippedNotice) {
+          if (data.skipped && data.skipped.total_skipped > 0) {
+            skippedNotice.classList.remove('d-none');
+            const skippedBadge = document.getElementById('skippedCountBadge');
+            if (skippedBadge) skippedBadge.innerText = `${data.skipped.total_skipped} Inactive/Opted-Out`;
+            const breakdown = document.getElementById('skippedBreakdownList');
+            if (breakdown) {
+              breakdown.innerHTML = '';
+              if (data.skipped.no_email > 0) breakdown.innerHTML += `<li>${data.skipped.no_email} missing email addresses</li>`;
+              if (data.skipped.opted_out > 0) breakdown.innerHTML += `<li>${data.skipped.opted_out} opted out of email</li>`;
+              if (data.skipped.duplicates > 0) breakdown.innerHTML += `<li>${data.skipped.duplicates} duplicate email addresses in audience</li>`;
+            }
+          } else {
+            skippedNotice.classList.add('d-none');
+          }
+        }
+
+        checkQuotaWarning();
+      }
+    } catch(e) {
+      console.error('Failed to update recipient preview', e);
+    }
+  }
+
+  function updateMockupCard() {
+    const cardTitle = document.getElementById('previewCardTitle');
+    if (!cardTitle) return;
+    const title = document.getElementById('msgTitle').value.trim() || 'Internal Title';
+    const subject = document.getElementById('msgSubject').value.trim() || 'Subject line preview...';
+    let body = document.getElementById('msgBody').value.trim() || 'Type message content to see live rendered preview...';
+
+    // Replace placeholders with samples for live phone preview
+    body = body
+      .replace(/\{\{\s*name\s*\}\}/gi, 'HARILAL')
+      .replace(/\{\{\s*email\s*\}\}/gi, 'harilal@gmail.com')
+      .replace(/\{\{\s*company_name\s*\}\}/gi, 'Sky Vision Group')
+      .replace(/\{\{\s*job_title\s*\}\}/gi, 'Software Engineer')
+      .replace(/\{\{\s*status\s*\}\}/gi, 'Shortlisted');
+
+    document.getElementById('previewCardTitle').innerText = title;
+    document.getElementById('previewCardSubject').innerText = subject;
+    document.getElementById('previewCardBody').innerHTML = body.replace(/\n/g, '<br>');
+  }
+
+  function convertPlaceholdersToBadges(html) {
+    if (!html) return '';
+    return html
+      .replace(/\{\{\s*name\s*\}\}/gi, '<span class="comm-var-badge" contenteditable="false" data-var="{{name}}"><i class="ti ti-user"></i> Full Name</span>')
+      .replace(/\{\{\s*email\s*\}\}/gi, '<span class="comm-var-badge" contenteditable="false" data-var="{{email}}"><i class="ti ti-mail"></i> Email Address</span>')
+      .replace(/\{\{\s*company_name\s*\}\}/gi, '<span class="comm-var-badge" contenteditable="false" data-var="{{company_name}}"><i class="ti ti-building"></i> Company Name</span>')
+      .replace(/\{\{\s*job_title\s*\}\}/gi, '<span class="comm-var-badge" contenteditable="false" data-var="{{job_title}}"><i class="ti ti-briefcase"></i> Job Title</span>')
+      .replace(/\{\{\s*status\s*\}\}/gi, '<span class="comm-var-badge" contenteditable="false" data-var="{{status}}"><i class="ti ti-circle-check"></i> Status</span>');
+  }
+
+  function convertBadgesToPlaceholders(html) {
+    if (!html) return '';
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    temp.querySelectorAll('.comm-var-badge').forEach(badge => {
+      const rawVar = badge.getAttribute('data-var') || '{{name}}';
+      badge.replaceWith(document.createTextNode(rawVar));
+    });
+    return temp.innerHTML;
+  }
+
+  function syncEditorToTextarea() {
+    const editor = document.getElementById('msgBodyEditor');
+    const textarea = document.getElementById('msgBody');
+    if (!editor || !textarea) return;
+    const rawHtml = editor.innerHTML.trim();
+    if (!editor.innerText.trim() && (rawHtml === '' || rawHtml === '<br>' || rawHtml === '<div><br></div>')) {
+      textarea.value = '';
+    } else {
+      textarea.value = convertBadgesToPlaceholders(rawHtml);
+    }
+    updateMockupCard();
+  }
+
+  function setEditorContent(content) {
+    const editor = document.getElementById('msgBodyEditor');
+    const textarea = document.getElementById('msgBody');
+    const str = content || '';
+    if (editor) {
+      editor.innerHTML = convertPlaceholdersToBadges(str.replace(/\n/g, '<br>'));
+    }
+    if (textarea) {
+      textarea.value = str;
+    }
+    updateMockupCard();
+  }
+
+  function updateToolbarState() {
+    const map = [
+      { id: 'btnFormatBold', cmd: 'bold' },
+      { id: 'btnFormatItalic', cmd: 'italic' },
+      { id: 'btnFormatUnderline', cmd: 'underline' },
+      { id: 'btnFormatUl', cmd: 'insertUnorderedList' },
+      { id: 'btnFormatOl', cmd: 'insertOrderedList' }
+    ];
+    map.forEach(item => {
+      const btn = document.getElementById(item.id);
+      if (btn) {
+        try {
+          if (document.queryCommandState(item.cmd)) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        } catch(e) {}
+      }
+    });
+    const h3Btn = document.getElementById('btnFormatH3');
+    if (h3Btn) {
+      try {
+        const block = String(document.queryCommandValue('formatBlock') || '').toLowerCase();
+        if (block === 'h3') {
+          h3Btn.classList.add('active');
+        } else {
+          h3Btn.classList.remove('active');
+        }
+      } catch(e) {}
+    }
+  }
+
+  function formatText(cmd) {
+    const editor = document.getElementById('msgBodyEditor');
+    if (!editor) return;
+    editor.focus();
+
+    if (cmd === 'bold') {
+      document.execCommand('bold', false, null);
+    } else if (cmd === 'italic') {
+      document.execCommand('italic', false, null);
+    } else if (cmd === 'underline') {
+      document.execCommand('underline', false, null);
+    } else if (cmd === 'h3') {
+      const currentBlock = String(document.queryCommandValue('formatBlock') || '').toLowerCase();
+      if (currentBlock === 'h3') {
+        document.execCommand('formatBlock', false, 'div');
+      } else {
+        document.execCommand('formatBlock', false, 'h3');
+      }
+    } else if (cmd === 'ul') {
+      document.execCommand('insertUnorderedList', false, null);
+    } else if (cmd === 'ol') {
+      document.execCommand('insertOrderedList', false, null);
+    }
+
+    syncEditorToTextarea();
+    updateToolbarState();
+  }
+
+  function formatLink() {
+    const editor = document.getElementById('msgBodyEditor');
+    if (!editor) return;
+    editor.focus();
+
+    const sel = window.getSelection();
+    const anchorNode = sel && sel.anchorNode ? (sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode) : null;
+    const existingLink = anchorNode && anchorNode.closest ? anchorNode.closest('a') : null;
+
+    if (existingLink) {
+      document.execCommand('unlink', false, null);
+    } else {
+      const selectedText = sel ? sel.toString().trim() : '';
+      if (selectedText) {
+        const href = /^(https?:\/\/|mailto:)/i.test(selectedText) ? selectedText : `https://${selectedText.replace(/^\/+/, '')}`;
+        document.execCommand('createLink', false, href);
+      } else {
+        document.execCommand('underline', false, null);
+      }
+    }
+
+    syncEditorToTextarea();
+    updateToolbarState();
+  }
+
+  function insertPlaceholder(ph) {
+    const editor = document.getElementById('msgBodyEditor');
+    if (!editor) return;
+    editor.focus();
+    let badgeHtml = '';
+    if (ph.includes('name')) {
+      badgeHtml = '<span class="comm-var-badge" contenteditable="false" data-var="{{name}}"><i class="ti ti-user"></i> Full Name</span>&nbsp;';
+    } else if (ph.includes('email')) {
+      badgeHtml = '<span class="comm-var-badge" contenteditable="false" data-var="{{email}}"><i class="ti ti-mail"></i> Email Address</span>&nbsp;';
+    } else if (ph.includes('company_name')) {
+      badgeHtml = '<span class="comm-var-badge" contenteditable="false" data-var="{{company_name}}"><i class="ti ti-building"></i> Company Name</span>&nbsp;';
+    } else if (ph.includes('job_title')) {
+      badgeHtml = '<span class="comm-var-badge" contenteditable="false" data-var="{{job_title}}"><i class="ti ti-briefcase"></i> Job Title</span>&nbsp;';
+    } else if (ph.includes('status')) {
+      badgeHtml = '<span class="comm-var-badge" contenteditable="false" data-var="{{status}}"><i class="ti ti-circle-check"></i> Status</span>&nbsp;';
+    } else {
+      badgeHtml = `<span class="comm-var-badge" contenteditable="false" data-var="${ph}">${ph}</span>&nbsp;`;
+    }
+    document.execCommand('insertHTML', false, badgeHtml);
+    syncEditorToTextarea();
+  }
+
+  async function loadSelectedTemplate(tplId) {
+    if (!tplId) return;
+    try {
+      const res = await fetch(`/admin-panel/communication/templates/${tplId}/json/`);
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        const tpl = data.template;
+        document.getElementById('msgTitle').value = `${tpl.name} Broadcast`;
+        
+        // Clean subject of any raw {{...}} brackets if present
+        let cleanSubject = (tpl.subject || '')
+          .replace(/\{\{\s*company_name\s*\}\}/gi, 'Partner Organization')
+          .replace(/\{\{\s*name\s*\}\}/gi, 'Candidate')
+          .replace(/\{\{\s*job_title\s*\}\}/gi, 'Position')
+          .replace(/\{\{\s*status\s*\}\}/gi, 'Status');
+        document.getElementById('msgSubject').value = cleanSubject;
+
+        setEditorContent(tpl.body);
+
+        if (tpl.audience_type === 'employer') {
+          selectAudience('employer');
+        } else {
+          selectAudience('candidate');
+        }
+
+        updateMockupCard();
+        showToast(`Template '${tpl.name}' applied!`, 'success');
+      }
+    } catch(e) {
+      showToast('Failed to load template.', 'error');
+    }
+  }
+
+  function handleAttachmentChange(input) {
+    const file = input.files[0];
+    const previewBadge = document.getElementById('previewAttachmentBadge');
+    const previewName = document.getElementById('previewAttachmentName');
+    const fileBadge = document.getElementById('attachmentFileBadge');
+
+    if (file) {
+      const maxMb = {{ max_attachment_mb }};
+      if (file.size > maxMb * 1024 * 1024) {
+        alert(`File size exceeds maximum allowed ${maxMb} MB.`);
+        input.value = '';
+        if (previewBadge) previewBadge.classList.add('d-none');
+        if (fileBadge) fileBadge.innerText = 'Choose file';
+        return;
+      }
+      if (fileBadge) fileBadge.innerText = file.name;
+      if (previewBadge && previewName) {
+        previewBadge.classList.remove('d-none');
+        previewName.innerText = file.name;
+      }
+    } else {
+      if (fileBadge) fileBadge.innerText = 'Choose file';
+      if (previewBadge) previewBadge.classList.add('d-none');
+    }
+  }
+
+  function openConfirmModal() {
+    const title = document.getElementById('msgTitle').value.trim();
+    const subject = document.getElementById('msgSubject').value.trim();
+    const body = document.getElementById('msgBody').value.trim();
+    const channels = getSelectedChannels();
+
+    if (!title || !subject || !body) {
+      showToast('Please fill in Title, Subject, and Message Body.', 'error');
+      return;
+    }
+
+    if (channels.length === 0) {
+      showToast('Please select at least one delivery channel (Email or Dashboard).', 'error');
+      return;
+    }
+
+    const payload = getAudiencePayload();
+    document.getElementById('modalMsgTitle').innerText = title;
+    document.getElementById('modalAudience').innerText = payload.audience_type;
+    const modalFilter = document.getElementById('modalFilter');
+    if (modalFilter) {
+      if (payload.audience_type === 'candidate') {
+        const candSelect = document.getElementById('candFilterSelect');
+        modalFilter.innerText = candSelect ? candSelect.options[candSelect.selectedIndex].text : payload.candidate_filter;
+      } else {
+        const empSelect = document.getElementById('empFilterDropdown');
+        modalFilter.innerText = empSelect ? empSelect.options[empSelect.selectedIndex].text : payload.candidate_filter;
+      }
+    }
+    const countBadge = document.getElementById('recipientCountBadge');
+    document.getElementById('modalRecipientCount').innerText = countBadge ? countBadge.innerText : `${currentRecipientCount} Recipients`;
+    document.getElementById('modalChannels').innerText = channels.join(', ').toUpperCase();
+
+    const fileInput = document.getElementById('msgAttachment');
+    const attachRow = document.getElementById('modalAttachmentRow');
+    if (fileInput.files.length > 0) {
+      attachRow.classList.remove('d-none');
+      document.getElementById('modalAttachmentName').innerText = fileInput.files[0].name;
+    } else {
+      attachRow.classList.add('d-none');
+    }
+
+    confirmModal.show();
+  }
+
+  async function submitSendMessage() {
+    const btn = document.getElementById('btnConfirmSend');
+    const mainBtn = document.getElementById('btnMainSend');
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    mainBtn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Dispatching...';
+
+    const payload = getAudiencePayload();
+    const channels = getSelectedChannels();
+
+    const formData = new FormData(document.getElementById('composeForm'));
+    formData.set('action', 'send');
+    formData.set('audience_type', payload.audience_type);
+    formData.set('candidate_filter', payload.candidate_filter);
+    formData.set('include_pending', payload.include_pending ? 'true' : 'false');
+    formData.delete('channels');
+    channels.forEach(ch => formData.append('channels', ch));
+
+    if (payload.employer_ids && payload.employer_ids.length > 0) {
+      formData.delete('employer_ids');
+      payload.employer_ids.forEach(id => formData.append('employer_ids', id));
+    }
+    if (payload.specific_candidate_ids && payload.specific_candidate_ids.length > 0) {
+      formData.delete('specific_candidate_ids');
+      payload.specific_candidate_ids.forEach(id => formData.append('specific_candidate_ids', id));
+    }
+
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch('/admin-panel/communication/send/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        btn.innerHTML = '<i class="ti ti-check me-1"></i> Dispatched!';
+        showToast(data.message, 'success');
+        setTimeout(() => {
+          confirmModal.hide();
+          window.location.href = '/admin-panel/communication/history/';
+        }, 750);
+      } else {
+        showToast(data.message || 'Failed to dispatch message.', 'error');
+        btn.disabled = false;
+        mainBtn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    } catch(e) {
+      showToast('Network error while dispatching message.', 'error');
+      btn.disabled = false;
+      mainBtn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+
+  async function saveDraft() {
+    const title = document.getElementById('msgTitle').value.trim();
+    if (!title) {
+      showToast('Please enter an internal title to save draft.', 'error');
+      return;
+    }
+
+    const payload = getAudiencePayload();
+    const channels = getSelectedChannels();
+
+    const formData = new FormData(document.getElementById('composeForm'));
+    formData.set('action', 'draft');
+    formData.set('audience_type', payload.audience_type);
+    formData.set('candidate_filter', payload.candidate_filter);
+    formData.set('include_pending', payload.include_pending ? 'true' : 'false');
+    formData.delete('channels');
+    channels.forEach(ch => formData.append('channels', ch));
+
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch('/admin-panel/communication/send/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        showToast('Draft saved successfully!', 'success');
+      } else {
+        showToast(data.message || 'Failed to save draft.', 'error');
+      }
+    } catch(e) {
+      showToast('Network error saving draft.', 'error');
+    }
+  }
+
+  async function sendTestPreview() {
+    const subject = document.getElementById('msgSubject').value.trim();
+    const body = document.getElementById('msgBody').value.trim();
+    if (!subject || !body) {
+      showToast('Please enter subject and message body for preview.', 'error');
+      return;
+    }
+
+    const payload = getAudiencePayload();
+    const formData = new FormData(document.getElementById('composeForm'));
+    formData.set('action', 'test');
+    formData.set('audience_type', payload.audience_type);
+    formData.set('candidate_filter', payload.candidate_filter);
+
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch('/admin-panel/communication/send/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        showToast(`Preview Generated!\nSubject: ${data.test_subject}`, 'success');
+      } else {
+        showToast(data.message || 'Test preview failed.', 'error');
+      }
+    } catch(e) {
+      showToast('Network error generating test preview.', 'error');
+    }
+  }
+
+  function openTestEmailModal() {
+    testEmailModal.show();
+  }
+
+  async function submitTestEmail() {
+    const btn = document.getElementById('btnSubmitTestEmail');
+    const alertBox = document.getElementById('testResultAlert');
+    const toEmail = document.getElementById('testToEmail').value.trim();
+    const subject = document.getElementById('testSubject').value.trim();
+    const body = document.getElementById('testBody').value.trim();
+
+    if (!toEmail) {
+      alertBox.className = 'alert alert-danger small';
+      alertBox.innerText = 'Please enter a target recipient email address.';
+      alertBox.classList.remove('d-none');
+      return;
+    }
+
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+    alertBox.classList.add('d-none');
+
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch('/admin-panel/communication/send-test/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ to_email: toEmail, subject: subject, body: body })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        alertBox.className = 'alert alert-success small';
+        alertBox.innerText = data.message;
+        alertBox.classList.remove('d-none');
+      } else {
+        alertBox.className = 'alert alert-danger small';
+        alertBox.innerText = data.message || 'Test email failed.';
+        alertBox.classList.remove('d-none');
+      }
+    } catch(e) {
+      alertBox.className = 'alert alert-danger small';
+      alertBox.innerText = 'Network error while sending test email.';
+      alertBox.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+
+  function resetForm() {
+    if (confirm('Are you sure you want to reset all broadcast composer fields?')) {
+      document.getElementById('composeForm').reset();
+      setEditorContent('');
+      const fileBadge = document.getElementById('attachmentFileBadge');
+      if (fileBadge) fileBadge.innerText = 'Choose file';
+      generateIdempotencyKey();
+      selectAudience('candidate');
+      handleCandidateDropdownChange();
+      handleEmployerDropdownChange();
+      updateMockupCard();
+      debouncedUpdatePreview();
+    }
+  }
+
+  function showToast(msg, type = 'success') {
+    const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+    let container = document.getElementById('composerToastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'composerToastContainer';
+      container.style.cssText = 'position:fixed; top:20px; right:20px; z-index:99999; max-width:380px;';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `p-3 rounded-3 shadow-lg ${bgClass} mb-2 d-flex align-items-center justify-content-between gap-2`;
+    toast.style.cssText = 'font-size:13px; font-weight:600; transition:all 0.3s ease;';
+    toast.innerHTML = `
+      <div>${msg.replace(/\n/g, '<br>')}</div>
+      <button type="button" class="btn-close btn-close-white ms-2" onclick="this.parentElement.remove()"></button>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentElement) toast.remove();
+    }, 4500);
+  }
+</script>
+{% endblock %}

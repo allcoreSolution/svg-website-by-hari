@@ -1,0 +1,343 @@
+/* ==========================================
+   MOBILE VIEW (320px - 768px)
+========================================== */
+
+@media (max-width:868px){
+
+    *{
+        box-sizing:border-box;
+    }
+
+    body{
+        overflow-x:clip;
+    }
+
+    .container{
+        width:100%;
+        overflow:hidden;
+    }
+
+    /*====================
+      TOP BAR
+    ====================*/
+
+    .top-bar{
+        display:relative;
+    }
+
+    /*====================
+      NAVBAR
+    ====================*/
+
+    .navbar{
+        padding:15px 20px;
+        justify-content:space-between;
+    }
+
+    .logo img{
+        width:150px;
+    }
+
+    .menu-toggle{
+        display:block;
+        font-size:24px;
+    }
+
+    .nav-links{
+        position:absolute;
+        top:100%;
+        left:0;
+        width:100%;
+        background:#fff;
+        display:flex;
+        flex-direction:column;
+        padding:20px;
+        gap:15px;
+        display:none;
+        box-shadow:0 8px 20px rgba(0,0,0,.1);
+    }
+
+    .nav-links.active{
+        display:flex;
+    }
+
+    .call-btn{
+        display:none;
+    }
+
+    /*====================
+      HERO
+    ====================*/
+
+    .hero{
+        padding:60px 20px;
+    }
+
+    .hero-inner{
+        flex-direction:column;
+        gap:40px;
+    }
+
+    .hero-copy,
+    .growth-path{
+        width:100%;
+    }
+
+    .hero-copy h1{
+        font-size:34px;
+        line-height:1.2;
+    }
+
+    .hero-copy p{
+        font-size:15px;
+    }
+
+    .hero-actions{
+        flex-direction:column;
+    }
+
+    .hero-actions a{
+        width:100%;
+        text-align:center;
+    }
+
+    /*====================
+      STATS
+    ====================*/
+
+    .stats-grid{
+        grid-template-columns:1fr;
+        gap:20px;
+    }
+
+    /*====================
+      SEARCH
+    ====================*/
+
+    .search-box{
+        flex-direction:column;
+    }
+
+    .search-field,
+    .search-box button{
+        width:100%;
+    }
+
+    /*====================
+      SERVICES
+    ====================*/
+
+    .services-container{
+        grid-template-columns:1fr;
+    }
+
+    /*====================
+      ABOUT
+    ====================*/
+
+    .about-container{
+        flex-direction:column;
+    }
+
+    .about-visual,
+    .about-copy{
+        width:100%;
+    }
+
+    .about-box{
+        flex-direction:column;
+    }
+
+    /*====================
+      WHY US
+    ====================*/
+
+    .why-container{
+        grid-template-columns:1fr;
+    }
+
+    /*====================
+      INDUSTRIES
+    ====================*/
+
+    .industry-grid{
+        grid-template-columns:repeat(2,1fr);
+        gap:15px;
+    }
+
+    /*====================
+      INTERNSHIP
+    ====================*/
+
+    .internship-container{
+        grid-template-columns:1fr;
+    }
+
+    .internship-bottom{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    /*====================
+      JOB CATEGORY
+    ====================*/
+
+    .category-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    /*====================
+      FEATURED CANDIDATE
+    ====================*/
+
+    .carousel-track{
+        gap:20px;
+    }
+
+    .employer-card{
+        min-width:100%;
+    }
+
+    /*====================
+      LATEST JOB
+    ====================*/
+
+    .jobs-grid{
+        grid-template-columns:1fr;
+    }
+
+    .job-filter{
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+
+    /*====================
+      GALLERY
+    ====================*/
+
+    .gallery-container{
+        grid-template-columns:1fr;
+    }
+
+    .gallery-info-section{
+        grid-template-columns:1fr;
+    }
+
+    /*====================
+      CONTACT
+    ====================*/
+
+    .contact-container{
+        grid-template-columns:1fr;
+    }
+
+    .contact-form-row{
+        flex-direction:column;
+    }
+
+    .contact-input,
+    .contact-select{
+        width:100%;
+    }
+
+    /*====================
+      FOOTER
+    ====================*/
+
+    .footer-container{
+        grid-template-columns:1fr;
+        text-align:center;
+    }
+
+    .footer-bottom{
+        flex-direction:column;
+        gap:15px;
+        text-align:center;
+    }
+
+}
+/* =========================================================
+   BLOG PAGE — RESPONSIVE / MOBILE STYLES
+   Page-specific breakpoints only. Shared components
+   (navbar, footer, stats, buttons) come from responsive.css
+========================================================= */
+
+@media (max-width: 991px) {
+    .blog-hero-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .blog-hero-copy p {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .blog-hero-actions {
+        justify-content: center;
+    }
+    .blog-hero-visual {
+        order: -1;
+    }
+
+    .blog-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .featured-article {
+        grid-template-columns: 1fr;
+    }
+    .featured-article-img {
+        min-height: 200px;
+    }
+
+    .dream-cta-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .dream-cta-visual img {
+        margin: 0 auto;
+    }
+    .dream-cta-actions {
+        justify-content: center;
+    }
+    .dream-cta-features {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .blog-hero {
+        padding: 44px 6%;
+    }
+    .blog-main {
+        padding: 50px 6%;
+    }
+    .blog-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .dream-cta {
+        padding: 44px 6%;
+    }
+    .dream-cta-inner {
+        padding: 28px;
+    }
+}
+
+@media (max-width: 560px) {
+    .blog-hero-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+    .blog-grid {
+        grid-template-columns: 1fr;
+    }
+    .dream-cta-features {
+        grid-template-columns: 1fr;
+    }
+    .dream-cta-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+        width: 100%;
+    }
+    .blog-hero-visual::before {
+    inset: -14px 10px -6px 10px;
+}
+}

@@ -1,0 +1,475 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal Login — Sky Vision Group Consultancy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/admin/login.css' %}">
+  <style>
+    .auth-form[hidden],
+    .auth-form.hidden,
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="auth-body">
+
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+
+  <div class="auth-container">
+
+    <!-- LEFT: HERO BRANDING PANEL -->
+    <aside class="auth-hero-panel">
+      <div class="brand-box">
+        <div class="brand-logo-card">
+          <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy">
+        </div>
+
+        <div class="suite-badge">
+          <i class="fa-solid fa-shield-halved"></i> Enterprise Suite
+        </div>
+
+        <h1 class="auth-hero-title">Applications, resumes and enquiries in one place.</h1>
+        <p class="auth-hero-desc">
+          Unified central administration for candidate onboarding, corporate hiring pipelines, and placement intelligence.
+        </p>
+
+        <ul class="hero-features">
+          <li class="hero-feature-item">
+            <div class="feature-icon-wrap">
+              <i class="fa-solid fa-users-viewfinder"></i>
+            </div>
+            <div class="feature-text">
+              <h4>Candidate & Resume Hub</h4>
+              <p>Filter candidates, view resumes, and manage interview pipelines seamlessly.</p>
+            </div>
+          </li>
+
+          <li class="hero-feature-item">
+            <div class="feature-icon-wrap">
+              <i class="fa-solid fa-building-user"></i>
+            </div>
+            <div class="feature-text">
+              <h4>Corporate Enquiries</h4>
+              <p>Real-time corporate intake, partnership leads, and placement drives.</p>
+            </div>
+          </li>
+
+          <li class="hero-feature-item">
+            <div class="feature-icon-wrap">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <div class="feature-text">
+              <h4>Protected Admin Environment</h4>
+              <p>Secure password hashing, brute-force rate limiting, and encrypted sessions.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="hero-footer">
+        <span>Sky Vision Group Consultancy</span>
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span>System Online</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: AUTH FORMS PANEL -->
+    <main class="auth-form-panel">
+      
+      <div class="mobile-logo-bar">
+        <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group">
+      </div>
+
+      <!-- 1. LOGIN VIEW -->
+      <form id="loginView" class="auth-form">
+        {% csrf_token %}
+        <div class="form-header">
+          <div class="form-header-badge">
+            <i class="fa-solid fa-user-shield"></i> Admin Authentication
+          </div>
+          <h2>Admin Sign In</h2>
+          <p>Enter your administrator credentials to access the console</p>
+        </div>
+
+        <div class="input-group">
+          <label for="email">
+            <span>Email Address</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope input-icon"></i>
+            <input 
+              id="email" 
+              class="auth-input" 
+              type="email" 
+              placeholder="e.g. harilal@gmail.com" 
+              autocomplete="username" 
+              required
+              autofocus
+            >
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="pw">
+            <span>Password</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input 
+              id="pw" 
+              class="auth-input" 
+              type="password" 
+              placeholder="Enter your password" 
+              autocomplete="current-password" 
+              required
+            >
+            <button type="button" class="toggle-pw-btn" id="togglePw" aria-label="Toggle password visibility">
+              <i class="fa-regular fa-eye" id="toggleIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-options-row">
+          <label class="custom-checkbox">
+            <input type="checkbox" id="rememberMe">
+            <span>Remember email</span>
+          </label>
+          <button type="button" class="link-btn" data-go="forgotView">Forgot password?</button>
+        </div>
+
+        <button class="auth-submit-btn" id="loginBtn" type="submit">
+          <span id="loginBtnText">Sign In to Dashboard</span>
+          <i class="fa-solid fa-arrow-right" id="loginBtnIcon"></i>
+        </button>
+      </form>
+
+      <!-- 2. FORGOT PASSWORD VIEW -->
+      <form id="forgotView" class="auth-form hidden" hidden style="display: none;">
+        {% csrf_token %}
+        <div class="form-header">
+          <div class="form-header-badge">
+            <i class="fa-solid fa-key"></i> Account Recovery
+          </div>
+          <h2>Forgot Password?</h2>
+          <p>Enter your admin email. We'll send you a secure link to reset your password (valid for 30 minutes).</p>
+        </div>
+
+        <div class="input-group">
+          <label for="femail">
+            <span>Admin Email Address</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope input-icon"></i>
+            <input 
+              id="femail" 
+              class="auth-input" 
+              type="email" 
+              placeholder="e.g. harilal@gmail.com" 
+              required
+            >
+          </div>
+        </div>
+
+        <button class="auth-submit-btn" id="forgotBtn" type="submit">
+          <span id="forgotBtnText">Send Reset Link</span>
+          <i class="fa-solid fa-paper-plane" id="forgotBtnIcon"></i>
+        </button>
+
+        <div class="back-to-login-row">
+          <button type="button" class="back-to-login-btn" data-go="loginView">
+            <i class="fa-solid fa-arrow-left"></i> Back to login
+          </button>
+        </div>
+      </form>
+
+      <!-- 3. RESET PASSWORD VIEW -->
+      <form id="resetView" class="auth-form hidden" hidden style="display: none;">
+        {% csrf_token %}
+        <div class="form-header">
+          <div class="form-header-badge">
+            <i class="fa-solid fa-shield-halved"></i> Security Verification
+          </div>
+          <h2>Set New Password</h2>
+          <p>Please enter and confirm your new administrator password (minimum 8 characters).</p>
+        </div>
+
+        <div class="input-group">
+          <label for="np1">
+            <span>New Password</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input 
+              id="np1" 
+              class="auth-input" 
+              type="password" 
+              placeholder="At least 8 characters" 
+              autocomplete="new-password" 
+              minlength="8" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="np2">
+            <span>Confirm New Password</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input 
+              id="np2" 
+              class="auth-input" 
+              type="password" 
+              placeholder="Re-enter new password" 
+              autocomplete="new-password" 
+              minlength="8" 
+              required
+            >
+          </div>
+        </div>
+
+        <button class="auth-submit-btn" id="resetBtn" type="submit">
+          <span id="resetBtnText">Save New Password</span>
+          <i class="fa-solid fa-check" id="resetBtnIcon"></i>
+        </button>
+
+        <div class="back-to-login-row">
+          <button type="button" class="back-to-login-btn" data-go="loginView">
+            <i class="fa-solid fa-arrow-left"></i> Back to login
+          </button>
+        </div>
+      </form>
+
+      <!-- Alert / Toast Message -->
+      <div id="msg" class="auth-alert" role="alert">
+        <i id="msgIcon" class="fa-solid fa-circle-exclamation"></i>
+        <span id="msgText"></span>
+      </div>
+
+      <!-- Card Footer -->
+      <footer class="auth-panel-footer">
+        <span>© 2026 Sky Vision Group</span>
+        <div class="security-tag">
+          <i class="fa-solid fa-lock"></i> 256-Bit SSL Encrypted
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const views = ["loginView", "forgotView", "resetView"];
+    const token = new URLSearchParams(location.search).get("token");
+
+    const savedEmail = localStorage.getItem("sky_admin_saved_email");
+    if (savedEmail) {
+      $("email").value = savedEmail;
+      $("rememberMe").checked = true;
+    }
+
+    function say(text, type = "err") {
+      const m = $("msg");
+      const mText = $("msgText");
+      const mIcon = $("msgIcon");
+
+      if (!text) {
+        m.classList.remove("visible", "ok", "err", "warn");
+        return;
+      }
+
+      mText.textContent = text;
+      m.classList.remove("ok", "err", "warn");
+
+      if (type === "ok" || type === true) {
+        m.classList.add("visible", "ok");
+        mIcon.className = "fa-solid fa-circle-check";
+      } else if (type === "warn") {
+        m.classList.add("visible", "warn");
+        mIcon.className = "fa-solid fa-triangle-exclamation";
+      } else {
+        m.classList.add("visible", "err");
+        mIcon.className = "fa-solid fa-circle-exclamation";
+      }
+    }
+
+    function show(name) {
+      views.forEach(v => {
+        const el = $(v);
+        if (!el) return;
+        if (v === name) {
+          el.removeAttribute("hidden");
+          el.classList.remove("hidden");
+          el.style.display = "flex";
+        } else {
+          el.setAttribute("hidden", "");
+          el.classList.add("hidden");
+          el.style.display = "none";
+        }
+      });
+      say("");
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    async function post(url, body) {
+      try {
+        const csrfToken = getCookie("csrftoken") || document.querySelector('[name=csrfmiddlewaretoken]')?.value || "";
+        const r = await fetch(url, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
+          },
+          body: JSON.stringify(body)
+        });
+        return await r.json();
+      } catch (e) {
+        return { status: "error", message: "Cannot reach the server. Please verify the backend is running." };
+      }
+    }
+
+    document.querySelectorAll("[data-go]").forEach(b => {
+      b.addEventListener("click", e => {
+        e.preventDefault();
+        show(b.dataset.go);
+      });
+    });
+
+    const pwInput = $("pw");
+    const toggleBtn = $("togglePw");
+    const toggleIcon = $("toggleIcon");
+
+    if (toggleBtn) {
+      toggleBtn.onclick = () => {
+        const isPassword = pwInput.type === "password";
+        pwInput.type = isPassword ? "text" : "password";
+        toggleIcon.className = isPassword ? "fa-regular fa-eye-slash" : "fa-regular fa-eye";
+      };
+    }
+
+    function setBtnLoading(btn, textSpan, iconSpan, isLoading, defaultText, defaultIconClass, loadingText = "Processing...") {
+      if (isLoading) {
+        btn.disabled = true;
+        textSpan.textContent = loadingText;
+        iconSpan.className = "fa-solid fa-circle-notch fa-spin";
+      } else {
+        btn.disabled = false;
+        textSpan.textContent = defaultText;
+        iconSpan.className = defaultIconClass;
+      }
+    }
+
+    $("loginView").onsubmit = async e => {
+      e.preventDefault();
+      say("");
+
+      const emailVal = $("email").value.trim();
+      const pwVal = $("pw").value;
+
+      if ($("rememberMe").checked) {
+        localStorage.setItem("sky_admin_saved_email", emailVal);
+      } else {
+        localStorage.removeItem("sky_admin_saved_email");
+      }
+
+      const btn = $("loginBtn");
+      const btnText = $("loginBtnText");
+      const btnIcon = $("loginBtnIcon");
+
+      setBtnLoading(btn, btnText, btnIcon, true, "Sign In to Dashboard", "fa-solid fa-arrow-right", "Signing In...");
+
+      const res = await post("/api/admin/login", { email: emailVal, password: pwVal });
+
+      setBtnLoading(btn, btnText, btnIcon, false, "Sign In to Dashboard", "fa-solid fa-arrow-right");
+
+      if (res.status === "success") {
+        say("Authentication successful! Redirecting to dashboard...", "ok");
+        setTimeout(() => {
+          location.href = "/admin/dashboard";
+        }, 500);
+      } else {
+        const isThrottled = (res.message || "").toLowerCase().includes("too many");
+        say(res.message || "Invalid credentials", isThrottled ? "warn" : "err");
+      }
+    };
+
+    $("forgotView").onsubmit = async e => {
+      e.preventDefault();
+      say("");
+
+      const btn = $("forgotBtn");
+      const btnText = $("forgotBtnText");
+      const btnIcon = $("forgotBtnIcon");
+
+      setBtnLoading(btn, btnText, btnIcon, true, "Send Reset Link", "fa-solid fa-paper-plane", "Sending...");
+
+      const res = await post("/api/admin/forgot-password", { email: $("femail").value.trim() });
+
+      setBtnLoading(btn, btnText, btnIcon, false, "Send Reset Link", "fa-solid fa-paper-plane");
+
+      say(res.message, res.status === "success" ? "ok" : "err");
+    };
+
+    $("resetView").onsubmit = async e => {
+      e.preventDefault();
+      say("");
+
+      if ($("np1").value !== $("np2").value) {
+        return say("The two passwords do not match. Please verify and retry.", "err");
+      }
+
+      const btn = $("resetBtn");
+      const btnText = $("resetBtnText");
+      const btnIcon = $("resetBtnIcon");
+
+      setBtnLoading(btn, btnText, btnIcon, true, "Save New Password", "fa-solid fa-check", "Saving...");
+
+      const res = await post("/api/admin/reset-password", { token, password: $("np1").value });
+
+      setBtnLoading(btn, btnText, btnIcon, false, "Save New Password", "fa-solid fa-check");
+
+      if (res.status === "success") {
+        history.replaceState(null, "", "/admin/login");
+        show("loginView");
+        say(res.message || "Password changed successfully! You can now log in.", "ok");
+      } else {
+        say(res.message || "Failed to update password.", "err");
+      }
+    };
+
+    if (token) {
+      show("resetView");
+    } else {
+      show("loginView");
+      fetch("/api/admin/me").then(r => {
+        if (r.ok) location.href = "/admin/dashboard";
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+{% extends 'candidate_portal/base_candidate.html' %}
+{% load static %}
+
+{% block title %}My Interviews — Candidate Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Scheduled Interviews</h3>
+    <p class="text-muted mb-0">View date, time, mode, and location/link for your job interviews.</p>
+  </div>
+</div>
+
+<div id="interviewsContainer">
+  <div class="text-center py-5 text-muted">
+    <span class="spinner-border spinner-border-sm me-2"></span> Loading interviews...
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', loadInterviews);
+
+  async function loadInterviews() {
+    const container = document.getElementById('interviewsContainer');
+
+    try {
+      const res = await fetch('/api/candidate/interviews/');
+      const data = await res.json();
+
+      if (res.ok && data.status === 'success') {
+        renderInterviews(data.interviews);
+      } else {
+        container.innerHTML = `<div class="alert alert-danger">Failed to load interviews.</div>`;
+      }
+    } catch (e) {
+      container.innerHTML = `<div class="alert alert-danger">Network error loading interviews.</div>`;
+    }
+  }
+
+  function renderInterviews(interviews) {
+    const container = document.getElementById('interviewsContainer');
+    if (!interviews || interviews.length === 0) {
+      container.innerHTML = `
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+          <div class="card-body">
+            <i class="ti ti-calendar-event text-muted display-4 mb-3 d-block"></i>
+            <h5 class="fw-bold">No Scheduled Interviews</h5>
+            <p class="text-muted">You have no upcoming or past scheduled interviews at this moment.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = interviews.map(i => {
+      let badgeClass = 'bg-primary';
+      if (i.status === 'Completed') badgeClass = 'bg-success';
+      else if (i.status === 'Cancelled') badgeClass = 'bg-danger';
+
+      return `
+        <div class="card border-0 shadow-sm rounded-4 mb-3 p-3 p-sm-4">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <div>
+              <h5 class="fw-bold mb-1 text-dark">${i.job_title || 'Position Interview'}</h5>
+              <div class="text-muted small">Candidate: ${i.candidate_name}</div>
+            </div>
+            <span class="badge ${badgeClass} badge-status">${i.status}</span>
+          </div>
+
+          <div class="row g-3 bg-light p-3 rounded-3 mb-2">
+            <div class="col-6 col-md-3">
+              <div class="text-muted small">Interview Date</div>
+              <div class="fw-bold"><i class="ti ti-calendar me-1 text-primary"></i> ${i.interview_date}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-muted small">Interview Time</div>
+              <div class="fw-bold"><i class="ti ti-clock me-1 text-primary"></i> ${i.interview_time}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-muted small">Mode</div>
+              <div class="fw-bold"><i class="ti ti-devices me-1 text-primary"></i> ${i.interview_mode}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-muted small">Location / Link</div>
+              <div class="fw-bold text-truncate">${i.location_or_link || 'To be shared'}</div>
+            </div>
+          </div>
+
+          ${i.feedback ? `<div class="small text-muted border-top pt-2 mt-2"><strong>Interviewer Feedback:</strong> ${i.feedback}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+</script>
+{% endblock %}

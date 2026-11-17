@@ -1,0 +1,190 @@
+/* =========================================================
+   APPLICATION FLOW STEPPER COMPONENT
+   ========================================================= */
+
+.app-flow-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.app-flow-header {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 10px 18px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-flow-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-flow-header-title i {
+  color: #38bdf8;
+  font-size: 16px;
+}
+
+.app-flow-body {
+  padding: 20px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-flow-stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 680px;
+  position: relative;
+}
+
+.app-flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  text-align: center;
+}
+
+.app-flow-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  z-index: 2;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+/* Connectors */
+.app-flow-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 100%;
+  height: 3px;
+  background-color: #e2e8f0;
+  z-index: 1;
+}
+
+.app-flow-step.completed:not(:last-child)::after {
+  background-color: #2563eb;
+}
+
+.app-flow-step.completed-green:not(:last-child)::after {
+  background-color: #16a34a;
+}
+
+.app-flow-step.completed-orange:not(:last-child)::after {
+  background-color: #ea580c;
+}
+
+/* Step Colors */
+/* Blue steps (1, 2, 3) */
+.app-flow-step.step-blue.completed .app-flow-circle,
+.app-flow-step.step-blue.current .app-flow-circle {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+/* Green step (4: Shortlisted) */
+.app-flow-step.step-green.completed .app-flow-circle,
+.app-flow-step.step-green.current .app-flow-circle {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.2);
+}
+
+/* Orange steps (5, 6, 7) */
+.app-flow-step.step-orange.completed .app-flow-circle,
+.app-flow-step.step-orange.current .app-flow-circle {
+  background: #ea580c;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.2);
+}
+
+/* Pending steps */
+.app-flow-step.pending .app-flow-circle {
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  color: #94a3b8;
+}
+
+.app-flow-label {
+  margin-top: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  max-width: 100px;
+  line-height: 1.25;
+}
+
+.app-flow-step.completed .app-flow-label,
+.app-flow-step.current .app-flow-label {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.app-flow-step-num {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  color: #94a3b8;
+}
+
+.app-flow-step.current .app-flow-step-num {
+  color: #2563eb;
+}
+
+/* Rejected Banner */
+.app-flow-rejected-banner {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 767.98px) {
+  .app-flow-body {
+    padding: 16px 12px;
+  }
+  .app-flow-stepper {
+    min-width: 580px;
+  }
+  .app-flow-circle {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+  .app-flow-step:not(:last-child)::after {
+    top: 17px;
+  }
+  .app-flow-label {
+    font-size: 10px;
+    max-width: 78px;
+  }
+}

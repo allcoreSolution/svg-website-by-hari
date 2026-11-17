@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact Us — Sky Vision Group Consultancy{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/contact.css' %}?v=4.0">
+{% endblock %}
+
+{% block content %}
+<!--====================================
+        CONTACT SECTION
+=====================================-->
+  <!-- ============ PAGE HEADER ============ -->
+  {% if contact_settings.header_visible %}
+  <section class="page-header">
+    <div class="page-header-bg" aria-hidden="true"></div>
+    <div class="page-header-inner">
+      <span class="eyebrow">{{ contact_settings.header_eyebrow|default:"Get To Know Us" }}</span>
+      <h1>{{ contact_settings.header_title|default:"Contact Company of Sky Vision Group of Consultancy" }}</h1>
+      <div class="breadcrumb">
+        <a href="{% url 'core:home' %}">{{ contact_settings.header_breadcrumb_root|default:"Home" }}</a>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>{{ contact_settings.header_breadcrumb_sub|default:"contact Us" }}</span>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ MAIN CONTACT SECTION ============ -->
+  {% if contact_settings.contact_section_visible %}
+  <section class="contact-section" id="contact">
+
+    <div class="contact-container">
+
+      <div class="contact-info">
+
+        {% if contact_settings.contact_phone %}
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+          <div class="contact-text">
+            <span><a href="tel:{{ contact_settings.contact_phone }}" style="color:inherit; text-decoration:none;">{{ contact_settings.contact_phone }}</a></span>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if contact_settings.contact_email %}
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+          <div class="contact-text">
+            <span><a href="mailto:{{ contact_settings.contact_email }}" style="color:inherit; text-decoration:none;">{{ contact_settings.contact_email }}</a></span>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if contact_settings.contact_website %}
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fa-solid fa-globe"></i></div>
+          <div class="contact-text">
+            <span><a href="{% if not 'http' in contact_settings.contact_website %}https://{% endif %}{{ contact_settings.contact_website }}" target="_blank" rel="noopener" style="color:inherit; text-decoration:none;">{{ contact_settings.contact_website }}</a></span>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if contact_settings.contact_address %}
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+          <div class="contact-text"><span>{{ contact_settings.contact_address|linebreaksbr }}</span></div>
+        </div>
+        {% endif %}
+
+        <div class="contact-social">
+          {% if contact_settings.social_facebook %}
+          <a href="{{ contact_settings.social_facebook }}" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+          {% endif %}
+          {% if contact_settings.social_instagram %}
+          <a href="{{ contact_settings.social_instagram }}" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+          {% endif %}
+          {% if contact_settings.social_linkedin %}
+          <a href="{{ contact_settings.social_linkedin }}" target="_blank" rel="noopener"><i class="fab fa-linkedin-in"></i></a>
+          {% endif %}
+          {% if contact_settings.social_youtube %}
+          <a href="{{ contact_settings.social_youtube }}" target="_blank" rel="noopener"><i class="fab fa-youtube"></i></a>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <div class="contact-form">
+
+        <form id="contactPageForm" class="contact-ajax-form">
+          {% csrf_token %}
+          <input type="text" name="website_url" class="d-none" style="display:none;" tabindex="-1" autocomplete="off">
+          <div class="contact-form-row">
+            <input type="text" id="contactName" name="name" class="contact-input" placeholder="Full Name" required>
+            <input type="email" id="contactEmail" name="email" class="contact-input" placeholder="Email Address" required>
+          </div>
+
+          <div class="contact-form-row">
+            <input type="tel" id="contactPhone" name="phone" class="contact-input" placeholder="Mobile Number" required>
+            <select id="contactService" name="service" class="contact-select" required>
+              <option value="" disabled selected>Service Required</option>
+              <option value="Recruitment">Recruitment</option>
+              <option value="Internship">Internship</option>
+              <option value="HR Consultancy">HR Consultancy</option>
+              <option value="Payroll Outsourcing">Payroll Outsourcing</option>
+              <option value="Contract Staffing">Contract Staffing</option>
+              <option value="Manpower Supply">Manpower Supply</option>
+            </select>
+          </div>
+
+          <textarea id="contactMessage" name="message" class="contact-textarea" placeholder="Message"></textarea>
+
+          <button type="submit" class="contact-btn" id="contactSubmitBtn">{{ contact_settings.form_btn_text|default:"Submit Now" }}</button>
+        </form>
+
+      </div>
+
+      <div class="contact-location">
+        <div class="contact-map">
+          {% if contact_settings.location_map_url %}
+          <iframe src="{{ contact_settings.location_map_url }}" class="contact-map-iframe" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          {% else %}
+          <img src="{% if contact_settings.location_badge_image and contact_settings.location_badge_image|slice:':7' == '/media/' %}{{ contact_settings.location_badge_image }}{% elif contact_settings.location_badge_image and contact_settings.location_badge_image|slice:':4' == 'http' %}{{ contact_settings.location_badge_image }}{% else %}{% static contact_settings.location_badge_image|default:'images/hero/map image.png' %}{% endif %}" alt="Map">
+          {% endif %}
+          <div class="contact-location-card">
+            <h3>{{ contact_settings.location_badge_title|default:"Sky Vision Group Consultancy" }}</h3>
+            <p>{{ contact_settings.location_badge_address|linebreaksbr }}</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+  {% endif %}
+
+  <!--====================================
+        CONTACT INFO CARDS (Address / Call / Email)
+=====================================-->
+  {% if contact_settings.info_cards_visible %}
+  <section class="info-cards-section">
+    <div class="info-cards-grid">
+
+      <!-- Address & Location -->
+      <div class="info-card">
+        <div class="info-card-icon"><i class="fa-solid fa-location-dot"></i></div>
+        <h3 class="info-card-title">{{ contact_settings.card_address_title|default:"Address & Location" }}</h3>
+
+        <div class="info-card-plain">
+          <span>{{ contact_settings.card_address_text|linebreaksbr }}</span>
+        </div>
+
+        {% if contact_settings.card_address_map_url %}
+        <div class="info-map-wrap">
+          <iframe
+            src="{{ contact_settings.card_address_map_url }}"
+            loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          {% if contact_settings.card_address_map_badge_url %}
+          <a class="info-map-badge"
+            href="{{ contact_settings.card_address_map_badge_url }}"
+            target="_blank" rel="noopener">
+            <i class="fa-solid fa-up-right-from-square"></i> Maps
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if contact_settings.card_address_directions_url %}
+        <a class="info-card-btn"
+          href="{{ contact_settings.card_address_directions_url }}"
+          target="_blank" rel="noopener">
+          <i class="fa-solid fa-location-arrow"></i> {{ contact_settings.card_address_directions_text|default:"Get Directions" }}
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Call Us -->
+      <div class="info-card">
+        <div class="info-card-icon"><i class="fa-solid fa-phone"></i></div>
+        <h3 class="info-card-title">{{ contact_settings.card_call_title|default:"Call Us" }}</h3>
+
+        {% for row in contact_settings.get_call_rows %}
+        <div class="info-row">
+          <span class="info-row-label">{{ row.label }}</span>
+          <a href="{{ row.href|default:'#' }}" {% if 'wa.me' in row.href %}target="_blank" rel="noopener"{% endif %}>{{ row.phone }}</a>
+        </div>
+        {% empty %}
+        <div style="color:#64748b; font-size:13px; padding:10px 0;">No phone numbers configured.</div>
+        {% endfor %}
+      </div>
+
+      <!-- Email Us -->
+      <div class="info-card">
+        <div class="info-card-icon"><i class="fa-solid fa-envelope"></i></div>
+        <h3 class="info-card-title">{{ contact_settings.card_email_title|default:"Email Us" }}</h3>
+
+        {% for row in contact_settings.get_email_rows %}
+        <div class="info-row">
+          <span class="info-row-label">{{ row.label }}</span>
+          <a href="{{ row.href|default:'#' }}">{{ row.email }}</a>
+        </div>
+        {% empty %}
+        <div style="color:#64748b; font-size:13px; padding:10px 0;">No email contacts configured.</div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ FOOTER ============ -->
+{% endblock %}

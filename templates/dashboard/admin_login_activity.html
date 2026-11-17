@@ -1,0 +1,109 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Admin Login Activity — SVG Consultancy{% endblock %}
+{% block page_title %}Login Activity{% endblock %}
+{% block breadcrumb_title %}Users &amp; Roles / Login Activity{% endblock %}
+
+{% block content %}
+<div class="roles-header-card">
+  <div class="roles-header-left">
+    <div class="roles-header-icon" style="background: #FEF3C7; color: #D97706; border-color: #FDE68A;">
+      <i class="ti ti-history"></i>
+    </div>
+    <div>
+      <h3 class="roles-header-title">Admin Login Activity Logs</h3>
+      <p class="roles-header-subtitle">Security Audit Trail — Historical Authentication Attempts, IP Addresses and Statuses</p>
+    </div>
+  </div>
+  <div class="roles-header-actions">
+    <button type="button" class="btn btn-sky btn-sky-outline" onclick="window.location.reload();">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
+    <a href="/admin-panel/users/roles/" class="btn btn-sky btn-sky-outline">
+      <i class="ti ti-shield"></i> Roles &amp; Permissions
+    </a>
+  </div>
+</div>
+
+<div class="roles-kpi-grid">
+  <div class="roles-kpi-card card-blue">
+    <div>
+      <div class="roles-kpi-val">{{ kpi.total_logins }}</div>
+      <div class="roles-kpi-label">Total Login Attempts</div>
+      <div class="roles-kpi-sub">Overall Historical Logs</div>
+    </div>
+    <div class="roles-kpi-icon-wrap"><i class="ti ti-login"></i></div>
+  </div>
+  <div class="roles-kpi-card card-green">
+    <div>
+      <div class="roles-kpi-val">{{ kpi.success_logins }}</div>
+      <div class="roles-kpi-label">Successful Logins</div>
+      <div class="roles-kpi-sub" style="color: #059669;"><i class="ti ti-check"></i> Authenticated</div>
+    </div>
+    <div class="roles-kpi-icon-wrap" style="background:#ECFDF5; color:#10B981;"><i class="ti ti-circle-check"></i></div>
+  </div>
+  <div class="roles-kpi-card card-amber">
+    <div>
+      <div class="roles-kpi-val">{{ kpi.failed_logins }}</div>
+      <div class="roles-kpi-label">Failed Attempts</div>
+      <div class="roles-kpi-sub" style="color: #DC2626;"><i class="ti ti-alert-triangle"></i> Bad credentials</div>
+    </div>
+    <div class="roles-kpi-icon-wrap" style="background:#FEF2F2; color:#DC2626;"><i class="ti ti-shield-x"></i></div>
+  </div>
+</div>
+
+<div class="roles-table-card">
+  <form method="GET" action="/admin-panel/users/login-activity/" id="activityFilterForm" class="roles-toolbar">
+    <div class="roles-search-wrap">
+      <i class="ti ti-search"></i>
+      <input type="text" name="q" class="roles-search-input" placeholder="Search by email or IP..." value="{{ search_q }}">
+    </div>
+    <div>
+      <select name="status" class="roles-filter-select" onchange="document.getElementById('activityFilterForm').submit();">
+        <option value="">All Statuses</option>
+        <option value="success" {% if status_filter == 'success' %}selected{% endif %}>Success Only</option>
+        <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed Only</option>
+      </select>
+    </div>
+  </form>
+
+  <div style="overflow-x: auto;">
+    <table class="roles-data-table">
+      <thead>
+        <tr>
+          <th style="width: 50px; text-align: center;">#</th>
+          <th>User Email</th>
+          <th style="text-align: center;">Status</th>
+          <th>IP Address</th>
+          <th>Browser / User Agent</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs_list %}
+        <tr>
+          <td style="text-align: center; color: #64748B;">{{ forloop.counter }}</td>
+          <td><strong>{{ l.email }}</strong></td>
+          <td style="text-align: center;">
+            {% if l.status == 'success' %}
+            <span class="status-badge active"><i class="ti ti-check"></i> Success</span>
+            {% else %}
+            <span class="status-badge inactive" style="background:#FEE2E2; color:#DC2626;"><i class="ti ti-x"></i> Failed</span>
+            {% endif %}
+          </td>
+          <td><code style="font-size: 11px;">{{ l.ip_address }}</code></td>
+          <td style="font-size: 11px; color: #64748B; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ l.user_agent|default:"—" }}</td>
+          <td style="font-size: 11.5px; color: #334155;">{{ l.created_at|date:"d M Y, h:i:s A" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 36px 16px; color: #64748B;">No login activity logs recorded.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+

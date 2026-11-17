@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ team_settings.meta_title|default:"Our Leadership & Team — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_head %}
+  {% if team_settings.meta_description %}
+  <meta name="description" content="{{ team_settings.meta_description }}">
+  {% endif %}
+  {% if team_settings.og_image %}
+  <meta property="og:image" content="{{ team_settings.og_image.url }}">
+  {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/ourteam.css' %}?v=3.6">
+{% endblock %}
+
+{% block content %}
+    <!-- ================= HERO ================= -->
+    {% if team_settings.hero_visible %}
+    <section class="hero">
+        <div class="hero-dots"></div>
+        <div class="container hero-grid">
+            <div class="reveal visible">
+                <span class="eyebrow">{{ team_settings.hero_eyebrow|default:"Our Team" }}</span>
+                <h1>{{ team_settings.hero_title|default:"Meet Our Expert Team" }}</h1>
+                <p>{{ team_settings.hero_description|default:"Behind every successful placement is a dedicated team of recruitment professionals committed to connecting exceptional talent with outstanding opportunities across every industry we serve."|linebreaksbr }}</p>
+                <div class="hero-buttons">
+                    {% if team_settings.hero_btn1_text %}
+                    <a href="{{ team_settings.hero_btn1_url|default:'#leadership' }}" class="btn btn-primary">{{ team_settings.hero_btn1_text }}</a>
+                    {% endif %}
+                    {% if team_settings.hero_btn2_text %}
+                    <a href="{{ team_settings.hero_btn2_url|default:'#join' }}" class="btn btn-outline">{{ team_settings.hero_btn2_text }}</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="{{ team_settings.get_hero_image }}"
+                    alt="{{ team_settings.hero_title|default:'Sky Vision recruitment team collaborating in the office' }}">
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= ABOUT TEAM ================= -->
+    {% if team_settings.about_visible %}
+    <section class="section alt">
+        <div class="container about-grid">
+            <div class="reveal">
+                <span class="eyebrow">{{ team_settings.about_eyebrow|default:"About Our Team" }}</span>
+                <h2>{{ team_settings.about_heading|default:"The People Behind Sky Vision"|safe }}</h2>
+                <p>{{ team_settings.about_description|default:"At Sky Vision Group Consultancy, our team is the driving force behind every successful recruitment journey. With expertise across recruitment, HR consulting, career guidance, and client management, we work together to deliver exceptional hiring solutions for businesses and rewarding career opportunities for candidates."|linebreaksbr }}</p>
+            </div>
+            <div class="feature-cols reveal">
+                {% for h in team_highlights %}
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        {% if h.icon and "fa" in h.icon %}
+                            <i class="{{ h.icon }}"></i>
+                        {% else %}
+                            {{ h.icon|default:"👥" }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h4>{{ h.title }}</h4>
+                        <p>{{ h.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= LEADERSHIP TEAM ================= -->
+    {% if team_settings.leadership_visible %}
+    <section class="section" id="leadership">
+        <div class="container">
+            <div class="center reveal">
+                {% if team_settings.leadership_tag %}
+                <span class="eyebrow center-eyebrow">{{ team_settings.leadership_tag }}</span>
+                {% endif %}
+                <h2 class="section-title">{{ team_settings.leadership_title|default:"Our <span>Leadership</span> Team"|safe }}</h2>
+                <p class="section-sub">{{ team_settings.leadership_subtitle|default:"Visionary leaders guiding Sky Vision's strategy, culture, and client success." }}</p>
+            </div>
+            <div class="leader-grid">
+                {% for m in leadership_members %}
+                <div class="team-card reveal">
+                    <div class="avatar-wrap">
+                        <div class="avatar-inner"><img src="{{ m.get_photo_url }}"
+                                alt="{{ m.name }}, {{ m.role }}"></div>
+                    </div>
+                    <h4>{{ m.name }}</h4>
+                    <span class="role">{{ m.role }}</span>
+                    {% if m.bio %}<p class="desc">{{ m.bio }}</p>{% endif %}
+                    <div class="socials">
+                        {% if m.linkedin_url and m.linkedin_url != '#' %}
+                        <a href="{{ m.linkedin_url }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">in</a>
+                        {% else %}
+                        <a href="#" aria-label="LinkedIn">in</a>
+                        {% endif %}
+                        {% if m.email_url and m.email_url != '#' %}
+                        <a href="{{ m.email_url }}" aria-label="Email">✉</a>
+                        {% else %}
+                        <a href="#" aria-label="Email">✉</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= RECRUITMENT SPECIALISTS ================= -->
+    {% if team_settings.specialists_visible %}
+    <section class="section alt">
+        <div class="container">
+            <div class="center reveal">
+                {% if team_settings.specialists_tag %}
+                <span class="eyebrow center-eyebrow">{{ team_settings.specialists_tag }}</span>
+                {% endif %}
+                <h2 class="section-title">{{ team_settings.specialists_title|default:"Our <span>Recruitment</span> Specialists"|safe }}</h2>
+                <p class="section-sub">{{ team_settings.specialists_subtitle|default:"Skilled consultants dedicated to matching the right talent with the right opportunity." }}</p>
+            </div>
+            <div class="specialist-grid">
+                {% for m in specialist_members %}
+                <div class="team-card reveal">
+                    <div class="avatar-wrap">
+                        <div class="avatar-inner"><img src="{{ m.get_photo_url }}" alt="{{ m.name }}"></div>
+                    </div>
+                    <h4>{{ m.name }}</h4>
+                    <span class="role">{{ m.role }}</span>
+                    {% if m.experience_text %}<span class="exp">{{ m.experience_text }}</span>{% endif %}
+                    <div class="socials">
+                        {% if m.linkedin_url and m.linkedin_url != '#' %}
+                        <a href="{{ m.linkedin_url }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">in</a>
+                        {% else %}
+                        <a href="#" aria-label="LinkedIn">in</a>
+                        {% endif %}
+                        {% if m.email_url and m.email_url != '#' %}
+                        <a href="{{ m.email_url }}" aria-label="Email">✉</a>
+                        {% else %}
+                        <a href="#" aria-label="Email">✉</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= DEPARTMENTS (MARQUEE) ================= -->
+    {% if team_settings.departments_visible %}
+    <section class="section dept-section">
+        <div class="container">
+            <div class="center reveal">
+                {% if team_settings.departments_tag %}
+                <span class="eyebrow center-eyebrow">{{ team_settings.departments_tag }}</span>
+                {% endif %}
+                <h2 class="section-title">{{ team_settings.departments_title|default:"Our <span>Departments</span>"|safe }}</h2>
+                <p class="section-sub">{{ team_settings.departments_subtitle|default:"Specialized teams working together to deliver end-to-end recruitment and consulting solutions." }}</p>
+            </div>
+        </div>
+        <div class="marquee-outer">
+            <div class="marquee-track" id="marqueeTrack">
+                {% if team_departments %}
+                    {% for d in team_departments %}
+                    <div class="dept-card">
+                        <div class="dept-img">
+                            <img src="{{ d.get_image_url }}" alt="{{ d.name }} department at Sky Vision">
+                            <div class="dept-icon-badge">
+                                {% if d.icon and "fa" in d.icon %}
+                                    <i class="{{ d.icon }}"></i>
+                                {% else %}
+                                    {{ d.icon|default:"👔" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="dept-body">
+                            <h4>{{ d.name }}</h4>
+                            <p>{{ d.description|default:d.team_size }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <!-- Duplicated for seamless infinite loop -->
+                    {% for d in team_departments %}
+                    <div class="dept-card" aria-hidden="true">
+                        <div class="dept-img">
+                            <img src="{{ d.get_image_url }}" alt="{{ d.name }} department at Sky Vision">
+                            <div class="dept-icon-badge">
+                                {% if d.icon and "fa" in d.icon %}
+                                    <i class="{{ d.icon }}"></i>
+                                {% else %}
+                                    {{ d.icon|default:"👔" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="dept-body">
+                            <h4>{{ d.name }}</h4>
+                            <p>{{ d.description|default:d.team_size }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= STATS ================= -->
+    {% if team_settings.stats_visible %}
+    <section class="stats-bar">
+        <div class="container stats-grid">
+            {% for s in team_stats %}
+            <div class="reveal">
+                <div class="stat-icon">
+                    {% if s.icon and "fa" in s.icon %}
+                        <i class="{{ s.icon }}"></i>
+                    {% else %}
+                        {{ s.icon|default:"👥" }}
+                    {% endif %}
+                </div>
+                {% if s.static_text %}
+                    <div class="stat-num" data-static="{{ s.static_text }}">{{ s.static_text }}</div>
+                {% else %}
+                    <div class="stat-num" data-count="{{ s.count }}" {% if s.suffix %}data-suffix="{{ s.suffix }}"{% endif %}>0</div>
+                {% endif %}
+                <div class="stat-label">{{ s.label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= WHY TRUST + VALUES ================= -->
+    {% if team_settings.trust_visible or team_settings.values_visible %}
+    <section class="section alt">
+        <div class="container trust-grid" {% if not team_settings.trust_visible %}style="grid-template-columns: 1fr;"{% elif not team_settings.values_visible %}style="grid-template-columns: 0.9fr 1.1fr;"{% endif %}>
+            {% if team_settings.trust_visible %}
+            <div class="trust-img reveal">
+                <img src="{{ team_settings.get_trust_image }}" alt="{{ team_settings.trust_title|default:'Sky Vision team celebrating success together' }}"
+                    style="height:100%;">
+            </div>
+            <div class="trust-list reveal">
+                <h3>{{ team_settings.trust_title|default:"Why Clients <span>Trust</span> Our Team"|safe }}</h3>
+                <ul>
+                    {% for tp in team_trust_points %}
+                    <li><span class="check">{{ tp.icon_class|default:"✓" }}</span>{{ tp.title }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if team_settings.values_visible %}
+            <div class="reveal">
+                <h3 class="values-title">{{ team_settings.values_title|default:"Our Core <span>Values</span>"|safe }}</h3>
+                <div class="values-grid">
+                    {% for v in team_values %}
+                    <div class="value-card">
+                        <div class="value-icon">
+                            {% if v.icon and "fa" in v.icon %}
+                                <i class="{{ v.icon }}"></i>
+                            {% else %}
+                                {{ v.icon|default:"🤝" }}
+                            {% endif %}
+                        </div>
+                        <h4>{{ v.title }}</h4>
+                        <p>{{ v.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= LEADERSHIP MESSAGE ================= -->
+    {% if team_settings.quote_visible %}
+    <section class="section">
+        <div class="container">
+            <div class="lead-msg reveal">
+                <div class="lead-msg-img">
+                    <img src="{{ team_settings.get_quote_image }}" alt="{{ team_settings.quote_author_name|default:'Sky Vision Leadership' }}"
+                        style="width:100%;">
+                </div>
+                <div>
+                    <span class="quote-mark">“</span>
+                    <blockquote>{{ team_settings.quote_text|linebreaksbr }}</blockquote>
+                    <div class="signee">{{ team_settings.quote_author_name }}<small>{{ team_settings.quote_author_role }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= CTA ================= -->
+    {% if team_settings.cta_visible %}
+    <section class="section" id="join" style="padding-top:0;">
+        <div class="container">
+            <div class="cta-band reveal">
+                <div class="cta-left">
+                    <div class="cta-icon">
+                        {% if team_settings.cta_icon and "fa" in team_settings.cta_icon %}
+                            <i class="{{ team_settings.cta_icon }}"></i>
+                        {% else %}
+                            {{ team_settings.cta_icon|default:"👥" }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3>{{ team_settings.cta_heading|default:"Want to Work With Us?" }}</h3>
+                        <p>{{ team_settings.cta_text }}</p>
+                    </div>
+                </div>
+                <div class="cta-buttons">
+                    {% if team_settings.cta_btn1_text %}
+                    <a href="{{ team_settings.cta_btn1_url|default:'/careers/' }}" class="btn btn-primary">{{ team_settings.cta_btn1_text }}</a>
+                    {% endif %}
+                    {% if team_settings.cta_btn2_text %}
+                    <a href="{{ team_settings.cta_btn2_url|default:'/careers/' }}" class="btn btn-outline" style="border-color:#fff;">{{ team_settings.cta_btn2_text }}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= FOOTER ================= -->
+{% endblock %}

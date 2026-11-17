@@ -1,0 +1,722 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SVG CONSULTANCY — Super Admin Panel{% endblock %}</title>
+  
+  <!-- Tabler Icons & FontAwesome -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  
+  <!-- Scoped Admin CSS & Dashboard CSS -->
+  <link rel="stylesheet" href="{% static 'css/admin/dashboard.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/admin/svg-admin.css' %}?v=4.4">
+  <link rel="stylesheet" href="{% static 'css/admin/communication-admin.css' %}?v=1.0">
+  
+  <!-- Print / PDF Export Styles (Hides Sidebar, Topbar, Header Cards, Filters & Metric Cards) -->
+  <style>
+  @media print {
+    /* 1. Hide Sidebar Navigation, Topbar Header, Footer & Overlays */
+    aside,
+    header,
+    footer,
+    .admin-sidebar,
+    .admin-topbar,
+    .admin-footer,
+    .sidebar-overlay,
+    .hamburger-btn,
+    .branch-dropdown,
+    .topbar-right,
+    .sidebar-support-card,
+    .topbar-breadcrumb,
+    
+    /* 2. Hide Top Module Header Cards, Switchers, Timeframe Bars, Stat Cards */
+    .module-header-card,
+    .report-type-switcher,
+    .registration-type-switcher,
+    .timeframe-bar,
+    .report-metrics-grid,
+    .module-metrics-grid,
+    .reg-card-grid,
+    
+    /* 3. Hide Toolbar Filters, Search Inputs, Action Buttons & Dropdowns */
+    .module-actions-group,
+    .table-toolbar,
+    .table-search-box,
+    .filter-card,
+    .reg-tabs-bar,
+    .card-action,
+    .btn-report-type,
+    .btn-admin,
+    .btn,
+    #reportSearchInput,
+    #reportStatusFilter,
+    .action-dropdown-wrapper {
+      display: none !important;
+    }
+
+    /* 4. Display Dedicated Print Document Header if present */
+    .print-report-header {
+      display: block !important;
+    }
+
+    /* 5. Reset Layout & Expand Content Container to Full A4 Page */
+    html, body, .svg-admin, .admin-layout, .admin-main-wrapper, .admin-content-area, .content-area, main {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #FFFFFF !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+    .admin-main-wrapper {
+      margin-left: 0 !important;
+    }
+
+    .data-table-card, .table-card, .reg-table-container, .table-responsive-wrap, .table-responsive {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: visible !important;
+      width: 100% !important;
+    }
+
+    /* 6. Clean Table Formatting */
+    table, .admin-table, .reg-table, .table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+    }
+
+    table th, table td,
+    .admin-table th, .admin-table td,
+    .reg-table th, .reg-table td {
+      border: 1px solid #CBD5E1 !important;
+      padding: 6px 8px !important;
+      font-size: 11px !important;
+    }
+
+    table th, .admin-table th, .reg-table th {
+      background-color: #F1F5F9 !important;
+      color: #0F172A !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+  }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="svg-admin">
+
+<div class="admin-layout">
+
+  <!-- Mobile Overlay -->
+  <div class="sidebar-overlay" id="adminSidebarOverlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:990;"></div>
+
+  <!-- A) LEFT FIXED SIDEBAR -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    
+    <!-- Logo Box -->
+    <div class="sidebar-brand-box">
+      <a href="/admin-panel/dashboard/" class="brand-logo-card">
+        <img src="{% static 'images/logo/logo.png' %}" alt="SVG" class="brand-logo-img" onerror="this.style.display='none';">
+        <div class="brand-text-wrap">
+          <span class="brand-svg-text"><span class="brand-svg-blue">SVG</span> <span class="brand-svg-orange">CONSULTANCY</span></span>
+          <span class="brand-tagline">Right Talent, Bright Future.</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-menu-nav">
+      
+      <!-- MAIN -->
+      <div class="menu-section-label">MAIN</div>
+      <div class="menu-list">
+        <a href="/admin-panel/dashboard/" class="menu-link {% if active_menu == 'dashboard' or request.path == '/admin-panel/dashboard/' or request.path == '/admin-panel/' %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></div>
+        </a>
+        <a href="/admin-panel/enquiries/all/" class="menu-link {% if active_menu == 'enquiries' or '/enquiries/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-message-2"></i><span>Enquiries</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% if is_super_admin or 'analytics.view' in perms %}
+        <a href="/admin-panel/reports/candidate/" class="menu-link {% if active_menu == 'analytics' %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-chart-dots"></i><span>Analytics</span></div>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'registrations.view' in perms %}
+        <a href="/admin-panel/registrations/" class="menu-link {% if active_menu == 'registrations' or '/registrations/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-user-check"></i><span>Registration &amp; Approval</span></div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            {% if total_pending_registrations and total_pending_registrations > 0 %}
+              <span class="badge bg-danger text-white rounded-pill" style="font-size:10px; padding:2px 7px;">{{ total_pending_registrations }}</span>
+            {% endif %}
+            <i class="ti ti-chevron-right menu-chevron"></i>
+          </div>
+        </a>
+        {% if active_menu == 'registrations' or '/registrations/' in request.path %}
+        <div class="submenu-list">
+          <a href="/admin-panel/registrations/" class="submenu-link {% if request.path == '/admin-panel/registrations/' %}active{% endif %}">All Registrations</a>
+          <a href="/admin-panel/registrations/candidates/" class="submenu-link {% if '/registrations/candidates/' in request.path %}active{% endif %}">Candidate Registrations</a>
+          <a href="/admin-panel/registrations/employers/" class="submenu-link {% if '/registrations/employers/' in request.path %}active{% endif %}">Employer Registrations</a>
+          <a href="/admin-panel/registrations/rejected/" class="submenu-link {% if '/registrations/rejected/' in request.path %}active{% endif %}">Rejected / Suspended</a>
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- USERS & MANAGEMENT -->
+      {% if is_super_admin or 'candidates.view' in perms or 'employers.view' in perms or 'internships.view' in perms or 'staff.view' in perms or 'roles.view' in perms %}
+      <div class="menu-section-label">USERS &amp; MANAGEMENT</div>
+      <div class="menu-list">
+        {% if is_super_admin or 'candidates.view' in perms %}
+        <a href="/admin-panel/candidates/all/" class="menu-link {% if active_menu == 'candidates' or '/candidates/all/' in request.path or '/candidates/registrations/' in request.path or '/candidates/profiles/' in request.path or '/candidates/add/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-users"></i><span>Candidates</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'employers.view' in perms %}
+        <a href="/admin-panel/companies/all/" class="menu-link {% if active_menu == 'employers' or '/companies/all/' in request.path or '/companies/add/' in request.path or '/companies/contacts/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-building"></i><span>Employers</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'internships.view' in perms %}
+        <a href="/admin-panel/internships/applications/all/" class="menu-link {% if active_menu == 'agencies' or '/internships/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-school"></i><span>Internships</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'staff.view' in perms %}
+        <a href="/admin-panel/users/staff/" class="menu-link {% if active_menu == 'staff' or '/users/staff/' in request.path or '/users/all/' in request.path or '/users/admin/' in request.path or '/users/add/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-user-cog"></i><span>Staff Management</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'roles.view' in perms %}
+        <a href="/admin-panel/users/roles/" class="menu-link {% if active_menu == 'roles' or '/users/roles/' in request.path or '/users/permissions/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-id-badge-2"></i><span>Role &amp; Permissions</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- JOB MANAGEMENT -->
+      {% if is_super_admin or 'job_postings.view' in perms or 'job_categories.view' in perms or 'job_approvals.view' in perms or 'applications.view' in perms %}
+      <div class="menu-section-label">JOB MANAGEMENT</div>
+      <div class="menu-list">
+        {% if is_super_admin or 'job_postings.view' in perms %}
+        <a href="/admin-panel/companies/job-openings/" class="menu-link {% if active_menu == 'jobs' or '/job-openings/' in request.path or '/requirements/closed/' in request.path or '/requirements/expired/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-briefcase"></i><span>Job Postings</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'job_categories.view' in perms %}
+        <a href="/admin-panel/job-categories/" class="menu-link {% if active_menu == 'job_categories' or '/job-categories/' in request.path or '/requirements/all/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-category"></i><span>Job Categories</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'job_approvals.view' in perms %}
+        <a href="/admin-panel/companies/requirements/active/" class="menu-link {% if active_menu == 'job_approvals' or active_menu == 'requirements_active' or '/requirements/active/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-checkbox"></i><span>Job Approvals</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'applications.view' in perms %}
+        <a href="/admin-panel/job-applications/all/" class="menu-link {% if active_menu == 'applications' or '/job-applications/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-inbox"></i><span>Applications</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- PLACEMENTS -->
+      {% if is_super_admin or 'shortlisted.view' in perms or 'interviews.view' in perms or 'selections.view' in perms or 'offer_letters.view' in perms or 'joinings.view' in perms %}
+      <div class="menu-section-label">PLACEMENTS</div>
+      <div class="menu-list">
+        {% if is_super_admin or 'shortlisted.view' in perms %}
+        <a href="/admin-panel/candidates/shortlisted/" class="menu-link {% if active_menu == 'shortlisted' or '/candidates/shortlisted/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-star"></i><span>Shortlisted Candidates</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'interviews.view' in perms %}
+        <a href="/admin-panel/candidates/interviews/upcoming/" class="menu-link {% if active_menu == 'interviews' or '/candidates/interviews/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-calendar-event"></i><span>Interviews</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'selections.view' in perms %}
+        <a href="/admin-panel/candidates/selected/" class="menu-link {% if active_menu == 'selections' or '/candidates/selected/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-user-check"></i><span>Selections</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'offer_letters.view' in perms %}
+        <a href="/admin-panel/job-offers/all/" class="menu-link {% if active_menu == 'offer_letters' or '/job-offers/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-file-certificate"></i><span>Offer Letters</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'joinings.view' in perms %}
+        <a href="/admin-panel/placements/joined/" class="menu-link {% if active_menu == 'joinings' or '/placements/joined/' in request.path or '/placements/active/' in request.path or '/placements/completed/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-award"></i><span>Joinings</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- BILLING & FINANCE -->
+      {% if is_super_admin or 'ledger.view' in perms or 'invoices.view' in perms or 'payments.view' in perms or 'commission.view' in perms %}
+      <div class="menu-section-label">BILLING &amp; FINANCE</div>
+      <div class="menu-list">
+        {% if is_super_admin or 'ledger.view' in perms %}
+        <a href="/admin-panel/ledger/" class="menu-link {% if active_menu == 'ledger' or request.path == '/admin-panel/ledger/' or request.path == '/admin-panel/ledger' %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-notebook"></i><span>Ledger</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'invoices.view' in perms %}
+        <a href="/admin-panel/documents/joining/" class="menu-link {% if active_menu == 'invoices' or '/documents/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-receipt"></i><span>Invoices</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'payments.view' in perms %}
+        <a href="/admin-panel/ledger/payments/" class="menu-link {% if active_menu == 'payments' or '/admin-panel/ledger/payments' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-wallet"></i><span>Payments</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'commission.view' in perms %}
+        <a href="/admin-panel/placements/reports/" class="menu-link {% if active_menu == 'commission' or '/placements/reports/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-coin"></i><span>Commission Management</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- EMAIL & NOTIFICATIONS -->
+      {% if is_super_admin or 'comm_compose.view' in perms or 'comm_history.view' in perms or 'comm_templates.view' in perms or 'comm_settings.view' in perms %}
+      <div class="menu-section-label d-flex align-items-center justify-content-between">
+        <span>EMAIL &amp; NOTIFICATIONS</span>
+        {% if is_smtp_configured %}
+          <span class="comm-status-dot comm-status-dot-green" title="SMTP Configured &amp; Active"></span>
+        {% else %}
+          <span class="comm-status-dot comm-status-dot-amber" title="Test / Console Mode"></span>
+        {% endif %}
+      </div>
+      <div class="menu-list">
+        {% if is_super_admin or 'comm_compose.view' in perms %}
+        <a href="/admin-panel/communication/compose/" class="menu-link {% if active_menu == 'communication' and sub_active == 'compose' or '/communication/compose' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-send"></i><span>Compose Message</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'comm_history.view' in perms %}
+        <a href="/admin-panel/communication/history/" class="menu-link {% if active_menu == 'communication' and sub_active == 'history' or '/communication/history' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-history"></i><span>Sent History</span></div>
+          {% if failed_delivery_count and failed_delivery_count > 0 %}
+            <span class="badge bg-danger rounded-pill px-2 text-white ms-auto" title="{{ failed_delivery_count }} Failed Deliveries">{{ failed_delivery_count }}</span>
+          {% else %}
+            <i class="ti ti-chevron-right menu-chevron"></i>
+          {% endif %}
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'comm_templates.view' in perms %}
+        <a href="/admin-panel/communication/templates/" class="menu-link {% if active_menu == 'communication' and sub_active == 'templates' or '/communication/templates' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-template"></i><span>Templates</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'comm_settings.view' in perms %}
+        <a href="/admin-panel/communication/settings/" class="menu-link {% if active_menu == 'communication' and sub_active == 'settings' or '/communication/settings' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-adjustments"></i><span>Delivery Settings</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- REPORTS & SETTINGS -->
+      {% if is_super_admin or 'reports.view' in perms or 'system_settings.view' in perms or 'website_management.view' in perms %}
+      <div class="menu-section-label">REPORTS &amp; SETTINGS</div>
+      <div class="menu-list">
+        {% if is_super_admin or 'reports.view' in perms %}
+        <a href="/admin-panel/reports/candidate/" class="menu-link {% if active_menu == 'reports' or '/reports/candidate/' in request.path or '/reports/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-report-analytics"></i><span>Reports</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+        {% if is_super_admin or 'system_settings.view' in perms %}
+        <a href="/admin-panel/settings/general/" class="menu-link {% if active_menu == 'settings' or '/settings/' in request.path %}active{% endif %}">
+          <div class="menu-link-left"><i class="ti ti-settings"></i><span>System Settings</span></div>
+          <i class="ti ti-chevron-right menu-chevron"></i>
+        </a>
+        {% endif %}
+
+        <!-- Website Management (Parent Menu Item with 9 Sub-Options) -->
+        {% if is_super_admin or 'website_management.view' in perms %}
+        <a href="/admin-panel/website/header-footer/" class="menu-link has-submenu website-mgmt-parent {% if active_menu == 'website' or '/admin-panel/website/' in request.path %}active{% endif %}" id="websiteMgmtToggle" onclick="toggleWebsiteSubmenu(event);">
+          <div class="menu-link-left">
+            <i class="ti ti-world-www"></i>
+            <span>Website Management</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="badge bg-primary text-white rounded-pill" style="font-size:9.5px; padding:2px 6px;">9</span>
+            <i class="ti ti-chevron-right menu-chevron {% if active_menu == 'website' or '/admin-panel/website/' in request.path %}rotated{% endif %}" id="websiteMgmtChevron"></i>
+          </div>
+        </a>
+
+        <!-- Submenu of the 9 Website Management options -->
+        <div class="submenu-list" id="websiteMgmtSubmenu" style="display:flex;">
+          <a href="/admin-panel/website/header-footer/" class="submenu-link {% if active_sub == 'header_footer' or request.path == '/admin-panel/website/header-footer/' %}active{% endif %}">
+            <i class="ti ti-layout-navbar"></i> <span>Header &amp; Footer</span>
+          </a>
+          <a href="/admin-panel/website/home/" class="submenu-link {% if active_sub == 'home' or request.path == '/admin-panel/website/home/' %}active{% endif %}">
+            <i class="ti ti-home"></i> <span>Home Page</span>
+          </a>
+          <!-- Nested Dropdown for About Us (4 Sub-pages) -->
+          <div class="nested-submenu-wrap" style="position:relative;">
+            <a href="javascript:void(0);" 
+               class="submenu-link {% if active_sub == 'about' or '/admin-panel/website/about/' in request.path %}active{% endif %}" 
+               id="aboutSubmenuToggle" 
+               onclick="toggleAboutSubmenu(event);" 
+               style="display:flex; align-items:center; justify-content:space-between; user-select:none; cursor:pointer;">
+              <span style="display:flex; align-items:center; gap:9px;">
+                <i class="ti ti-info-circle"></i> <span>About Us</span>
+              </span>
+              <i class="ti ti-chevron-down nested-chevron" id="aboutSubmenuChevron" style="font-size:10px; transition:transform 0.2s ease; {% if active_sub == 'about' or '/admin-panel/website/about/' in request.path %}transform:rotate(180deg);{% endif %}"></i>
+            </a>
+            
+            <div id="aboutSubmenuList" style="display:{% if active_sub == 'about' or '/admin-panel/website/about/' in request.path %}flex{% else %}none{% endif %}; flex-direction:column; gap:2px; padding-left:14px; margin:4px 0 6px 0; border-left:2px solid rgba(255,255,255,0.12); margin-left:10px;">
+              <a href="/admin-panel/website/about/?page=company" class="submenu-link {% if active_sub == 'about' and current_about_page == 'company' or active_sub == 'about' and not current_about_page %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-building"></i> <span>About Company</span>
+              </a>
+              <a href="/admin-panel/website/about/?page=ceo" class="submenu-link {% if active_sub == 'about' and current_about_page == 'ceo' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-user-star"></i> <span>CEO &amp; Founder</span>
+              </a>
+              <a href="/admin-panel/website/about/?page=team" class="submenu-link {% if active_sub == 'about' and current_about_page == 'team' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-users"></i> <span>Our Team</span>
+              </a>
+              <a href="/admin-panel/website/about/?page=journey" class="submenu-link {% if active_sub == 'about' and current_about_page == 'journey' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-rocket"></i> <span>Journey</span>
+              </a>
+            </div>
+          </div>
+          <!-- Nested Dropdown for Services (8 Services + Catalog) -->
+          <div class="nested-submenu-wrap" style="position:relative;">
+            <a href="javascript:void(0);" 
+               class="submenu-link {% if active_sub == 'services' or '/admin-panel/website/services/' in request.path %}active{% endif %}" 
+               id="servicesSubmenuToggle" 
+               onclick="toggleServicesSubmenu(event);" 
+               style="display:flex; align-items:center; justify-content:space-between; user-select:none; cursor:pointer;">
+              <span style="display:flex; align-items:center; gap:9px;">
+                <i class="ti ti-briefcase"></i> <span>Services</span>
+              </span>
+              <i class="ti ti-chevron-down nested-chevron" id="servicesSubmenuChevron" style="font-size:10px; transition:transform 0.2s ease; {% if active_sub == 'services' or '/admin-panel/website/services/' in request.path %}transform:rotate(180deg);{% endif %}"></i>
+            </a>
+            
+            <div id="servicesSubmenuList" style="display:{% if active_sub == 'services' or '/admin-panel/website/services/' in request.path %}flex{% else %}none{% endif %}; flex-direction:column; gap:2px; padding-left:14px; margin:4px 0 6px 0; border-left:2px solid rgba(255,255,255,0.12); margin-left:10px;">
+              <a href="/admin-panel/website/services/?page=catalog" class="submenu-link {% if active_sub == 'services' and current_services_page == 'catalog' or active_sub == 'services' and not current_services_page %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-grid-dots"></i> <span>All Services</span>
+              </a>
+              <a href="/admin-panel/website/services/?page=manpower_supply" class="submenu-link {% if active_sub == 'services' and current_services_page == 'manpower_supply' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-users"></i> <span>Manpower Supply</span>
+              </a>
+              <a href="/admin-panel/website/services/?page=recruitment_placement" class="submenu-link {% if active_sub == 'services' and current_services_page == 'recruitment_placement' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-search"></i> <span>Recruitment &amp; Placement</span>
+              </a>
+              <a href="/admin-panel/website/services/?page=contract_staffing" class="submenu-link {% if active_sub == 'services' and current_services_page == 'contract_staffing' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-user-check"></i> <span>Contract Staffing</span>
+              </a>
+              <a href="/admin-panel/website/services/?page=educational_consultancy" class="submenu-link {% if active_sub == 'services' and current_services_page == 'educational_consultancy' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-school"></i> <span>Educational Consultancy</span>
+              </a>
+              <a href="/admin-panel/website/services/?page=payroll_outsourcing" class="submenu-link {% if active_sub == 'services' and current_services_page == 'payroll_outsourcing' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-calculator"></i> <span>Payroll &amp; Outsourcing</span>
+              </a>
+              <a href="/admin-panel/website/services/?page=hr_support" class="submenu-link {% if active_sub == 'services' and current_services_page == 'hr_support' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-headset"></i> <span>HR Support</span>
+              </a>
+              <a href="/admin-panel/website/services/?page=internship" class="submenu-link {% if active_sub == 'services' and current_services_page == 'internship' %}active{% endif %}" style="font-size:11px; padding:5px 8px;">
+                <i class="ti ti-award"></i> <span>Internship Programme</span>
+              </a>
+            </div>
+          </div>
+          <a href="/admin-panel/website/job/" class="submenu-link {% if active_sub == 'jobs' or active_sub == 'job' or request.path == '/admin-panel/website/job/' or request.path == '/admin-panel/website/jobs/' %}active{% endif %}">
+            <i class="ti ti-briefcase"></i> <span>Job</span>
+          </a>
+          <a href="/admin-panel/website/careers/" class="submenu-link {% if active_sub == 'careers' or request.path == '/admin-panel/website/careers/' %}active{% endif %}">
+            <i class="ti ti-user-star"></i> <span>Careers</span>
+          </a>
+          <a href="/admin-panel/website/blog/" class="submenu-link {% if active_sub == 'blog' or request.path == '/admin-panel/website/blog/' %}active{% endif %}">
+            <i class="ti ti-news"></i> <span>Blog Management</span>
+          </a>
+          <a href="/admin-panel/website/gallery/" class="submenu-link {% if active_sub == 'gallery' or request.path == '/admin-panel/website/gallery/' %}active{% endif %}">
+            <i class="ti ti-photo"></i> <span>Gallery Management</span>
+          </a>
+          <a href="/admin-panel/website/contact/" class="submenu-link {% if active_sub == 'contact' or request.path == '/admin-panel/website/contact/' %}active{% endif %}">
+            <i class="ti ti-address-book"></i> <span>Contact Information</span>
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </nav>
+
+    <!-- Bottom Support Card -->
+    <div class="sidebar-support-card">
+      <div class="support-icon"><i class="ti ti-headset"></i></div>
+      <div class="support-info">
+        <span class="support-lbl">Need Support?</span>
+        <span class="support-num">+91 88531 11111</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="admin-main-wrapper">
+    
+    <!-- B) TOP HEADER -->
+    <header class="admin-topbar">
+      <div class="topbar-left" style="display:flex; align-items:center; gap:12px; min-width:0;">
+        <button class="hamburger-btn" id="adminHamburgerBtn" aria-label="Toggle Navigation">
+          <i class="ti ti-menu-2"></i>
+        </button>
+        <div style="min-width:0;">
+          <h1 class="topbar-title" style="margin:0; font-size:15px; font-weight:700; color:#0F172A; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            {% block page_title %}{{ section_name|default:"Dashboard" }}{% endblock %}
+          </h1>
+          <div class="topbar-breadcrumb" style="font-size:11px; color:#64748B; display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            <span>Home</span> <i class="ti ti-chevron-right" style="font-size:9px;"></i>
+            {% if module_title and module_title != 'Admin Module' %}
+              <span>{{ module_title }}</span> <i class="ti ti-chevron-right" style="font-size:9px;"></i>
+            {% endif %}
+            <span style="color:#2563EB; font-weight:600;">{% block breadcrumb_title %}{{ section_name|default:"Dashboard" }}{% endblock %}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Branch Selector -->
+        <div class="branch-dropdown">
+          <i class="ti ti-git-branch" style="color:#2563EB;"></i>
+          <select>
+            <option value="all" selected>All Branches</option>
+            <option value="lucknow">Lucknow HQ</option>
+            <option value="delhi">Delhi Branch</option>
+            <option value="mumbai">Mumbai Branch</option>
+          </select>
+        </div>
+
+        <!-- Chat / Messages Icon -->
+        <a href="/admin-panel/enquiries/all/" class="topbar-btn" title="Visitor, Candidate & Employer Messages">
+          <i class="ti ti-message-dots"></i>
+          <span class="btn-badge bg-primary text-white" id="topbarMsgBadge" {% if not unread_messages_count %}style="display:none;"{% endif %}>{{ unread_messages_count|default:0 }}</span>
+        </a>
+
+        <!-- Notification Bell -->
+        <a href="/admin-panel/registrations/" class="topbar-btn" title="Pending Registrations & Approvals">
+          <i class="ti ti-bell"></i>
+          <span class="btn-badge bg-danger text-white" id="topbarNotifBadge" {% if not notifications_count %}style="display:none;"{% endif %}>{{ notifications_count|default:0 }}</span>
+        </a>
+
+        <!-- Mail / Applications Icon -->
+        <a href="/admin-panel/job-applications/all/" class="topbar-btn" title="Job & Internship Applications">
+          <i class="ti ti-mail"></i>
+          <span class="btn-badge bg-warning text-dark" id="topbarMailBadge" {% if not mail_applications_count %}style="display:none;"{% endif %}>{{ mail_applications_count|default:0 }}</span>
+        </a>
+
+        <div class="topbar-divider"></div>
+
+        <!-- User Profile Pill -->
+        <div style="position:relative;">
+          <div class="user-profile-btn" id="adminProfileBtn">
+            <div class="avatar-circle">
+              {% if admin_user %}{{ admin_user.full_name|slice:":1"|upper }}{% else %}A{% endif %}
+              <span class="online-dot"></span>
+            </div>
+            <div class="user-meta">
+              <span class="user-name">{% if admin_user.full_name %}{{ admin_user.full_name }}{% elif admin_user.email %}{{ admin_user.email }}{% else %}Admin User{% endif %}</span>
+              <span class="user-role">{% if admin_role %}{{ admin_role.name }}{% elif is_super_admin %}Super Admin{% else %}Staff{% endif %}</span>
+            </div>
+            <i class="ti ti-chevron-down" style="font-size:12px; color:#94A3B8;"></i>
+          </div>
+
+          <!-- Dropdown Menu -->
+          <div id="adminProfileMenu" style="display:none; position:absolute; right:0; top:calc(100% + 8px); background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:180px; z-index:1000; padding:6px;">
+            <a href="/admin-panel/settings/profile/" style="display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:12px; color:#334155; border-radius:6px;">
+              <i class="ti ti-user"></i> My Profile
+            </a>
+            <a href="/admin-panel/settings/general/" style="display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:12px; color:#334155; border-radius:6px;">
+              <i class="ti ti-settings"></i> Settings
+            </a>
+            <div style="height:1px; background:#F1F5F9; margin:4px 0;"></div>
+            <a href="/api/admin/logout" style="display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:12px; color:#EF4444; border-radius:6px;">
+              <i class="ti ti-logout"></i> Logout
+            </a>
+          </div>
+        </div>
+
+        <!-- Settings Icon -->
+        <a href="/admin-panel/settings/general/" class="topbar-btn" title="Settings">
+          <i class="ti ti-settings"></i>
+        </a>
+
+      </div>
+    </header>
+
+    <!-- CONTENT BODY -->
+    <div class="dashboard-content">
+      {% block content %}{% endblock %}
+    </div>
+
+    <!-- C) FOOTER -->
+    <footer class="admin-footer">
+      <span>&copy; 2024 <strong>SVG CONSULTANCY</strong>. All Rights Reserved.</span>
+      <span>Version 1.0.0</span>
+    </footer>
+
+  </div>
+
+</div>
+
+<!-- Admin JS Script -->
+<script src="{% static 'js/admin/svg-admin.js' %}?v=4.0"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('adminSidebar');
+    if (sidebar) {
+      const savedPos = sessionStorage.getItem('admin_sidebar_scroll_top');
+      if (savedPos !== null) {
+        sidebar.scrollTop = parseInt(savedPos, 10);
+      }
+      sidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          sessionStorage.setItem('admin_sidebar_scroll_top', sidebar.scrollTop);
+        });
+      });
+    }
+
+    // Live update for Topbar Notification & Message counts
+    async function updateTopbarCounts() {
+      try {
+        const res = await fetch('/api/admin/topbar-counts/');
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          const msgBadge = document.getElementById('topbarMsgBadge');
+          const notifBadge = document.getElementById('topbarNotifBadge');
+          const mailBadge = document.getElementById('topbarMailBadge');
+
+          if (msgBadge) {
+            msgBadge.innerText = data.messages || 0;
+            msgBadge.style.display = (data.messages > 0) ? 'inline-flex' : 'none';
+          }
+          if (notifBadge) {
+            notifBadge.innerText = data.notifications || 0;
+            notifBadge.style.display = (data.notifications > 0) ? 'inline-flex' : 'none';
+          }
+          if (mailBadge) {
+            mailBadge.innerText = data.mail || 0;
+            mailBadge.style.display = (data.mail > 0) ? 'inline-flex' : 'none';
+          }
+        }
+      } catch (e) {
+        console.warn('Could not refresh topbar counts:', e);
+      }
+    }
+
+    updateTopbarCounts();
+    setInterval(updateTopbarCounts, 25000);
+  });
+
+  window.toggleWebsiteSubmenu = function(e) {
+    const submenu = document.getElementById('websiteMgmtSubmenu');
+    const chevron = document.getElementById('websiteMgmtChevron');
+    if (!submenu) return;
+    
+    // Toggle when clicking chevron or when already browsing inside website management module
+    if (e && (e.target.closest('#websiteMgmtChevron') || window.location.pathname.startsWith('/admin-panel/website/'))) {
+      if (e.preventDefault) e.preventDefault();
+      const isHidden = (submenu.style.display === 'none');
+      submenu.style.display = isHidden ? 'flex' : 'none';
+      if (chevron) {
+        chevron.classList.toggle('rotated', isHidden);
+      }
+      try {
+        sessionStorage.setItem('website_mgmt_submenu_open', isHidden ? 'true' : 'false');
+      } catch (err) {}
+    }
+  };
+
+  window.toggleAboutSubmenu = function(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const subList = document.getElementById('aboutSubmenuList');
+    const chevron = document.getElementById('aboutSubmenuChevron');
+    if (!subList) return;
+    const isHidden = (subList.style.display === 'none' || !subList.style.display);
+    subList.style.display = isHidden ? 'flex' : 'none';
+    if (chevron) {
+      chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+    try {
+      sessionStorage.setItem('about_mgmt_submenu_open', isHidden ? 'true' : 'false');
+    } catch (err) {}
+  };
+
+  window.toggleServicesSubmenu = function(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const subList = document.getElementById('servicesSubmenuList');
+    const chevron = document.getElementById('servicesSubmenuChevron');
+    if (!subList) return;
+    const isHidden = (subList.style.display === 'none' || !subList.style.display);
+    subList.style.display = isHidden ? 'flex' : 'none';
+    if (chevron) {
+      chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+    try {
+      sessionStorage.setItem('services_mgmt_submenu_open', isHidden ? 'true' : 'false');
+    } catch (err) {}
+  };
+
+  window.getCookie = function(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  };
+  function getCookie(name) {
+    return window.getCookie(name);
+  }
+</script>
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

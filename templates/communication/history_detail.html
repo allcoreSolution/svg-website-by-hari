@@ -1,0 +1,470 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Broadcast Detail — {{ bulk_msg.title }} — SVG Admin{% endblock %}
+{% block page_title %}Bulk Messaging &amp; Communication{% endblock %}
+{% block breadcrumb_title %}Communication / History / Detail{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin/communication-admin.css' %}?v=1.1">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0 mb-5">
+
+  <!-- Header Banner -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h3 class="fw-bold text-dark mb-0">{{ bulk_msg.title }}</h3>
+        <span class="badge rounded-pill px-3 py-1" id="mainStatusBadge">
+          {{ bulk_msg.status }}
+        </span>
+      </div>
+      <p class="text-muted mb-0 small">
+        Dispatched on {{ bulk_msg.created_at|date:"d M Y, h:i A" }} by {{ bulk_msg.created_by.email|default:"Admin" }}
+        {% if bulk_msg.channels %} &bull; Channels: <strong>{{ bulk_msg.channels|join:", "|upper }}</strong>{% endif %}
+      </p>
+    </div>
+    
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <a href="/admin-panel/communication/history/" class="btn btn-outline-secondary rounded-pill btn-sm px-3 fw-semibold">
+        <i class="ti ti-arrow-left me-1"></i> Back to History
+      </a>
+      
+      <a href="/admin-panel/communication/compose/?duplicate={{ bulk_msg.id }}" class="btn btn-outline-primary rounded-pill btn-sm px-3 fw-semibold">
+        <i class="ti ti-copy me-1"></i> Duplicate
+      </a>
+
+      <a href="/admin-panel/communication/history/{{ bulk_msg.id }}/export-csv/?channel={{ channel_filter }}&status={{ status_filter }}" class="btn btn-outline-dark rounded-pill btn-sm px-3 fw-semibold">
+        <i class="ti ti-file-spreadsheet me-1"></i> Export CSV
+      </a>
+
+      <!-- Stop Sending Button (Only while Sending) -->
+      <button id="btnStopSending" class="btn btn-danger rounded-pill btn-sm px-3 fw-bold {% if bulk_msg.status != 'Sending' %}d-none{% endif %}" onclick="stopSending()">
+        <i class="ti ti-player-stop me-1"></i> Stop Sending
+      </button>
+
+      {% if bulk_msg.status == 'Draft' %}
+        <button id="btnSendDraft" class="btn btn-primary rounded-pill btn-sm px-3 fw-bold text-white shadow-sm" onclick="sendDraft()">
+          <i class="ti ti-send me-1"></i> Send Draft Now
+        </button>
+      {% elif bulk_msg.pending_count > 0 or bulk_msg.failed_count > 0 or bulk_msg.status == 'Stopped' or bulk_msg.status == 'Interrupted' %}
+        <button id="btnRetryFailed" class="btn btn-warning text-dark rounded-pill btn-sm px-3 fw-bold shadow-sm" {% if daily_remaining == 0 %}disabled title="Today's Gmail daily limit (400) is used up. Try again tomorrow."{% endif %} onclick="retryFailed()">
+          <i class="ti ti-rotate me-1"></i> Retry / Resume ({{ bulk_msg.pending_count|add:bulk_msg.failed_count }})
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Live Progress Bar Card (Active while Sending or for visual summary) -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-3">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="ti ti-activity text-primary fs-5"></i>
+        <span class="fw-bold text-dark small">Broadcast Delivery Progress:</span>
+        <span class="badge bg-light text-dark border small" id="progressPercentageBadge">0% Complete</span>
+      </div>
+      <div id="livePollingIndicator" class="small text-muted {% if bulk_msg.status != 'Sending' %}d-none{% endif %}">
+        <span class="spinner-grow spinner-grow-sm text-info me-1" style="width: 9px; height: 9px;"></span> Live updating (every 4s)...
+      </div>
+    </div>
+    <div class="comm-progress-bar-wrap">
+      <div class="comm-progress-bar" id="liveProgressBar" style="width: 0%;"></div>
+    </div>
+  </div>
+
+  <!-- Summary Metrics Cards Grid -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <span class="text-muted small fw-semibold">Target Audience</span>
+        <h5 class="fw-bold text-dark mb-0 mt-1 text-capitalize">
+          {{ bulk_msg.audience_type }}
+          {% if bulk_msg.candidate_filter %}<span class="small text-muted">({{ bulk_msg.candidate_filter }})</span>{% endif %}
+        </h5>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <span class="text-muted small fw-semibold">Total Target Recipients</span>
+        <h5 class="fw-bold text-primary mb-0 mt-1" id="statTotalRecipients">{{ bulk_msg.total_recipients }}</h5>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <span class="text-muted small fw-semibold">Successfully Sent</span>
+        <h5 class="fw-bold text-success mb-0 mt-1" id="statSentCount">{{ bulk_msg.sent_count }}</h5>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <span class="text-muted small fw-semibold">Skipped / Inactive</span>
+        <h5 class="fw-bold text-secondary mb-0 mt-1" id="statSkippedCount">{{ bulk_msg.skipped_count }}</h5>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <span class="text-muted small fw-semibold">Pending / Failed</span>
+        <h5 class="fw-bold {% if bulk_msg.failed_count > 0 %}text-danger{% elif bulk_msg.pending_count > 0 %}text-warning{% else %}text-muted{% endif %} mb-0 mt-1" id="statPendingFailed">
+          {{ bulk_msg.pending_count }} P / {{ bulk_msg.failed_count }} F
+        </h5>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stop Reason / Error Notice Banner -->
+  <div id="stopReasonAlert" class="alert alert-danger border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center gap-3 {% if not bulk_msg.stop_reason %}d-none{% endif %}">
+    <div class="p-2 bg-danger bg-opacity-10 text-danger rounded-circle">
+      <i class="ti ti-alert-triangle fs-4"></i>
+    </div>
+    <div>
+      <h6 class="fw-bold mb-0 text-dark">Broadcast Note / Stop Reason</h6>
+      <span class="small text-danger fw-semibold" id="stopReasonText">{{ bulk_msg.stop_reason }}</span>
+    </div>
+  </div>
+
+  <!-- Message Content Box -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+    <div class="card-header bg-white py-3 border-0 d-flex align-items-center justify-content-between">
+      <h6 class="fw-bold text-dark mb-0"><i class="ti ti-file-text text-primary me-2"></i>Dispatched Message Content</h6>
+      {% if bulk_msg.attachment %}
+        <a href="{{ bulk_msg.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+          <i class="ti ti-paperclip me-1"></i> Download Attachment ({{ bulk_msg.attachment.name|slice:":25" }})
+        </a>
+      {% endif %}
+    </div>
+    <div class="card-body p-4 bg-light border-top">
+      <div class="mb-2"><strong>Subject:</strong> <span class="text-primary">{{ bulk_msg.subject }}</span></div>
+      <div class="p-3 bg-white rounded-3 border" style="line-height: 1.6;">
+        {{ bulk_msg.body|safe }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipients List Table -->
+  <div class="card border-0 shadow-sm rounded-4 bg-white mb-4" id="recipientDeliveryCard">
+    <div class="card-header bg-white py-3 border-0 d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <h6 class="fw-bold text-dark mb-0"><i class="ti ti-users text-primary me-2"></i>Recipient Delivery Log</h6>
+        
+        <!-- Channel Filter Tabs: All, Email, Dashboard -->
+        <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" aria-label="Channel Filter">
+          <a href="?channel=&status={{ status_filter }}#recipientDeliveryCard" class="btn btn-sm rounded-pill px-3 fw-semibold {% if not channel_filter %}btn-primary text-white shadow-sm{% else %}text-muted{% endif %}">
+            All Channels
+          </a>
+          <a href="?channel=email&status={{ status_filter }}#recipientDeliveryCard" class="btn btn-sm rounded-pill px-3 fw-semibold {% if channel_filter == 'email' %}btn-primary text-white shadow-sm{% else %}text-muted{% endif %}">
+            <i class="ti ti-mail me-1"></i> Email ({{ email_channel_count }})
+          </a>
+          <a href="?channel=dashboard&status={{ status_filter }}#recipientDeliveryCard" class="btn btn-sm rounded-pill px-3 fw-semibold {% if channel_filter == 'dashboard' %}btn-primary text-white shadow-sm{% else %}text-muted{% endif %}">
+            <i class="ti ti-bell me-1"></i> Dashboard ({{ dashboard_channel_count }})
+          </a>
+        </div>
+      </div>
+      
+      <!-- Delivery Status Filter Pills -->
+      <div class="d-flex flex-wrap align-items-center gap-1">
+        <span class="small text-muted me-1 fw-bold">Status:</span>
+        <a href="?channel={{ channel_filter }}&status=#recipientDeliveryCard" class="btn btn-sm btn-outline-secondary rounded-pill px-3 {% if not status_filter %}active{% endif %}">All</a>
+        <a href="?channel={{ channel_filter }}&status=Sent#recipientDeliveryCard" class="btn btn-sm btn-outline-success rounded-pill px-3 {% if status_filter == 'Sent' %}active{% endif %}">Sent</a>
+        <a href="?channel={{ channel_filter }}&status=Pending#recipientDeliveryCard" class="btn btn-sm btn-outline-warning rounded-pill px-3 {% if status_filter == 'Pending' %}active{% endif %}">Pending</a>
+        <a href="?channel={{ channel_filter }}&status=Skipped#recipientDeliveryCard" class="btn btn-sm btn-outline-secondary rounded-pill px-3 {% if status_filter == 'Skipped' %}active{% endif %}">Skipped</a>
+        <a href="?channel={{ channel_filter }}&status=Failed#recipientDeliveryCard" class="btn btn-sm btn-outline-danger rounded-pill px-3 {% if status_filter == 'Failed' %}active{% endif %}">Failed</a>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4">Recipient Name</th>
+              <th>Contact Email / Phone</th>
+              <th>Channel</th>
+              <th>Delivery Status</th>
+              <th>Inbox Read Status</th>
+              <th>Sent At</th>
+              <th class="pe-4">Error / Skip Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if page_obj %}
+              {% for r in page_obj %}
+                <tr>
+                  <td class="ps-4 fw-bold text-dark">
+                    {% if r.candidate_account %}
+                      <i class="ti ti-user text-primary me-1"></i> {{ r.candidate_account.full_name }}
+                    {% elif r.employer_account %}
+                      <i class="ti ti-building text-info me-1"></i> {{ r.employer_account.company_name }} ({{ r.employer_account.contact_name }})
+                    {% else %}
+                      Unknown
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">
+                    {% if r.candidate_account %}
+                      {{ r.candidate_account.email|default:"No email" }} &bull; {{ r.candidate_account.phone }}
+                    {% elif r.employer_account %}
+                      {{ r.employer_account.email|default:"No email" }} &bull; {{ r.employer_account.phone }}
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border px-2 py-0.5" style="font-size: 11px;">{{ r.channel|upper }}</span>
+                  </td>
+                  <td>
+                    {% if r.delivery_status == 'Sent' %}
+                      <span class="badge bg-success rounded-pill px-3 py-1">Sent</span>
+                    {% elif r.delivery_status == 'Failed' %}
+                      <span class="badge bg-danger rounded-pill px-3 py-1">Failed</span>
+                    {% elif r.delivery_status == 'Skipped' %}
+                      <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1">Skipped</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark rounded-pill px-3 py-1">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if r.is_read %}
+                      <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1">Read at {{ r.read_at|date:"h:i A, d M" }}</span>
+                    {% else %}
+                      <span class="badge bg-light text-muted border rounded-pill px-2.5 py-0.5">Unread</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted text-nowrap">
+                    {{ r.sent_at|date:"d M Y, h:i A"|default:"-" }}
+                  </td>
+                  <td class="pe-4 small {% if r.delivery_status == 'Failed' %}text-danger{% else %}text-muted{% endif %}">
+                    {{ r.error|default:"-" }}
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-4 text-muted">No recipient log entries match the current filter.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+          <span class="small text-muted">Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} entries</span>
+          <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link rounded-pill px-3" href="?page={{ page_obj.previous_page_number }}&channel={{ channel_filter }}&status={{ status_filter }}#recipientDeliveryCard">Previous</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link rounded-pill px-3">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link rounded-pill px-3" href="?page={{ page_obj.next_page_number }}&channel={{ channel_filter }}&status={{ status_filter }}#recipientDeliveryCard">Next</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  let pollingInterval = null;
+  const MESSAGE_ID = {{ bulk_msg.id }};
+  let currentStatus = "{{ bulk_msg.status }}";
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateBadgeStyle(currentStatus);
+    recalcProgress({{ bulk_msg.sent_count }}, {{ bulk_msg.skipped_count }}, {{ bulk_msg.failed_count }}, {{ bulk_msg.total_recipients }});
+
+    if (currentStatus === 'Sending') {
+      startStatusPolling();
+    }
+
+    if (window.location.hash === '#recipientDeliveryCard' || window.location.search.includes('channel=') || window.location.search.includes('status=')) {
+      const tableEl = document.getElementById('recipientDeliveryCard');
+      if (tableEl) {
+        setTimeout(() => {
+          tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+    }
+  });
+
+  function recalcProgress(sent, skipped, failed, total) {
+    const finished = sent + skipped + failed;
+    const pct = total > 0 ? Math.min(100, Math.round((finished / total) * 100)) : 100;
+    const bar = document.getElementById('liveProgressBar');
+    const badge = document.getElementById('progressPercentageBadge');
+    if (bar) bar.style.width = `${pct}%`;
+    if (badge) badge.innerText = `${pct}% Complete (${finished}/${total})`;
+  }
+
+  function updateBadgeStyle(status) {
+    const badge = document.getElementById('mainStatusBadge');
+    if (!badge) return;
+    badge.innerText = status;
+    badge.className = 'badge rounded-pill px-3 py-1';
+
+    if (status === 'Sent') badge.classList.add('bg-success');
+    else if (status === 'Partial') badge.classList.add('bg-warning', 'text-dark');
+    else if (status === 'Sending') badge.classList.add('bg-info');
+    else if (status === 'Failed') badge.classList.add('bg-danger');
+    else if (status === 'Stopped') badge.classList.add('bg-dark');
+    else if (status === 'Interrupted') badge.classList.add('bg-danger-subtle', 'text-danger', 'border');
+    else badge.classList.add('bg-secondary');
+  }
+
+  function startStatusPolling() {
+    if (pollingInterval) clearInterval(pollingInterval);
+    pollingInterval = setInterval(pollStatus, 4000);
+  }
+
+  async function pollStatus() {
+    try {
+      const res = await fetch(`/admin-panel/communication/history/${MESSAGE_ID}/status/`);
+      const data = await res.json();
+
+      document.getElementById('statSentCount').innerText = data.sent_count;
+      document.getElementById('statSkippedCount').innerText = data.skipped_count;
+      document.getElementById('statPendingFailed').innerText = `${data.pending_count} P / ${data.failed_count} F`;
+      document.getElementById('statTotalRecipients').innerText = data.total_recipients;
+
+      updateBadgeStyle(data.status);
+      recalcProgress(data.sent_count, data.skipped_count, data.failed_count, data.total_recipients);
+
+      if (data.stop_reason) {
+        document.getElementById('stopReasonAlert').classList.remove('d-none');
+        document.getElementById('stopReasonText').innerText = data.stop_reason;
+      }
+
+      if (data.is_complete) {
+        clearInterval(pollingInterval);
+        document.getElementById('livePollingIndicator').classList.add('d-none');
+        document.getElementById('btnStopSending').classList.add('d-none');
+        showToast('Broadcast sending run completed!', 'success');
+        setTimeout(() => location.reload(), 1500);
+      }
+    } catch(e) {
+      console.warn('Error polling broadcast status', e);
+    }
+  }
+
+  async function stopSending() {
+    if (!confirm('Are you sure you want to stop this broadcast? Remaining pending recipients will be preserved and can be resumed later.')) return;
+    const btn = document.getElementById('btnStopSending');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Stopping...';
+
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch(`/admin-panel/communication/history/${MESSAGE_ID}/stop/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        showToast(data.message, 'success');
+        if (pollingInterval) clearInterval(pollingInterval);
+        setTimeout(() => location.reload(), 800);
+      } else {
+        showToast(data.message || 'Stop failed', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-player-stop me-1"></i> Stop Sending';
+      }
+    } catch(e) {
+      showToast('Network error stopping message.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-player-stop me-1"></i> Stop Sending';
+    }
+  }
+
+  async function sendDraft() {
+    const btn = document.getElementById('btnSendDraft');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Dispatching...';
+
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch(`/admin-panel/communication/history/${MESSAGE_ID}/send-draft/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        showToast(data.message, 'success');
+        setTimeout(() => location.reload(), 800);
+      } else {
+        showToast(data.message || 'Send draft failed', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-send me-1"></i> Send Draft Now';
+      }
+    } catch(e) {
+      showToast('Network error dispatching draft', 'error');
+      btn.disabled = false;
+    }
+  }
+
+  async function retryFailed() {
+    const btn = document.getElementById('btnRetryFailed');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Resuming...';
+
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch(`/admin-panel/communication/history/${MESSAGE_ID}/retry/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        showToast(data.message, 'success');
+        setTimeout(() => location.reload(), 800);
+      } else {
+        showToast(data.message || 'Retry failed', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-rotate me-1"></i> Retry / Resume';
+      }
+    } catch(e) {
+      showToast('Network error retrying broadcast', 'error');
+      btn.disabled = false;
+    }
+  }
+
+  function showToast(msg, type = 'success') {
+    const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+    let container = document.getElementById('composerToastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'composerToastContainer';
+      container.style.cssText = 'position:fixed; top:20px; right:20px; z-index:99999; max-width:380px;';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `p-3 rounded-3 shadow-lg ${bgClass} mb-2 d-flex align-items-center justify-content-between gap-2`;
+    toast.style.cssText = 'font-size:13px; font-weight:600; transition:all 0.3s ease;';
+    toast.innerHTML = `
+      <div>${msg.replace(/\n/g, '<br>')}</div>
+      <button type="button" class="btn-close btn-close-white ms-2" onclick="this.parentElement.remove()"></button>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentElement) toast.remove();
+    }, 4500);
+  }
+</script>
+{% endblock %}

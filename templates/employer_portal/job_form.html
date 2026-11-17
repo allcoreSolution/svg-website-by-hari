@@ -1,0 +1,96 @@
+{% extends 'employer_portal/base_employer.html' %}
+{% load static %}
+
+{% block title %}{% if job %}Edit Job — {{ job.title }}{% else %}Post New Job — Sky Vision Employer{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start align-items-sm-center justify-content-between flex-column flex-sm-row gap-2 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1 fs-4">{% if job %}Edit Job Posting{% else %}Post a New Vacancy{% endif %}</h3>
+    <p class="text-muted mb-0 small">Newly posted jobs are submitted for admin approval before appearing live on the website.</p>
+  </div>
+  <a href="/employer/jobs/" class="btn btn-outline-secondary btn-sm rounded-pill px-3 w-100 w-sm-auto text-center"><i class="fa-solid fa-arrow-left me-1"></i> Back to Jobs</a>
+</div>
+
+<div class="bg-white rounded-4 border p-4 shadow-sm" style="max-width: 860px;">
+  {% if error %}
+    <div class="alert alert-danger mb-4">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="{% if job %}/employer/jobs/{{ job.id }}/edit/{% else %}/employer/jobs/new/{% endif %}">
+    {% csrf_token %}
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-8">
+        <label class="form-label fw-semibold">Job Title / Position Name <span class="text-danger">*</span></label>
+        <input type="text" name="title" class="form-control" placeholder="e.g. Senior Software Engineer" value="{% if job %}{{ job.title }}{% else %}{{ form_data.title }}{% endif %}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Employment Type</label>
+        <select name="employment_type" class="form-select">
+          <option value="Full Time" {% if job %}{% if job.employment_type == 'Full Time' %}selected{% endif %}{% else %}{% if form_data.employment_type == 'Full Time' %}selected{% endif %}{% endif %}>Full Time</option>
+          <option value="Part Time" {% if job %}{% if job.employment_type == 'Part Time' %}selected{% endif %}{% else %}{% if form_data.employment_type == 'Part Time' %}selected{% endif %}{% endif %}>Part Time</option>
+          <option value="Contractual" {% if job %}{% if job.employment_type == 'Contractual' %}selected{% endif %}{% else %}{% if form_data.employment_type == 'Contractual' %}selected{% endif %}{% endif %}>Contractual</option>
+          <option value="Work From Home" {% if job %}{% if job.employment_type == 'Work From Home' %}selected{% endif %}{% else %}{% if form_data.employment_type == 'Work From Home' %}selected{% endif %}{% endif %}>Work From Home</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Category</label>
+        <input type="text" name="category" class="form-control" placeholder="e.g. IT / Software" value="{% if job %}{{ job.category }}{% else %}{{ form_data.category }}{% endif %}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Department</label>
+        <input type="text" name="department" class="form-control" placeholder="e.g. Engineering" value="{% if job %}{{ job.department }}{% else %}{{ form_data.department }}{% endif %}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Location</label>
+        <input type="text" name="location" class="form-control" placeholder="e.g. Lucknow, UP" value="{% if job %}{{ job.location }}{% else %}{{ form_data.location }}{% endif %}">
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Experience Required</label>
+        <input type="text" name="experience" class="form-control" placeholder="e.g. 2-5 Years" value="{% if job %}{{ job.experience }}{% else %}{{ form_data.experience }}{% endif %}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Offered Salary / Package</label>
+        <input type="text" name="salary" class="form-control" placeholder="e.g. 4.5 LPA - 6.0 LPA" value="{% if job %}{{ job.salary }}{% else %}{{ form_data.salary }}{% endif %}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Number of Vacancies</label>
+        <input type="number" name="vacancies" class="form-control" placeholder="1" min="1" value="{% if job %}{{ job.vacancies }}{% else %}{{ form_data.vacancies }}{% endif %}">
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Required Qualification</label>
+        <input type="text" name="qualification" class="form-control" placeholder="e.g. B.Tech, BCA, MCA, Any Graduate" value="{% if job %}{{ job.qualification }}{% else %}{{ form_data.qualification }}{% endif %}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Application Deadline</label>
+        <input type="text" name="deadline" class="form-control" placeholder="e.g. 30 Days or YYYY-MM-DD" value="{% if job %}{{ job.deadline }}{% else %}{{ form_data.deadline }}{% endif %}">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Job Description <span class="text-danger">*</span></label>
+      <textarea name="description" class="form-control" rows="5" placeholder="Detailed role responsibilities, team overview, and perks..." required>{% if job %}{{ job.description }}{% else %}{{ form_data.description }}{% endif %}</textarea>
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label fw-semibold">Candidate Requirements / Skills</label>
+      <textarea name="requirements" class="form-control" rows="4" placeholder="Key skills, qualifications, certifications, or mandatory skills...">{% if job %}{{ job.requirements }}{% else %}{{ form_data.requirements }}{% endif %}</textarea>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 flex-wrap">
+      <a href="/employer/jobs/" class="btn btn-light border px-4 w-100 w-sm-auto text-center">Cancel</a>
+      <button type="submit" class="btn btn-primary px-4 fw-bold w-100 w-sm-auto">{% if job %}<i class="fa-solid fa-floppy-disk me-1"></i> Save Changes{% else %}<i class="fa-solid fa-paper-plane me-1"></i> Submit Job for Approval{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

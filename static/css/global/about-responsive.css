@@ -1,0 +1,40 @@
+/* =========================================================
+   ABOUT PAGE — RESPONSIVE / MOBILE STYLES
+   Page-specific breakpoints only. Shared sections (about,
+   why-choose, industries, footer, etc.) are handled by
+   the site-wide responsive.css
+========================================================= */
+
+@media (max-width: 767px) {
+    .container {
+        max-width:767px;
+    }
+    .page-header {
+        padding: 46px 6% 40px;
+    }
+
+    .breadcrumb {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 767px) {
+    .page-header {
+        padding: 38px 6% 34px;
+    }
+
+    .page-header h1 {
+        font-size: 26px;
+    }
+
+    .breadcrumb {
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+}
+/* Mobile view me top bar hide */
+@media (max-width: 768px) {
+    .top-bar {
+        display: none !important;
+    }
+}

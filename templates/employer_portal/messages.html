@@ -1,0 +1,192 @@
+{% extends 'employer_portal/base_employer.html' %}
+{% load static %}
+
+{% block title %}Messages &amp; Announcements — Employer Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start align-items-sm-center justify-content-between flex-column flex-sm-row gap-2 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1 fs-4"><i class="ti ti-mail text-primary me-2"></i>Company Messages &amp; Announcements</h3>
+    <p class="text-muted mb-0 small">Official updates, candidate pool digests, and notices from Sky Vision Admin.</p>
+  </div>
+  {% if unread_count > 0 %}
+    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 w-100 w-sm-auto text-center" onclick="markAllRead()">
+      <i class="ti ti-checks me-1"></i> Mark All as Read ({{ unread_count }})
+    </button>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <!-- Messages List Column -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header bg-white py-3 border-0">
+        <h6 class="fw-bold mb-0 text-dark"><i class="ti ti-inbox text-primary me-2"></i>Inbox Messages</h6>
+      </div>
+      <div class="list-group list-group-flush" id="messagesListGroup">
+        {% if page_obj %}
+          {% for mr in page_obj %}
+            <a href="javascript:void(0)" class="list-group-item list-group-item-action py-3 px-3 border-bottom msg-item {% if not mr.is_read %}unread-msg bg-light{% endif %}" id="msgItem_{{ mr.id }}" onclick="openMessage({{ mr.id }})">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <h6 class="fw-bold mb-0 text-dark text-truncate style-title" style="max-width: 200px;">
+                  {% if not mr.is_read %}<span class="badge bg-primary rounded-pill me-1" id="badgeDot_{{ mr.id }}">NEW</span>{% endif %}
+                  {{ mr.bulk_message.title }}
+                </h6>
+                <span class="small text-muted text-nowrap" style="font-size: 11px;">{{ mr.bulk_message.created_at|date:"d M, H:i" }}</span>
+              </div>
+              <div class="small text-muted text-truncate mb-0">{{ mr.bulk_message.subject }}</div>
+            </a>
+          {% endfor %}
+        {% else %}
+          <div class="p-4 text-center text-muted">
+            <i class="ti ti-mail-opened fs-2 mb-2 text-secondary d-block"></i>
+            No messages received yet.
+          </div>
+        {% endif %}
+      </div>
+
+      {% if page_obj.has_other_pages %}
+        <div class="p-3 border-top d-flex justify-content-center">
+          <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link rounded-pill px-3" href="?page={{ page_obj.previous_page_number }}">Prev</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link rounded-pill px-3">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link rounded-pill px-3" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Message Detail Display Column -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4 h-100" id="msgDetailCard">
+      <div class="card-body p-4 text-center py-5 text-muted" id="emptyDetailState">
+        <i class="ti ti-click fs-1 d-block mb-2 text-primary opacity-50"></i>
+        Select a message from the left inbox to view full contents.
+      </div>
+      <div class="card-body p-4 d-none" id="activeDetailState">
+        <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
+          <div>
+            <h4 class="fw-bold text-dark mb-1" id="detailTitle"></h4>
+            <div class="small text-muted" id="detailDate"></div>
+          </div>
+          <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1" id="detailReadBadge">READ</span>
+        </div>
+
+        <div class="mb-3">
+          <span class="small text-muted fw-bold">Subject:</span>
+          <span class="fw-semibold text-dark ms-1" id="detailSubject"></span>
+        </div>
+
+        <div class="p-3 bg-light rounded-3 border text-dark" id="detailBody" style="line-height: 1.6;"></div>
+
+        <div class="mt-3 d-none" id="detailAttachmentWrap">
+          <div class="p-2.5 bg-white rounded-3 border d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2 text-truncate">
+              <i class="ti ti-paperclip text-primary fs-5"></i>
+              <span class="small fw-bold text-dark text-truncate" id="detailAttachmentName">Attachment</span>
+            </div>
+            <a href="#" id="detailAttachmentLink" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">
+              <i class="ti ti-download me-1"></i> Download
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  async function openMessage(id) {
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch(`/api/employer/messages/${id}/read/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        document.getElementById('emptyDetailState').classList.add('d-none');
+        document.getElementById('activeDetailState').classList.remove('d-none');
+
+        document.getElementById('detailTitle').textContent = data.title;
+        document.getElementById('detailSubject').textContent = data.subject;
+        document.getElementById('detailBody').innerHTML = data.body;
+        document.getElementById('detailDate').textContent = data.created_at;
+
+        const attachWrap = document.getElementById('detailAttachmentWrap');
+        if (data.attachment_url) {
+          attachWrap.classList.remove('d-none');
+          document.getElementById('detailAttachmentName').textContent = data.attachment_name || 'Attached File';
+          document.getElementById('detailAttachmentLink').href = data.attachment_url;
+        } else {
+          attachWrap.classList.add('d-none');
+        }
+
+        // UI updates for read state
+        const item = document.getElementById(`msgItem_${id}`);
+        if (item) {
+          item.classList.remove('unread-msg', 'bg-light');
+        }
+        const dot = document.getElementById(`badgeDot_${id}`);
+        if (dot) dot.remove();
+
+        // Refresh unread count badge in header
+        fetchUnreadCount();
+      } else {
+        alert(data.message || 'Failed to load message.');
+      }
+    } catch(e) {
+      console.error('Error fetching message detail', e);
+    }
+  }
+
+  async function markAllRead() {
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+    try {
+      const res = await fetch('/api/employer/messages/mark-all-read/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        window.location.reload();
+      }
+    } catch(e) {
+      console.error('Error marking all read', e);
+    }
+  }
+
+  async function fetchUnreadCount() {
+    try {
+      const res = await fetch('/api/employer/messages/unread-count/');
+      const data = await res.json();
+      if (data.status === 'success') {
+        const badge = document.getElementById('empUnreadBadge');
+        if (badge) {
+          badge.innerText = data.unread_count > 0 ? data.unread_count : '';
+        }
+      }
+    } catch(e) {}
+  }
+</script>
+
+<style>
+  .unread-msg {
+    border-left: 4px solid #0d6efd !important;
+  }
+</style>
+{% endblock %}

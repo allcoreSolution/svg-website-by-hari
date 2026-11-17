@@ -1,0 +1,611 @@
+{% extends 'employer_portal/base_employer.html' %}
+{% load static %}
+
+{% block title %}Scheduled Interviews — Sky Vision Employer{% endblock %}
+
+{% block content %}
+<style>
+  .applicants-table {
+    font-size: 12px;
+    table-layout: fixed;
+    width: 100%;
+  }
+  .applicants-table thead th {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .applicants-table tbody td {
+    padding: 9px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    overflow: hidden;
+  }
+  .applicants-table tbody tr:hover {
+    background-color: #f8fafc;
+  }
+  .applicants-table-container {
+    overflow-x: auto;
+  }
+  @media (min-width: 992px) {
+    .applicants-table-container {
+      overflow: visible !important;
+    }
+  }
+  .btn-action-dots {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 8px;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-action-dots:hover, .btn-action-dots:focus, .show > .btn-action-dots {
+    background: #f1f5f9;
+    color: #0284c7;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .dropdown-toggle-no-caret::after {
+    display: none !important;
+  }
+  .action-dropdown-menu {
+    min-width: 230px;
+    border-radius: 10px;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    padding: 6px 0;
+    z-index: 1050;
+  }
+  .action-dropdown-menu .dropdown-item {
+    padding: 6.5px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    font-weight: 500;
+    font-size: 12px;
+    transition: background 0.15s ease;
+  }
+  .action-dropdown-menu .dropdown-item:hover {
+    background-color: #f1f5f9;
+  }
+  .action-dropdown-menu .dropdown-item i {
+    font-size: 14px;
+  }
+</style>
+
+<div class="d-flex align-items-start align-items-sm-center justify-content-between flex-column flex-sm-row gap-2 mb-3">
+  <div>
+    <h4 class="fw-bold mb-1 fs-5 fs-sm-4 text-dark">Scheduled Candidate Interviews</h4>
+    <p class="text-muted mb-0 small">Overview of upcoming and completed interviews scheduled for your jobs.</p>
+  </div>
+  <a href="/employer/applicants/?stage=interview" class="btn btn-outline-primary btn-sm rounded-pill px-3 w-100 w-sm-auto text-center" style="font-size: 12px;">
+    <i class="ti ti-users me-1"></i> Interview Pipeline
+  </a>
+</div>
+
+<div class="bg-white rounded-3 border p-3 p-md-4 shadow-sm mb-4">
+  <!-- Filters Bar & Search Box -->
+  <div class="d-flex align-items-stretch align-items-sm-center justify-content-between flex-column flex-sm-row gap-2 mb-3">
+    <div class="btn-group btn-group-sm flex-wrap w-100 w-sm-auto" role="group">
+      <a href="/employer/interviews/?status=all" class="btn btn-outline-primary {% if status_filter == 'all' %}active{% endif %}" style="font-size: 12px;">All ({{ total_count }})</a>
+      <a href="/employer/interviews/?status=scheduled" class="btn btn-outline-primary {% if status_filter == 'scheduled' %}active{% endif %}" style="font-size: 12px;">Scheduled ({{ scheduled_count }})</a>
+      <a href="/employer/interviews/?status=completed" class="btn btn-outline-primary {% if status_filter == 'completed' %}active{% endif %}" style="font-size: 12px;">Completed ({{ completed_count }})</a>
+      <a href="/employer/interviews/?status=cancelled" class="btn btn-outline-primary {% if status_filter == 'cancelled' %}active{% endif %}" style="font-size: 12px;">Cancelled ({{ cancelled_count }})</a>
+    </div>
+
+    <form method="GET" action="/employer/interviews/" class="d-flex gap-2 w-100 w-sm-auto" style="max-width: 100%;">
+      {% if status_filter != 'all' %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+      <input type="text" name="search" class="form-control form-control-sm" style="font-size: 12px;" placeholder="Search candidate..." value="{{ search|default:'' }}">
+      <button type="submit" class="btn btn-sm btn-primary text-nowrap"><i class="ti ti-search"></i> Search</button>
+    </form>
+  </div>
+
+  <!-- 1. Desktop Table View (>= 768px) -->
+  <div class="table-responsive applicants-table-container d-none d-md-block">
+    <table class="table align-middle mb-0 applicants-table w-100">
+      <thead>
+        <tr>
+          <th style="width: 22%;">Candidate Name</th>
+          <th style="width: 16%;">Applied Position</th>
+          <th style="width: 15%;">Interview Date &amp; Time</th>
+          <th style="width: 18%;">Mode &amp; Location</th>
+          <th style="width: 11%;">Status</th>
+          <th style="width: 13%;">Notes</th>
+          <th class="text-end" style="width: 5%;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for iv in interviews %}
+          <tr>
+            <td>
+              <div class="fw-semibold text-dark text-truncate" style="font-size: 13px;" title="{{ iv.candidate_name }}">{{ iv.candidate_name }}</div>
+              <div class="text-truncate text-muted mt-0" style="font-size: 11px;" title="{{ iv.candidate_email }}">{{ iv.candidate_email }}</div>
+              {% if iv.candidate_phone %}
+                <div class="text-muted" style="font-size: 11px;"><i class="ti ti-phone me-1" style="font-size: 10px;"></i>{{ iv.candidate_phone }}</div>
+              {% endif %}
+              {% if iv.applicant and iv.applicant.resume %}
+                <div class="mt-1">
+                  <a href="/api/admin/files/download/{{ iv.applicant.resume }}" target="_blank" class="badge text-primary text-decoration-none border" style="font-size: 10px; padding: 2px 6px; background: #f0f9ff; border-color: #bae6fd !important;" title="View Resume">
+                    <i class="ti ti-paperclip me-1"></i>Resume
+                  </a>
+                </div>
+              {% endif %}
+            </td>
+            <td>
+              <div class="fw-semibold text-secondary text-truncate" style="font-size: 12.5px;" title="{{ iv.job_title|default:'Job Opening' }}">{{ iv.job_title|default:"Job Opening" }}</div>
+            </td>
+            <td>
+              <div class="fw-bold text-primary" style="font-size: 12px; white-space: nowrap;">
+                <i class="ti ti-calendar me-1" style="font-size: 11px;"></i>{{ iv.interview_date|date:"d M Y" }}
+              </div>
+              <div class="text-muted" style="font-size: 11.5px; white-space: nowrap;">
+                <i class="ti ti-clock me-1" style="font-size: 10px;"></i>{{ iv.interview_time|time:"h:i A" }}
+              </div>
+            </td>
+            <td>
+              <div>
+                {% if 'Video' in iv.interview_mode or 'Online' in iv.interview_mode %}
+                  <span class="badge border" style="font-size: 10.5px; background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe !important;">
+                    <i class="ti ti-video me-1"></i>Online Video
+                  </span>
+                {% elif 'In-Person' in iv.interview_mode or 'Office' in iv.interview_mode %}
+                  <span class="badge border" style="font-size: 10.5px; background: #f0fdf4; color: #15803d; border-color: #bbf7d0 !important;">
+                    <i class="ti ti-building me-1"></i>In-Person
+                  </span>
+                {% elif 'Telephonic' in iv.interview_mode or 'Phone' in iv.interview_mode %}
+                  <span class="badge border" style="font-size: 10.5px; background: #fefce8; color: #a16207; border-color: #fef08a !important;">
+                    <i class="ti ti-phone me-1"></i>Telephonic
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-dark border" style="font-size: 10.5px;">
+                    {{ iv.interview_mode|truncatechars:18 }}
+                  </span>
+                {% endif %}
+              </div>
+              <div class="text-truncate text-muted mt-1" style="font-size: 11px;" title="{{ iv.location_or_link|default:'Location not specified' }}">
+                <i class="ti ti-map-pin me-1" style="font-size: 10px;"></i>{{ iv.location_or_link|default:"Location not specified" }}
+              </div>
+            </td>
+            <td>
+              {% if iv.status == 'Scheduled' %}
+                <span class="badge border" id="iv-badge-{{ iv.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #e0f2fe; color: #0284c7; border-color: #bae6fd !important;">
+                  <i class="ti ti-clock me-1"></i>Scheduled
+                </span>
+              {% elif iv.status == 'Rescheduled' %}
+                <span class="badge border" id="iv-badge-{{ iv.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff !important;">
+                  <i class="ti ti-refresh me-1"></i>Rescheduled
+                </span>
+              {% elif iv.status == 'Completed' %}
+                <span class="badge border" id="iv-badge-{{ iv.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #dcfce7; color: #15803d; border-color: #bbf7d0 !important;">
+                  <i class="ti ti-check me-1"></i>Completed
+                </span>
+              {% elif iv.status == 'Cancelled' %}
+                <span class="badge border" id="iv-badge-{{ iv.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #fee2e2; color: #b91c1c; border-color: #fca5a5 !important;">
+                  Cancelled
+                </span>
+              {% else %}
+                <span class="badge border" id="iv-badge-{{ iv.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #f1f5f9; color: #475569; border-color: #e2e8f0 !important;">
+                  {{ iv.status }}
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="text-truncate text-muted" style="font-size: 11.5px; max-width: 100%; word-break: break-all;" title="{{ iv.interviewer_notes|default:'-' }}">
+                {{ iv.interviewer_notes|default:"-" }}
+              </div>
+            </td>
+            <td class="text-end text-nowrap">
+              <div class="dropdown">
+                <button class="btn btn-action-dots dropdown-toggle-no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                  <i class="ti ti-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu shadow">
+                  <li class="dropdown-header text-uppercase text-muted px-3 py-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">Interview Actions</li>
+                  
+                  {% if iv.status == 'Scheduled' or iv.status == 'Rescheduled' %}
+                    <li>
+                      <a class="dropdown-item fw-semibold text-primary" href="javascript:void(0)" onclick="openRescheduleModal({{ iv.id }}, '{{ iv.candidate_name|escapejs }}', '{{ iv.interview_date|date:'Y-m-d' }}', '{{ iv.interview_time|time:'H:i' }}', '{{ iv.interview_mode|escapejs }}', '{{ iv.location_or_link|escapejs }}', '{{ iv.interviewer_notes|escapejs }}')">
+                        <i class="ti ti-calendar-event text-primary"></i> Reschedule Interview
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item fw-semibold text-success" href="javascript:void(0)" onclick="updateInterviewAction({{ iv.id }}, 'select')">
+                        <i class="ti ti-user-check text-success"></i> Mark Passed (Select)
+                      </a>
+                    </li>
+                    {% if iv.applicant_id %}
+                      <li>
+                        <a class="dropdown-item text-primary" href="javascript:void(0)" onclick="openOfferModal({{ iv.id }}, {{ iv.applicant_id }}, '{{ iv.candidate_name|escapejs }}', '{{ iv.job_title|escapejs }}')">
+                          <i class="ti ti-file-certificate text-primary"></i> Release Job Offer
+                        </a>
+                      </li>
+                    {% endif %}
+                    <li>
+                      <a class="dropdown-item text-warning" href="javascript:void(0)" onclick="cancelInterviewPrompt({{ iv.id }})">
+                        <i class="ti ti-circle-x text-warning"></i> Cancel Interview
+                      </a>
+                    </li>
+                  {% elif iv.status == 'Completed' %}
+                    {% if iv.applicant_id %}
+                      <li>
+                        <a class="dropdown-item text-primary fw-semibold" href="javascript:void(0)" onclick="openOfferModal({{ iv.id }}, {{ iv.applicant_id }}, '{{ iv.candidate_name|escapejs }}', '{{ iv.job_title|escapejs }}')">
+                          <i class="ti ti-file-certificate text-primary"></i> Release Job Offer
+                        </a>
+                      </li>
+                    {% endif %}
+                  {% endif %}
+
+                  <li><hr class="dropdown-divider my-1"></li>
+                  <li>
+                    <a class="dropdown-item text-secondary" href="/employer/applicants/?search={{ iv.candidate_name|urlencode }}">
+                      <i class="ti ti-user text-info"></i> View in Pipeline
+                    </a>
+                  </li>
+
+                  {% if iv.status != 'Cancelled' and iv.result != 'Rejected' %}
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                      <a class="dropdown-item text-danger" href="javascript:void(0)" onclick="updateInterviewAction({{ iv.id }}, 'reject')">
+                        <i class="ti ti-x text-danger"></i> Mark as Rejected
+                      </a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted" style="font-size: 13px;">
+              No candidate interviews scheduled yet. You can schedule interviews directly from the <a href="/employer/applicants/?stage=shortlisted" class="text-primary text-decoration-none fw-semibold">Applicants Pipeline</a>!
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2. Mobile Card List View (< 768px) -->
+  <div class="d-md-none d-flex flex-column gap-2.5">
+    {% for iv in interviews %}
+      <div class="p-3 rounded-3 border bg-light bg-opacity-50">
+        <!-- Top Row: Candidate Name + Status Badge -->
+        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+          <div class="min-w-0">
+            <h6 class="fw-bold mb-1 text-dark text-truncate">{{ iv.candidate_name }}</h6>
+            <div class="text-muted small text-truncate">{{ iv.job_title|default:"Job Opening" }}</div>
+            {% if iv.candidate_email or iv.candidate_phone %}
+              <div class="text-muted" style="font-size: 11px;">
+                {% if iv.candidate_email %}{{ iv.candidate_email }}{% endif %}
+                {% if iv.candidate_phone %} • {{ iv.candidate_phone }}{% endif %}
+              </div>
+            {% endif %}
+          </div>
+          <div class="flex-shrink-0 text-end">
+            {% if iv.status == 'Scheduled' %}
+              <span class="badge border" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #e0f2fe; color: #0284c7; border-color: #bae6fd !important;">
+                <i class="ti ti-clock me-1"></i>Scheduled
+              </span>
+            {% elif iv.status == 'Rescheduled' %}
+              <span class="badge border" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff !important;">
+                <i class="ti ti-refresh me-1"></i>Rescheduled
+              </span>
+            {% elif iv.status == 'Completed' %}
+              <span class="badge border" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #dcfce7; color: #15803d; border-color: #bbf7d0 !important;">
+                <i class="ti ti-check me-1"></i>Completed
+              </span>
+            {% elif iv.status == 'Cancelled' %}
+              <span class="badge border" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #fee2e2; color: #b91c1c; border-color: #fca5a5 !important;">
+                Cancelled
+              </span>
+            {% else %}
+              <span class="badge border" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #f1f5f9; color: #475569; border-color: #e2e8f0 !important;">
+                {{ iv.status }}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Middle Row: Date/Time + Mode/Location -->
+        <div class="row g-2 text-secondary small py-2 border-top border-bottom my-2">
+          <div class="col-6">
+            <div class="text-muted" style="font-size: 11px;">Interview Schedule</div>
+            <div class="fw-bold text-primary"><i class="ti ti-calendar me-1"></i>{{ iv.interview_date|date:"d M Y" }}</div>
+            <div class="text-muted" style="font-size: 11px;"><i class="ti ti-clock me-1"></i>{{ iv.interview_time|time:"h:i A" }}</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted" style="font-size: 11px;">Mode &amp; Location</div>
+            <div>
+              {% if 'Video' in iv.interview_mode or 'Online' in iv.interview_mode %}
+                <span class="badge border" style="font-size: 10px; background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe !important;">
+                  <i class="ti ti-video me-1"></i>Online
+                </span>
+              {% elif 'In-Person' in iv.interview_mode or 'Office' in iv.interview_mode %}
+                <span class="badge border" style="font-size: 10px; background: #f0fdf4; color: #15803d; border-color: #bbf7d0 !important;">
+                  <i class="ti ti-building me-1"></i>In-Person
+                </span>
+              {% else %}
+                <span class="badge bg-light text-dark border" style="font-size: 10px;">
+                  {{ iv.interview_mode|truncatechars:14 }}
+                </span>
+              {% endif %}
+            </div>
+            <div class="text-truncate text-muted mt-1" style="font-size: 10.5px;" title="{{ iv.location_or_link|default:'Location not specified' }}">
+              {{ iv.location_or_link|default:"Location not specified" }}
+            </div>
+          </div>
+        </div>
+
+        {% if iv.interviewer_notes %}
+          <div class="text-muted small mb-2 p-1.5 bg-white rounded border" style="font-size: 11px;">
+            <i class="ti ti-notes me-1"></i><strong>Notes:</strong> {{ iv.interviewer_notes }}
+          </div>
+        {% endif %}
+
+        <!-- Bottom Row: Resume + Actions -->
+        <div class="d-flex align-items-center justify-content-between pt-1 flex-wrap gap-2">
+          <div>
+            {% if iv.applicant and iv.applicant.resume %}
+              <a href="/api/admin/files/download/{{ iv.applicant.resume }}" target="_blank" class="badge text-primary text-decoration-none border" style="font-size: 10.5px; padding: 4px 8px; background: #f0f9ff; border-color: #bae6fd !important;">
+                <i class="ti ti-paperclip me-1"></i>Resume
+              </a>
+            {% else %}
+              <span class="text-muted" style="font-size: 11px;">No Resume</span>
+            {% endif %}
+          </div>
+          <div class="d-flex gap-1.5 flex-wrap">
+            {% if iv.status == 'Scheduled' or iv.status == 'Rescheduled' %}
+              <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1" style="font-size: 11px;" onclick="openRescheduleModal({{ iv.id }}, '{{ iv.candidate_name|escapejs }}', '{{ iv.interview_date|date:'Y-m-d' }}', '{{ iv.interview_time|time:'H:i' }}', '{{ iv.interview_mode|escapejs }}', '{{ iv.location_or_link|escapejs }}', '{{ iv.interviewer_notes|escapejs }}')">
+                <i class="ti ti-calendar-event"></i> Reschedule
+              </button>
+              <button type="button" class="btn btn-success btn-sm rounded-pill px-2.5 py-1 text-white" style="font-size: 11px;" onclick="updateInterviewAction({{ iv.id }}, 'select')">
+                <i class="ti ti-user-check"></i> Pass
+              </button>
+              {% if iv.applicant_id %}
+                <button type="button" class="btn btn-primary btn-sm rounded-pill px-2.5 py-1" style="font-size: 11px;" onclick="openOfferModal({{ iv.id }}, {{ iv.applicant_id }}, '{{ iv.candidate_name|escapejs }}', '{{ iv.job_title|escapejs }}')">
+                  <i class="ti ti-file-certificate"></i> Offer
+                </button>
+              {% endif %}
+            {% elif iv.status == 'Completed' and iv.applicant_id %}
+              <button type="button" class="btn btn-primary btn-sm rounded-pill px-2.5 py-1" style="font-size: 11px;" onclick="openOfferModal({{ iv.id }}, {{ iv.applicant_id }}, '{{ iv.candidate_name|escapejs }}', '{{ iv.job_title|escapejs }}')">
+                <i class="ti ti-file-certificate"></i> Offer
+              </button>
+            {% endif %}
+            <a href="/employer/applicants/?search={{ iv.candidate_name|urlencode }}" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1" style="font-size: 11px;">
+              <i class="ti ti-user"></i> Pipeline
+            </a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center py-5 text-muted" style="font-size: 13px;">
+        No candidate interviews scheduled yet. You can schedule interviews directly from the <a href="/employer/applicants/?stage=shortlisted" class="text-primary text-decoration-none fw-semibold">Applicants Pipeline</a>!
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Reschedule Interview Modal -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-primary" style="font-size: 1.1rem;"><i class="ti ti-calendar-event me-2"></i>Reschedule Interview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="font-size: 13px;">
+        <input type="hidden" id="rescheduleIvId">
+        <p class="mb-3">Rescheduling interview for <strong id="rescheduleCandidateName"></strong>.</p>
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">New Interview Date <span class="text-danger">*</span></label>
+          <input type="date" id="rescheduleDate" class="form-control form-control-sm" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">New Interview Time <span class="text-danger">*</span></label>
+          <input type="time" id="rescheduleTime" class="form-control form-control-sm" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Mode</label>
+          <select id="rescheduleMode" class="form-select form-select-sm">
+            <option value="Online Video Call (Google Meet / Zoom)">Online Video Call (Google Meet / Zoom)</option>
+            <option value="In-Person Office Interview">In-Person Office Interview</option>
+            <option value="Telephonic Interview">Telephonic Interview</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Location / Meeting Link</label>
+          <input type="text" id="rescheduleLocation" class="form-control form-control-sm" placeholder="Office Address or Video Link">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Updated Notes / Instructions</label>
+          <textarea id="rescheduleNotes" class="form-control form-control-sm" rows="2" placeholder="e.g. Rescheduled due to employer meeting conflict"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitRescheduleModal()">Confirm Reschedule</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Send Offer Modal -->
+<div class="modal fade" id="offerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-primary" style="font-size: 1.1rem;"><i class="ti ti-file-certificate me-2"></i>Send Job Offer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="font-size: 13px;">
+        <input type="hidden" id="offerIvId">
+        <p class="mb-3">Extending formal job offer to <strong id="offerCandidateName"></strong>.</p>
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Offered Designation</label>
+          <input type="text" id="offerDesignation" class="form-control form-control-sm">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Offered CTC / Salary Package</label>
+          <input type="text" id="offerCTC" class="form-control form-control-sm" placeholder="e.g. 5.5 LPA">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Expected Joining Date</label>
+          <input type="date" id="offerJoiningDate" class="form-control form-control-sm">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Offer Notes</label>
+          <textarea id="offerNotes" class="form-control form-control-sm" rows="2" placeholder="Offer letter details..."></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold d-flex align-items-center justify-content-between">
+            <span><i class="ti ti-file-upload me-1 text-primary"></i>Upload Offer Letter (PDF / DOC / Image)</span>
+            <span class="badge bg-light text-muted border fw-normal" style="font-size: 10px;">Optional</span>
+          </label>
+          <input type="file" id="offerDocument" class="form-control form-control-sm" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+          <div class="form-text text-muted small mt-1" style="font-size: 11px;">The candidate will be able to download this document on their portal.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitOfferModal()">Send Offer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let rescheduleModal, offerModal;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+    offerModal = new bootstrap.Modal(document.getElementById('offerModal'));
+  });
+
+  function openRescheduleModal(id, name, date, time, mode, loc, notes) {
+    document.getElementById('rescheduleIvId').value = id;
+    document.getElementById('rescheduleCandidateName').innerText = name;
+    document.getElementById('rescheduleDate').value = date || '';
+    document.getElementById('rescheduleTime').value = time || '11:00';
+    if (mode) document.getElementById('rescheduleMode').value = mode;
+    document.getElementById('rescheduleLocation').value = loc || '';
+    document.getElementById('rescheduleNotes').value = notes || '';
+    rescheduleModal.show();
+  }
+
+  async function submitRescheduleModal() {
+    const id = document.getElementById('rescheduleIvId').value;
+    const date = document.getElementById('rescheduleDate').value;
+    const time = document.getElementById('rescheduleTime').value;
+    const mode = document.getElementById('rescheduleMode').value;
+    const loc = document.getElementById('rescheduleLocation').value;
+    const notes = document.getElementById('rescheduleNotes').value;
+
+    if (!date) { alert('Please select interview date.'); return; }
+
+    await updateInterviewAction(id, 'reschedule', {
+      interview_date: date,
+      interview_time: time,
+      interview_mode: mode,
+      location_or_link: loc,
+      interviewer_notes: notes
+    });
+    rescheduleModal.hide();
+  }
+
+  function openOfferModal(ivId, applicantId, name, jobTitle) {
+    document.getElementById('offerIvId').value = ivId;
+    document.getElementById('offerCandidateName').innerText = name;
+    document.getElementById('offerDesignation').value = jobTitle || '';
+    const fileInput = document.getElementById('offerDocument');
+    if (fileInput) fileInput.value = '';
+    offerModal.show();
+  }
+
+  async function submitOfferModal() {
+    const id = document.getElementById('offerIvId').value;
+    const des = document.getElementById('offerDesignation').value;
+    const ctc = document.getElementById('offerCTC').value;
+    const jDate = document.getElementById('offerJoiningDate').value;
+    const notes = document.getElementById('offerNotes').value;
+    const fileInput = document.getElementById('offerDocument');
+
+    const formData = new FormData();
+    formData.append('action', 'offer');
+    formData.append('designation', des);
+    formData.append('offered_ctc', ctc);
+    formData.append('joining_date', jDate);
+    formData.append('notes', notes);
+    if (fileInput && fileInput.files[0]) {
+      formData.append('document', fileInput.files[0]);
+    }
+
+    await updateInterviewAction(id, 'offer', formData);
+    offerModal.hide();
+  }
+
+  function cancelInterviewPrompt(id) {
+    const reason = prompt('Enter cancellation reason (optional):');
+    if (reason !== null) {
+      updateInterviewAction(id, 'cancel', { cancel_reason: reason });
+    }
+  }
+
+  async function updateInterviewAction(interviewId, action, extraData = {}) {
+    let reqOptions = {};
+    if (extraData instanceof FormData) {
+      extraData.set('action', action);
+      reqOptions = {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: extraData
+      };
+    } else {
+      const payload = { action: action, ...extraData };
+      reqOptions = {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(payload)
+      };
+    }
+
+    try {
+      const res = await fetch(`/employer/interviews/${interviewId}/action/`, reqOptions);
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        alert(data.message || 'Updated successfully!');
+        location.reload();
+      } else {
+        alert(data.message || 'Action failed.');
+      }
+    } catch (e) {
+      alert('Network error.');
+    }
+  }
+</script>
+{% endblock %}

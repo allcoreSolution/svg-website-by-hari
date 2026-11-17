@@ -1,0 +1,1018 @@
+{% extends 'employer_portal/base_employer.html' %}
+{% load static %}
+
+{% block title %}Applicants Pipeline — Sky Vision Employer{% endblock %}
+
+{% block content %}
+<style>
+  .applicants-table {
+    font-size: 12px;
+  }
+  .applicants-table thead th {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+  .applicants-table tbody td {
+    padding: 9px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .applicants-table tbody tr:hover {
+    background-color: #f8fafc;
+  }
+  .applicants-table-container {
+    overflow-x: auto;
+  }
+  @media (min-width: 992px) {
+    .applicants-table-container {
+      overflow: visible !important;
+    }
+  }
+  .btn-action-dots {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 8px;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-action-dots:hover, .btn-action-dots:focus, .show > .btn-action-dots {
+    background: #f1f5f9;
+    color: #0284c7;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .dropdown-toggle-no-caret::after {
+    display: none !important;
+  }
+  .action-dropdown-menu {
+    min-width: 230px;
+    border-radius: 10px;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    padding: 6px 0;
+    z-index: 1050;
+  }
+  .action-dropdown-menu .dropdown-item {
+    padding: 6.5px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    font-weight: 500;
+    font-size: 12px;
+    transition: background 0.15s ease;
+  }
+  .action-dropdown-menu .dropdown-item:hover {
+    background-color: #f1f5f9;
+  }
+  .action-dropdown-menu .dropdown-item i {
+    font-size: 14px;
+  }
+
+  /* =========================================================
+     APPLICATION FLOW STEPPER COMPONENT
+     ========================================================= */
+  .app-flow-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+  .app-flow-header {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 12px 18px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-flow-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .app-flow-header-title i {
+    color: #38bdf8;
+    font-size: 16px;
+  }
+  .app-flow-body {
+    padding: 24px 16px 20px;
+    overflow-x: auto;
+  }
+  .app-flow-stepper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    min-width: 680px;
+    position: relative;
+  }
+  .app-flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    text-align: center;
+  }
+  .app-flow-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    z-index: 2;
+    transition: all 0.25s ease;
+    position: relative;
+    background: #f8fafc;
+    border: 2px solid #cbd5e1;
+    color: #94a3b8;
+  }
+  /* Connectors */
+  .app-flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 21px;
+    left: 50%;
+    width: 100%;
+    height: 3px;
+    background-color: #e2e8f0;
+    z-index: 1;
+  }
+  .app-flow-step.completed:not(:last-child)::after {
+    background-color: #2563eb;
+  }
+  .app-flow-step.completed-green:not(:last-child)::after {
+    background-color: #16a34a;
+  }
+  .app-flow-step.completed-orange:not(:last-child)::after {
+    background-color: #ea580c;
+  }
+  /* Step Colors */
+  .app-flow-step.step-blue.completed .app-flow-circle,
+  .app-flow-step.step-blue.current .app-flow-circle {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  }
+  .app-flow-step.step-green.completed .app-flow-circle,
+  .app-flow-step.step-green.current .app-flow-circle {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.2);
+  }
+  .app-flow-step.step-orange.completed .app-flow-circle,
+  .app-flow-step.step-orange.current .app-flow-circle {
+    background: #ea580c;
+    border-color: #ea580c;
+    color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.2);
+  }
+  .app-flow-step.pending .app-flow-circle {
+    background: #f8fafc;
+    border: 2px solid #cbd5e1;
+    color: #94a3b8;
+  }
+  .app-flow-label {
+    margin-top: 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    max-width: 100px;
+    line-height: 1.25;
+  }
+  .app-flow-step.completed .app-flow-label,
+  .app-flow-step.current .app-flow-label {
+    color: #0f172a;
+    font-weight: 700;
+  }
+  .app-flow-step-num {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    color: #94a3b8;
+  }
+  .app-flow-step.current .app-flow-step-num {
+    color: #2563eb;
+  }
+  .app-flow-rejected-banner {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    color: #991b1b;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h4 class="fw-bold mb-1" style="font-size: 1.25rem;">Candidate Applications &amp; Hiring Pipeline</h4>
+    <p class="text-muted mb-0" style="font-size: 12.5px;">Filter candidates across stages: Shortlisted, Interview Scheduled, Offered, and Hired.</p>
+  </div>
+</div>
+
+<div class="bg-white rounded-3 border p-3 p-md-4 shadow-sm">
+  <!-- Filters -->
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div class="btn-group btn-group-sm flex-wrap" role="group">
+      <a href="/employer/applicants/?stage=all{% if selected_job_id %}&job_id={{ selected_job_id }}{% endif %}" class="btn btn-outline-primary {% if stage_filter == 'all' %}active{% endif %}" style="font-size: 12px;">All Candidates</a>
+      <a href="/employer/applicants/?stage=applied{% if selected_job_id %}&job_id={{ selected_job_id }}{% endif %}" class="btn btn-outline-primary {% if stage_filter == 'applied' %}active{% endif %}" style="font-size: 12px;">Applied</a>
+      <a href="/employer/applicants/?stage=shortlisted{% if selected_job_id %}&job_id={{ selected_job_id }}{% endif %}" class="btn btn-outline-primary {% if stage_filter == 'shortlisted' %}active{% endif %}" style="font-size: 12px;">Shortlisted</a>
+      <a href="/employer/applicants/?stage=interview{% if selected_job_id %}&job_id={{ selected_job_id }}{% endif %}" class="btn btn-outline-primary {% if stage_filter == 'interview' %}active{% endif %}" style="font-size: 12px;">Interview</a>
+      <a href="/employer/applicants/?stage=selected{% if selected_job_id %}&job_id={{ selected_job_id }}{% endif %}" class="btn btn-outline-primary {% if stage_filter == 'selected' %}active{% endif %}" style="font-size: 12px;">Selected</a>
+      <a href="/employer/applicants/?stage=offered{% if selected_job_id %}&job_id={{ selected_job_id }}{% endif %}" class="btn btn-outline-primary {% if stage_filter == 'offered' %}active{% endif %}" style="font-size: 12px;">Offered</a>
+      <a href="/employer/applicants/?stage=hired{% if selected_job_id %}&job_id={{ selected_job_id }}{% endif %}" class="btn btn-outline-primary {% if stage_filter == 'hired' %}active{% endif %}" style="font-size: 12px;">Hired</a>
+      <a href="/employer/applicants/?stage=rejected{% if selected_job_id %}&job_id={{ selected_job_id }}{% endif %}" class="btn btn-outline-primary {% if stage_filter == 'rejected' %}active{% endif %}" style="font-size: 12px;">Rejected</a>
+    </div>
+
+    <form method="GET" action="/employer/applicants/" class="d-flex gap-2" style="max-width: 280px;">
+      <input type="text" name="search" class="form-control form-control-sm" style="font-size: 12px;" placeholder="Search applicant name..." value="{{ search|default:'' }}">
+      <button type="submit" class="btn btn-sm btn-primary"><i class="ti ti-search"></i></button>
+    </form>
+  </div>
+
+  <div class="table-responsive applicants-table-container d-none d-md-block">
+    <table class="table align-middle mb-0 applicants-table w-100">
+      <thead>
+        <tr>
+          <th style="width: 22%;">Applicant Name</th>
+          <th style="width: 17%;">Applied Job</th>
+          <th style="width: 20%;">Email &amp; Phone</th>
+          <th style="width: 18%;">Experience &amp; Skills</th>
+          <th style="width: 10%;">Applied Date</th>
+          <th style="width: 9%;">Status</th>
+          <th class="text-end" style="width: 4%;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applicants %}
+          <tr>
+            <td>
+              <div>
+                <a href="javascript:void(0)" class="fw-semibold text-dark text-decoration-none hover-primary d-inline-block" style="font-size: 13.5px;" onclick="viewCandidateProfile({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}', '{{ app.email|escapejs }}', '{{ app.phone|escapejs }}', '{{ app.city|escapejs }}', '{{ app.state|escapejs }}', '{{ app.qualification|escapejs }}', '{{ app.experience|default:0 }}', '{{ app.skills|escapejs }}', '{{ app.current_company|escapejs }}', '{{ app.current_salary|escapejs }}', '{{ app.expected_salary|escapejs }}', '{{ app.availability|escapejs }}', '{{ app.applied_on|date:"d M Y, h:i A"|escapejs }}', '{{ app.status|escapejs }}', '{{ app.resume|escapejs }}', '{{ app.cover_letter|escapejs }}')" title="Click to view full candidate profile">
+                  {{ app.full_name }}
+                </a>
+              </div>
+              <div class="d-flex align-items-center flex-wrap gap-1 mt-1">
+                <button type="button" class="btn btn-xs btn-outline-primary border py-0 px-2 rounded-pill" style="font-size: 10px; font-weight: 600;" onclick="viewCandidateProfile({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}', '{{ app.email|escapejs }}', '{{ app.phone|escapejs }}', '{{ app.city|escapejs }}', '{{ app.state|escapejs }}', '{{ app.qualification|escapejs }}', '{{ app.experience|default:0 }}', '{{ app.skills|escapejs }}', '{{ app.current_company|escapejs }}', '{{ app.current_salary|escapejs }}', '{{ app.expected_salary|escapejs }}', '{{ app.availability|escapejs }}', '{{ app.applied_on|date:"d M Y, h:i A"|escapejs }}', '{{ app.status|escapejs }}', '{{ app.resume|escapejs }}', '{{ app.cover_letter|escapejs }}')">
+                  <i class="ti ti-id me-1"></i>Profile
+                </button>
+                {% if app.resume %}
+                  <a href="/api/admin/files/download/{{ app.resume }}" target="_blank" class="badge text-primary text-decoration-none border" style="font-size: 10px; padding: 2px 6px; background: #f0f9ff; border-color: #bae6fd !important;" title="View Resume">
+                    <i class="ti ti-paperclip me-1"></i>Resume
+                  </a>
+                {% endif %}
+                {% with offer=app.job_offers.last %}
+                  {% if offer and offer.document %}
+                    <a href="/api/admin/files/download/{{ offer.document }}" target="_blank" class="badge text-success text-decoration-none border" style="font-size: 10px; padding: 2px 6px; background: #f0fdf4; border-color: #bbf7d0 !important;" title="View Offer Letter">
+                      <i class="ti ti-file-certificate me-1"></i>Offer
+                    </a>
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </td>
+            <td>
+              <div class="fw-semibold text-secondary" style="font-size: 12.5px;">{{ app.job_title }}</div>
+            </td>
+            <td>
+              <div class="text-truncate" style="max-width: 180px; font-size: 12px; color: #334155;" title="{{ app.email }}">{{ app.email }}</div>
+              <div style="font-size: 11px; color: #64748b;"><i class="ti ti-phone me-1" style="font-size: 10px;"></i>{{ app.phone }}</div>
+            </td>
+            <td>
+              <div style="font-size: 12px; font-weight: 600; color: #334155;">{{ app.experience|default:0 }} Years Exp</div>
+              <div class="text-truncate" style="max-width: 170px; font-size: 11px; color: #64748b;" title="{{ app.skills|default:'General' }}">{{ app.skills|default:"General Skills" }}</div>
+            </td>
+            <td>
+              <div style="font-size: 11.5px; color: #64748b; white-space: nowrap;">{{ app.applied_on|date:"d M Y" }}</div>
+            </td>
+            <td>
+              {% if app.status == 'Shortlisted' %}
+                <span class="badge border" id="badge-status-{{ app.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #e0f2fe; color: #0369a1; border-color: #bae6fd !important;"><i class="ti ti-star me-1"></i>Shortlisted</span>
+              {% elif app.status == 'Interview' or app.status == 'Interview Scheduled' %}
+                <span class="badge border" id="badge-status-{{ app.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #e0f2fe; color: #0284c7; border-color: #bae6fd !important;"><i class="ti ti-calendar-event me-1"></i>{{ app.status }}</span>
+              {% elif app.status == 'Selected' %}
+                <span class="badge border" id="badge-status-{{ app.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #dcfce7; color: #15803d; border-color: #bbf7d0 !important;"><i class="ti ti-user-check me-1"></i>Selected</span>
+              {% elif app.status == 'Offer Released' or app.status == 'Offered' %}
+                <span class="badge border" id="badge-status-{{ app.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #fef3c7; color: #b45309; border-color: #fde68a !important;"><i class="ti ti-file-certificate me-1"></i>{{ app.status }}</span>
+              {% elif app.status == 'Joined' or app.status == 'Placed' or app.status == 'Hired' %}
+                <span class="badge" id="badge-status-{{ app.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #16a34a; color: #fff;"><i class="ti ti-award me-1"></i>Joined</span>
+              {% elif app.status == 'Rejected' %}
+                <span class="badge" id="badge-status-{{ app.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #fee2e2; color: #b91c1c; border-color: #fca5a5 !important;">Rejected</span>
+              {% else %}
+                <span class="badge border" id="badge-status-{{ app.id }}" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #f1f5f9; color: #475569; border-color: #e2e8f0 !important;">{{ app.status }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end text-nowrap">
+              <div class="dropdown">
+                <button class="btn btn-action-dots dropdown-toggle-no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                  <i class="ti ti-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu shadow">
+                  <li class="dropdown-header text-uppercase text-muted px-3 py-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">Candidate Actions</li>
+                  <li>
+                    <a class="dropdown-item fw-semibold text-primary" href="javascript:void(0)" onclick="viewCandidateProfile({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}', '{{ app.email|escapejs }}', '{{ app.phone|escapejs }}', '{{ app.city|escapejs }}', '{{ app.state|escapejs }}', '{{ app.qualification|escapejs }}', '{{ app.experience|default:0 }}', '{{ app.skills|escapejs }}', '{{ app.current_company|escapejs }}', '{{ app.current_salary|escapejs }}', '{{ app.expected_salary|escapejs }}', '{{ app.availability|escapejs }}', '{{ app.applied_on|date:"d M Y, h:i A"|escapejs }}', '{{ app.status|escapejs }}', '{{ app.resume|escapejs }}', '{{ app.cover_letter|escapejs }}')">
+                      <i class="ti ti-id-badge text-primary"></i> View Full Profile
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider my-1"></li>
+                  
+                  {% if app.flow_step == 4 or app.status == 'Shortlisted' %}
+                    <li>
+                      <a class="dropdown-item fw-semibold text-info" href="javascript:void(0)" onclick="openInterviewModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                        <i class="ti ti-calendar-event text-info"></i> Confirm &amp; Schedule Interview
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item text-primary" href="javascript:void(0)" onclick="openOfferModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                        <i class="ti ti-file-certificate text-primary"></i> Release Job Offer
+                      </a>
+                    </li>
+                  {% elif app.flow_step == 5 or app.status == 'Interview' or app.status == 'Interview Scheduled' %}
+                    <li>
+                      <a class="dropdown-item fw-semibold text-success" href="javascript:void(0)" onclick="updateApplicantStatus({{ app.id }}, 'Selected')">
+                        <i class="ti ti-user-check text-success"></i> Mark Selected (Passed Interview)
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item text-primary" href="javascript:void(0)" onclick="openOfferModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                        <i class="ti ti-file-certificate text-primary"></i> Release Job Offer
+                      </a>
+                    </li>
+                  {% elif app.status == 'Selected' %}
+                    <li>
+                      <a class="dropdown-item fw-semibold text-primary" href="javascript:void(0)" onclick="openOfferModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                        <i class="ti ti-file-certificate text-primary"></i> Release Job Offer
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item text-success fw-semibold" href="javascript:void(0)" onclick="openHireModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                        <i class="ti ti-award text-success"></i> Mark Candidate Joined
+                      </a>
+                    </li>
+                  {% elif app.flow_step == 6 or app.status == 'Offer Released' or app.status == 'Offered' %}
+                    <li>
+                      <a class="dropdown-item text-success fw-semibold" href="javascript:void(0)" onclick="openHireModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                        <i class="ti ti-award text-success"></i> Mark Candidate Joined
+                      </a>
+                    </li>
+                  {% elif app.flow_step == 3 or app.status == 'Applied' or app.status == 'New' or app.status == 'Application Submitted' %}
+                    <li>
+                      <a class="dropdown-item text-warning fw-semibold" href="javascript:void(0)" onclick="updateApplicantStatus({{ app.id }}, 'Shortlisted')">
+                        <i class="ti ti-star text-warning"></i> Shortlist Candidate
+                      </a>
+                    </li>
+                  {% elif app.flow_step >= 7 or app.status == 'Joined' %}
+                    <li>
+                      <span class="dropdown-item text-muted disabled">
+                        <i class="ti ti-check text-success"></i> Candidate Joined (Hired)
+                      </span>
+                    </li>
+                  {% endif %}
+                  
+                  <li><hr class="dropdown-divider my-1"></li>
+                  <li>
+                    <a class="dropdown-item text-secondary" href="javascript:void(0)" onclick="openStepperModal({{ app.id }}, '{{ app.full_name|escapejs }}', {{ app.flow_step|default:3 }}, '{{ app.approval_status|escapejs }}')">
+                      <i class="ti ti-timeline text-primary"></i> View Application Stepper
+                    </a>
+                  </li>
+                  
+                  {% if app.flow_step < 7 and app.status != 'Rejected' and app.status != 'Joined' and app.status != 'Placed' and app.status != 'Hired' %}
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                      <a class="dropdown-item text-danger" href="javascript:void(0)" onclick="updateApplicantStatus({{ app.id }}, 'Rejected')">
+                        <i class="ti ti-x text-danger"></i> Mark Rejected
+                      </a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted" style="font-size: 13px;">No applicants found matching criteria.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile Card List View (< 768px) - Zero Cutoff! -->
+  <div class="d-md-none d-flex flex-column gap-2.5 mt-2">
+    {% for app in applicants %}
+      <div class="p-3 rounded-3 border bg-light bg-opacity-50">
+        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+          <div class="min-w-0">
+            <h6 class="fw-bold mb-1 text-dark text-truncate">
+              <a href="javascript:void(0)" class="text-dark text-decoration-none" onclick="viewCandidateProfile({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}', '{{ app.email|escapejs }}', '{{ app.phone|escapejs }}', '{{ app.city|escapejs }}', '{{ app.state|escapejs }}', '{{ app.qualification|escapejs }}', '{{ app.experience|default:0 }}', '{{ app.skills|escapejs }}', '{{ app.current_company|escapejs }}', '{{ app.current_salary|escapejs }}', '{{ app.expected_salary|escapejs }}', '{{ app.availability|escapejs }}', '{{ app.applied_on|date:"d M Y, h:i A"|escapejs }}', '{{ app.status|escapejs }}', '{{ app.resume|escapejs }}', '{{ app.cover_letter|escapejs }}')">
+                {{ app.full_name }}
+              </a>
+            </h6>
+            <div class="text-secondary small fw-medium text-truncate"><i class="ti ti-briefcase text-primary me-1"></i>{{ app.job_title }}</div>
+          </div>
+          {% if app.status == 'Shortlisted' %}
+            <span class="badge border flex-shrink-0" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #e0f2fe; color: #0369a1; border-color: #bae6fd !important;"><i class="ti ti-star me-1"></i>Shortlisted</span>
+          {% elif app.status == 'Interview' or app.status == 'Interview Scheduled' %}
+            <span class="badge border flex-shrink-0" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #e0f2fe; color: #0284c7; border-color: #bae6fd !important;"><i class="ti ti-calendar-event me-1"></i>{{ app.status }}</span>
+          {% elif app.status == 'Selected' %}
+            <span class="badge border flex-shrink-0" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #dcfce7; color: #15803d; border-color: #bbf7d0 !important;"><i class="ti ti-user-check me-1"></i>Selected</span>
+          {% elif app.status == 'Offer Released' or app.status == 'Offered' %}
+            <span class="badge border flex-shrink-0" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #fef3c7; color: #b45309; border-color: #fde68a !important;"><i class="ti ti-file-certificate me-1"></i>{{ app.status }}</span>
+          {% elif app.status == 'Joined' or app.status == 'Placed' or app.status == 'Hired' %}
+            <span class="badge flex-shrink-0" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #16a34a; color: #fff;"><i class="ti ti-award me-1"></i>Joined</span>
+          {% elif app.status == 'Rejected' %}
+            <span class="badge flex-shrink-0" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #fee2e2; color: #b91c1c; border-color: #fca5a5 !important;">Rejected</span>
+          {% else %}
+            <span class="badge border flex-shrink-0" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; background: #f1f5f9; color: #475569; border-color: #e2e8f0 !important;">{{ app.status }}</span>
+          {% endif %}
+        </div>
+
+        <div class="row g-2 text-secondary small py-2 border-top border-bottom my-2">
+          <div class="col-6">
+            <div class="text-truncate"><i class="ti ti-mail me-1 text-muted"></i>{{ app.email }}</div>
+            <div class="text-muted"><i class="ti ti-phone me-1 text-muted"></i>{{ app.phone }}</div>
+          </div>
+          <div class="col-6">
+            <div class="fw-semibold text-dark">{{ app.experience|default:0 }} Years Exp</div>
+            <div class="text-truncate text-muted">{{ app.skills|default:"General Skills" }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between pt-1 flex-wrap gap-2">
+          <div class="text-muted small" style="font-size: 11px;">
+            <i class="ti ti-calendar me-1"></i>{{ app.applied_on|date:"d M Y" }}
+          </div>
+          <div class="d-flex gap-1.5 flex-wrap">
+            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1" style="font-size: 11.5px;" onclick="viewCandidateProfile({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}', '{{ app.email|escapejs }}', '{{ app.phone|escapejs }}', '{{ app.city|escapejs }}', '{{ app.state|escapejs }}', '{{ app.qualification|escapejs }}', '{{ app.experience|default:0 }}', '{{ app.skills|escapejs }}', '{{ app.current_company|escapejs }}', '{{ app.current_salary|escapejs }}', '{{ app.expected_salary|escapejs }}', '{{ app.availability|escapejs }}', '{{ app.applied_on|date:"d M Y, h:i A"|escapejs }}', '{{ app.status|escapejs }}', '{{ app.resume|escapejs }}', '{{ app.cover_letter|escapejs }}')">
+              <i class="ti ti-id"></i> Profile
+            </button>
+            {% if app.resume %}
+              <a href="/api/admin/files/download/{{ app.resume }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-2.5 py-1" style="font-size: 11.5px;">
+                <i class="ti ti-paperclip"></i> Resume
+              </a>
+            {% endif %}
+            <div class="dropdown">
+              <button class="btn btn-primary btn-sm rounded-pill px-2.5 py-1 text-white dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 11.5px;">
+                Actions
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu shadow">
+                {% if app.flow_step == 4 or app.status == 'Shortlisted' %}
+                  <li>
+                    <a class="dropdown-item fw-semibold text-info" href="javascript:void(0)" onclick="openInterviewModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                      <i class="ti ti-calendar-event text-info"></i> Schedule Interview
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item text-primary" href="javascript:void(0)" onclick="openOfferModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                      <i class="ti ti-file-certificate text-primary"></i> Release Job Offer
+                    </a>
+                  </li>
+                {% elif app.flow_step == 5 or app.status == 'Interview' or app.status == 'Interview Scheduled' %}
+                  <li>
+                    <a class="dropdown-item fw-semibold text-success" href="javascript:void(0)" onclick="updateApplicantStatus({{ app.id }}, 'Selected')">
+                      <i class="ti ti-user-check text-success"></i> Mark Selected
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item text-primary" href="javascript:void(0)" onclick="openOfferModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                      <i class="ti ti-file-certificate text-primary"></i> Release Job Offer
+                    </a>
+                  </li>
+                {% elif app.status == 'Selected' %}
+                  <li>
+                    <a class="dropdown-item fw-semibold text-primary" href="javascript:void(0)" onclick="openOfferModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                      <i class="ti ti-file-certificate text-primary"></i> Release Job Offer
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item text-success fw-semibold" href="javascript:void(0)" onclick="openHireModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                      <i class="ti ti-award text-success"></i> Mark Candidate Joined
+                    </a>
+                  </li>
+                {% elif app.flow_step == 6 or app.status == 'Offer Released' or app.status == 'Offered' %}
+                  <li>
+                    <a class="dropdown-item text-success fw-semibold" href="javascript:void(0)" onclick="openHireModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                      <i class="ti ti-award text-success"></i> Mark Candidate Joined
+                    </a>
+                  </li>
+                {% elif app.flow_step == 3 or app.status == 'Applied' or app.status == 'New' or app.status == 'Application Submitted' %}
+                  <li>
+                    <a class="dropdown-item text-warning fw-semibold" href="javascript:void(0)" onclick="updateApplicantStatus({{ app.id }}, 'Shortlisted')">
+                      <i class="ti ti-star text-warning"></i> Shortlist Candidate
+                    </a>
+                  </li>
+                {% endif %}
+                <li>
+                  <a class="dropdown-item text-secondary" href="javascript:void(0)" onclick="openStepperModal({{ app.id }}, '{{ app.full_name|escapejs }}', {{ app.flow_step|default:3 }}, '{{ app.approval_status|escapejs }}')">
+                    <i class="ti ti-timeline text-primary"></i> View Application Stepper
+                  </a>
+                </li>
+                {% if app.flow_step < 7 and app.status != 'Rejected' and app.status != 'Joined' and app.status != 'Placed' and app.status != 'Hired' %}
+                  <li><hr class="dropdown-divider my-1"></li>
+                  <li>
+                    <a class="dropdown-item text-danger" href="javascript:void(0)" onclick="openRejectModal({{ app.id }}, '{{ app.full_name|escapejs }}', '{{ app.job_title|escapejs }}')">
+                      <i class="ti ti-x text-danger"></i> Reject Candidate
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center py-5 text-muted" style="font-size: 13px;">No applicants found matching criteria.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Schedule Interview Modal -->
+<div class="modal fade" id="interviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-info"><i class="ti ti-calendar-event me-2"></i>Schedule Interview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="ivApplicantId">
+        <p class="mb-3">Scheduling interview for <strong id="ivCandidateName"></strong> for position <strong id="ivJobTitle"></strong>.</p>
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Interview Date <span class="text-danger">*</span></label>
+          <input type="date" id="ivDate" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Interview Time <span class="text-danger">*</span></label>
+          <input type="time" id="ivTime" class="form-control" value="11:00" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Mode</label>
+          <select id="ivMode" class="form-select">
+            <option value="In-Person Office Interview">In-Person Office Interview</option>
+            <option value="Online Video Call (Google Meet / Zoom)">Online Video Call (Google Meet / Zoom)</option>
+            <option value="Telephonic Interview">Telephonic Interview</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Location / Meeting Link</label>
+          <input type="text" id="ivLocation" class="form-control" placeholder="Office Address or Video Link">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Interviewer Instructions / Notes</label>
+          <textarea id="ivNotes" class="form-control" rows="2" placeholder="e.g. Bring updated resume and IDs"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-info btn-sm text-white" onclick="submitInterviewModal()">Confirm &amp; Schedule</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Send Offer Modal -->
+<div class="modal fade" id="offerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-primary"><i class="ti ti-file-certificate me-2"></i>Send Job Offer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="offerApplicantId">
+        <p class="mb-3">Extending Job Offer to <strong id="offerCandidateName"></strong>.</p>
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Offered Designation</label>
+          <input type="text" id="offerDesignation" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Offered CTC / Salary Package</label>
+          <input type="text" id="offerCTC" class="form-control" placeholder="e.g. 5.5 LPA">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Expected Joining Date</label>
+          <input type="date" id="offerJoiningDate" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Offer Notes</label>
+          <textarea id="offerNotes" class="form-control" rows="2" placeholder="Offer letter details..."></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold d-flex align-items-center justify-content-between">
+            <span><i class="ti ti-file-upload me-1 text-primary"></i>Upload Offer Letter (PDF / DOC / Image)</span>
+            <span class="badge bg-light text-muted border fw-normal">Optional</span>
+          </label>
+          <input type="file" id="offerDocument" class="form-control" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+          <div class="form-text text-muted small mt-1">Upload the formal offer letter / appointment letter (max 15MB). The candidate will be able to view &amp; download this file.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitOfferModal()">Send Offer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mark Hired Modal -->
+<div class="modal fade" id="hireModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-success"><i class="ti ti-award me-2"></i>Mark Candidate Hired</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="hireApplicantId">
+        <p class="mb-3">Marking <strong id="hireCandidateName"></strong> as HIRED. This automatically creates a official Placement record!</p>
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Final Salary Package (CTC)</label>
+          <input type="text" id="hireCTC" class="form-control" placeholder="e.g. 6.0 LPA">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Joining Date</label>
+          <input type="date" id="hireJoiningDate" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Placement Notes</label>
+          <textarea id="hireNotes" class="form-control" rows="2" placeholder="e.g. Joined successfully in Lucknow office."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success btn-sm" onclick="submitHireModal()">Confirm Hiring &amp; Create Placement</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Stepper View Modal -->
+<div class="modal fade" id="stepperModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header border-0 pb-0 bg-light">
+        <h5 class="modal-title fw-bold text-dark" style="font-size: 1.15rem;"><i class="ti ti-timeline text-primary me-2"></i>Application Stepper — <span id="stepperCandidateName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 p-md-4">
+        <div id="stepperModalContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Candidate Full Profile Modal -->
+<div class="modal fade" id="candidateProfileModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-dark text-white p-3 p-md-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; font-size: 20px;" id="cpAvatar">C</div>
+          <div>
+            <h5 class="modal-title fw-bold text-white mb-0" id="cpFullName">Candidate Name</h5>
+            <div class="text-white-50 small mt-1">
+              Applied for <span class="badge bg-primary text-white" id="cpJobTitle">Job Title</span> • <span class="badge bg-info text-white" id="cpStatus">Status</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 p-md-4">
+        <div class="row g-3">
+          <!-- Contact Info -->
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 h-100 border">
+              <h6 class="fw-bold text-dark mb-3"><i class="ti ti-address-book text-primary me-2"></i>Contact Information</h6>
+              <div class="mb-2"><span class="text-muted small d-block">Email Address</span><strong class="text-dark" id="cpEmail">-</strong></div>
+              <div class="mb-2"><span class="text-muted small d-block">Mobile Number</span><strong class="text-dark" id="cpPhone">-</strong></div>
+              <div class="mb-2"><span class="text-muted small d-block">Location</span><strong class="text-dark" id="cpLocation">-</strong></div>
+              <div><span class="text-muted small d-block">Applied Date</span><strong class="text-dark" id="cpAppliedOn">-</strong></div>
+            </div>
+          </div>
+          <!-- Professional Background -->
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 h-100 border">
+              <h6 class="fw-bold text-dark mb-3"><i class="ti ti-briefcase text-primary me-2"></i>Professional Background</h6>
+              <div class="mb-2"><span class="text-muted small d-block">Qualification</span><strong class="text-dark" id="cpQualification">-</strong></div>
+              <div class="mb-2"><span class="text-muted small d-block">Total Experience</span><strong class="text-dark" id="cpExperience">-</strong></div>
+              <div class="mb-2"><span class="text-muted small d-block">Current Company</span><strong class="text-dark" id="cpCurrentCompany">-</strong></div>
+              <div class="mb-2"><span class="text-muted small d-block">Salary (Current / Expected)</span><strong class="text-dark" id="cpSalary">-</strong></div>
+              <div><span class="text-muted small d-block">Notice Period / Availability</span><strong class="text-dark" id="cpAvailability">-</strong></div>
+            </div>
+          </div>
+          <!-- Key Skills -->
+          <div class="col-12">
+            <div class="p-3 bg-light rounded-3 border">
+              <h6 class="fw-bold text-dark mb-2"><i class="ti ti-sparkles text-primary me-2"></i>Skills &amp; Expertise</h6>
+              <div id="cpSkillsTags" class="d-flex flex-wrap gap-1">-</div>
+            </div>
+          </div>
+          <!-- Cover Letter -->
+          <div class="col-12" id="cpCoverLetterSection" style="display:none;">
+            <div class="p-3 bg-light rounded-3 border">
+              <h6 class="fw-bold text-dark mb-2"><i class="ti ti-message text-primary me-2"></i>Cover Letter / Remarks</h6>
+              <p class="text-secondary small mb-0" id="cpCoverLetter" style="white-space: pre-line;"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top d-flex justify-content-between p-3">
+        <div id="cpResumeBtn">
+          <!-- Resume download link button -->
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-info text-white btn-sm rounded-pill px-3" id="cpScheduleBtn"><i class="ti ti-calendar-event me-1"></i>Schedule Interview</button>
+          <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" id="cpOfferBtn"><i class="ti ti-file-certificate me-1"></i>Release Offer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let ivModal, offerModal, hireModal, stepperModal, cpModal;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    ivModal = new bootstrap.Modal(document.getElementById('interviewModal'));
+    offerModal = new bootstrap.Modal(document.getElementById('offerModal'));
+    hireModal = new bootstrap.Modal(document.getElementById('hireModal'));
+    stepperModal = new bootstrap.Modal(document.getElementById('stepperModal'));
+    cpModal = new bootstrap.Modal(document.getElementById('candidateProfileModal'));
+  });
+
+  function viewCandidateProfile(id, name, jobTitle, email, phone, city, state, qual, exp, skills, comp, curSal, expSal, avail, appliedOn, status, resume, coverLetter) {
+    document.getElementById('cpFullName').innerText = name || 'Candidate';
+    document.getElementById('cpAvatar').innerText = (name ? name.charAt(0).toUpperCase() : 'C');
+    document.getElementById('cpJobTitle').innerText = jobTitle || 'General Position';
+    document.getElementById('cpStatus').innerText = status || 'Shortlisted';
+    document.getElementById('cpEmail').innerText = email || 'N/A';
+    document.getElementById('cpPhone').innerText = phone || 'N/A';
+    const loc = [city, state].filter(Boolean).join(', ') || 'N/A';
+    document.getElementById('cpLocation').innerText = loc;
+    document.getElementById('cpAppliedOn').innerText = appliedOn || 'N/A';
+    document.getElementById('cpQualification').innerText = qual || 'N/A';
+    document.getElementById('cpExperience').innerText = (exp && exp !== '0' ? exp + ' Years' : 'Fresher / Entry Level');
+    document.getElementById('cpCurrentCompany').innerText = comp || 'N/A';
+    const sal = (curSal || expSal) ? `${curSal || 'N/A'} (Current) / ${expSal || 'N/A'} (Expected)` : 'Not specified';
+    document.getElementById('cpSalary').innerText = sal;
+    document.getElementById('cpAvailability').innerText = avail || 'Immediate / Negotiable';
+
+    const skillsElem = document.getElementById('cpSkillsTags');
+    if (skills && skills.trim()) {
+      skillsElem.innerHTML = skills.split(',').map(s => `<span class="badge bg-white text-primary border px-2 py-1">${s.trim()}</span>`).join(' ');
+    } else {
+      skillsElem.innerHTML = '<span class="text-muted small">No specific skills listed</span>';
+    }
+
+    const clSec = document.getElementById('cpCoverLetterSection');
+    if (coverLetter && coverLetter.trim()) {
+      document.getElementById('cpCoverLetter').innerText = coverLetter;
+      clSec.style.display = 'block';
+    } else {
+      clSec.style.display = 'none';
+    }
+
+    const resBtn = document.getElementById('cpResumeBtn');
+    if (resume && resume.trim()) {
+      resBtn.innerHTML = `<a href="/api/admin/files/download/${resume}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="ti ti-download me-1"></i>Download Resume</a>`;
+    } else {
+      resBtn.innerHTML = '<span class="text-muted small"><i class="ti ti-paperclip me-1"></i>No resume uploaded</span>';
+    }
+
+    document.getElementById('cpScheduleBtn').onclick = () => {
+      cpModal.hide();
+      openInterviewModal(id, name, jobTitle);
+    };
+
+    document.getElementById('cpOfferBtn').onclick = () => {
+      cpModal.hide();
+      openOfferModal(id, name, jobTitle);
+    };
+
+    cpModal.show();
+  }
+
+  function openStepperModal(id, name, flowStep, approvalStatus) {
+    document.getElementById('stepperCandidateName').innerText = name;
+    const isRejected = (approvalStatus === 'Rejected');
+    const steps = [
+      {step: 1, label: "Candidate Applies Job", icon: "ti-user-check"},
+      {step: 2, label: "Application Submitted", icon: "ti-send"},
+      {step: 3, label: "Employer Reviews", icon: "ti-eye"},
+      {step: 4, label: "Shortlisted", icon: "ti-star"},
+      {step: 5, label: "Interview Scheduled", icon: "ti-calendar-event"},
+      {step: 6, label: "Offer Released", icon: "ti-file-certificate"},
+      {step: 7, label: "Candidate Joined", icon: "ti-award"}
+    ];
+
+    let stepsHtml = steps.map(s => {
+      let stateClass = 'pending';
+      let connectorClass = '';
+      if (!isRejected) {
+        if (s.step < flowStep) {
+          stateClass = 'completed';
+          if (s.step === 4) connectorClass = 'completed-green';
+          else if (s.step >= 5) connectorClass = 'completed-orange';
+        } else if (s.step === flowStep) {
+          if (flowStep >= 7) {
+            stateClass = 'completed completed-orange current';
+          } else {
+            stateClass = 'current';
+          }
+        }
+      }
+      let iconContent = `<i class="ti ${s.icon}"></i>`;
+      if (stateClass.includes('completed')) {
+        iconContent = '<i class="ti ti-check"></i>';
+      }
+
+      const colorType = s.step <= 3 ? 'step-blue' : (s.step === 4 ? 'step-green' : 'step-orange');
+
+      return `
+        <div class="app-flow-step ${colorType} ${stateClass} ${connectorClass}">
+          <div class="app-flow-step-num">Step ${s.step}</div>
+          <div class="app-flow-circle">${iconContent}</div>
+          <div class="app-flow-label">${s.label}</div>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('stepperModalContainer').innerHTML = `
+      <div class="app-flow-card">
+        <div class="app-flow-header">
+          <div class="app-flow-header-title">
+            <i class="ti ti-timeline"></i>
+            <span>7-STEP APPLICATION FLOW</span>
+          </div>
+          <span class="badge ${isRejected ? 'bg-danger text-white' : (flowStep >= 7 ? 'bg-success text-white' : 'bg-primary text-white')}">
+            ${isRejected ? 'REJECTED' : (flowStep >= 7 ? 'JOINED (STEP 7 OF 7)' : `STEP ${flowStep} OF 7`)}
+          </span>
+        </div>
+        <div class="app-flow-body">
+          <div class="app-flow-stepper">
+            ${stepsHtml}
+          </div>
+          ${isRejected ? `
+            <div class="app-flow-rejected-banner">
+              <i class="ti ti-alert-triangle-filled" style="font-size: 18px;"></i>
+              <div><strong>Application Rejected:</strong> Candidate did not clear the process or was not shortlisted.</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+    stepperModal.show();
+  }
+
+  async function updateApplicantStatus(applicantId, status, extraData = {}) {
+    let reqOptions = {};
+    if (extraData instanceof FormData) {
+      extraData.set('status', status);
+      reqOptions = {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: extraData
+      };
+    } else {
+      const payload = { status: status, ...extraData };
+      reqOptions = {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(payload)
+      };
+    }
+
+    try {
+      const res = await fetch(`/employer/applicants/${applicantId}/status/`, reqOptions);
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        const badge = document.getElementById(`badge-status-${applicantId}`);
+        if (badge) badge.innerText = status;
+        alert(`Candidate status updated to '${status}'!`);
+        location.reload();
+      } else {
+        alert(data.message || 'Failed to update candidate status.');
+      }
+    } catch (e) {
+      alert('Network error.');
+    }
+  }
+
+  function openInterviewModal(id, name, jobTitle) {
+    document.getElementById('ivApplicantId').value = id;
+    document.getElementById('ivCandidateName').innerText = name;
+    document.getElementById('ivJobTitle').innerText = jobTitle;
+    ivModal.show();
+  }
+
+  function submitInterviewModal() {
+    const id = document.getElementById('ivApplicantId').value;
+    const date = document.getElementById('ivDate').value;
+    const time = document.getElementById('ivTime').value;
+    const mode = document.getElementById('ivMode').value;
+    const loc = document.getElementById('ivLocation').value;
+    const notes = document.getElementById('ivNotes').value;
+
+    if (!date) { alert('Please select interview date.'); return; }
+
+    updateApplicantStatus(id, 'Interview Scheduled', {
+      interview_date: date,
+      interview_time: time,
+      interview_mode: mode,
+      location_or_link: loc,
+      notes: notes
+    });
+    ivModal.hide();
+  }
+
+  function openOfferModal(id, name, jobTitle) {
+    document.getElementById('offerApplicantId').value = id;
+    document.getElementById('offerCandidateName').innerText = name;
+    document.getElementById('offerDesignation').value = jobTitle;
+    const fileInput = document.getElementById('offerDocument');
+    if (fileInput) fileInput.value = '';
+    offerModal.show();
+  }
+
+  function submitOfferModal() {
+    const id = document.getElementById('offerApplicantId').value;
+    const des = document.getElementById('offerDesignation').value;
+    const ctc = document.getElementById('offerCTC').value;
+    const jDate = document.getElementById('offerJoiningDate').value;
+    const notes = document.getElementById('offerNotes').value;
+    const fileInput = document.getElementById('offerDocument');
+
+    const formData = new FormData();
+    formData.append('designation', des);
+    formData.append('offered_ctc', ctc);
+    formData.append('joining_date', jDate);
+    formData.append('notes', notes);
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      formData.append('document', fileInput.files[0]);
+    }
+
+    updateApplicantStatus(id, 'Offered', formData);
+    offerModal.hide();
+  }
+
+  function openHireModal(id, name, jobTitle) {
+    document.getElementById('hireApplicantId').value = id;
+    document.getElementById('hireCandidateName').innerText = name;
+    hireModal.show();
+  }
+
+  function submitHireModal() {
+    const id = document.getElementById('hireApplicantId').value;
+    const ctc = document.getElementById('hireCTC').value;
+    const jDate = document.getElementById('hireJoiningDate').value;
+    const notes = document.getElementById('hireNotes').value;
+
+    updateApplicantStatus(id, 'Hired', {
+      package: ctc,
+      joining_date: jDate,
+      notes: notes
+    });
+    hireModal.hide();
+  }
+</script>
+{% endblock %}

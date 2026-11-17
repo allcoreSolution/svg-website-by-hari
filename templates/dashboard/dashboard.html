@@ -1,0 +1,706 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}SVG CONSULTANCY — Super Admin Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- KPI CARDS – Clean 12-Card Grid (3 Rows x 4 Columns) -->
+<section class="kpi-grid-8" style="margin-bottom: 24px;">
+  
+  <!-- 1. Total Candidates -->
+  <a href="/admin-panel/candidates/all/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-blue"><i class="ti ti-users"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Total Candidates</span>
+      <div class="kpi-num">{{ total_candidates|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Real-time <span class="trend-txt">Active DB</span></div>
+    </div>
+  </a>
+
+  <!-- 2. Candidates Pending Review -->
+  <a href="/admin-panel/registrations/candidates/?status=pending" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-amber"><i class="ti ti-user-clock"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Candidates Pending Review</span>
+      <div class="kpi-num">{{ candidates_pending_approval|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Requires Review</div>
+    </div>
+  </a>
+
+  <!-- 3. Total Employers -->
+  <a href="/admin-panel/companies/all/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-blue"><i class="ti ti-building"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Total Employers</span>
+      <div class="kpi-num">{{ total_employers|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Real-time <span class="trend-txt">Active DB</span></div>
+    </div>
+  </a>
+
+  <!-- 4. Employers Pending Approval -->
+  <a href="/admin-panel/registrations/employers/?status=pending" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-purple"><i class="ti ti-building-cog"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Employers Pending Review</span>
+      <div class="kpi-num">{{ employers_pending_approval|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Requires Review</div>
+    </div>
+  </a>
+
+  <!-- 5. Active Jobs -->
+  <a href="/admin-panel/companies/job-openings/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-pink"><i class="ti ti-briefcase"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Jobs Live on Website</span>
+      <div class="kpi-num">{{ jobs_live|default:total_active_jobs|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Active Listings</div>
+    </div>
+  </a>
+
+  <!-- 6. Total Applications -->
+  <a href="/admin-panel/job-applications/all/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-blue"><i class="ti ti-file-description"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Total Applications</span>
+      <div class="kpi-num">{{ total_applications|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Submissions</div>
+    </div>
+  </a>
+
+  <!-- 7. Shortlisted -->
+  <a href="/admin-panel/candidates/shortlisted/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-teal"><i class="ti ti-star"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Total Shortlisted</span>
+      <div class="kpi-num">{{ total_shortlisted|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Employer Shortlist</div>
+    </div>
+  </a>
+
+  <!-- 8. Total Interviews -->
+  <a href="/admin-panel/candidates/interviews/upcoming/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-purple"><i class="ti ti-calendar-event"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Total Interviews</span>
+      <div class="kpi-num">{{ total_interviews|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Scheduled</div>
+    </div>
+  </a>
+
+  <!-- 9. Total Offers -->
+  <a href="/admin-panel/job-offers/all/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-amber"><i class="ti ti-file-certificate"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Total Offers</span>
+      <div class="kpi-num">{{ total_offers|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Released Offers</div>
+    </div>
+  </a>
+
+  <!-- 10. Joined Candidates (This Month) -->
+  <a href="/admin-panel/placements/joined/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-green"><i class="ti ti-user-check"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Joined Candidates (This Month)</span>
+      <div class="kpi-num">{{ total_joined|default:total_hired_this_month|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Verified Joined</div>
+    </div>
+  </a>
+
+  <!-- 11. Total Expired Jobs -->
+  <a href="/admin-panel/companies/requirements/closed/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-red"><i class="ti ti-clock-off"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Total Expired Jobs</span>
+      <div class="kpi-num">{{ total_expired_jobs|default:0 }}</div>
+      <div class="kpi-trend trend-down"><i class="ti ti-arrow-down-right"></i> Expired/Closed</div>
+    </div>
+  </a>
+
+  <!-- 12. Total Staff Users -->
+  <a href="/admin-panel/users/staff/" class="kpi-card" style="text-decoration:none;">
+    <div class="kpi-icon kpi-blue"><i class="ti ti-user-cog"></i></div>
+    <div class="kpi-body">
+      <span class="kpi-title">Total Staff Users</span>
+      <div class="kpi-num">{{ total_staff_users|default:0 }}</div>
+      <div class="kpi-trend trend-up"><i class="ti ti-arrow-up-right"></i> Admin Users</div>
+    </div>
+  </a>
+
+</section>
+
+<!-- OVERVIEW STACK (LEFT) & INTERVIEW CALENDAR (RIGHT) SECTION -->
+<section class="overview-calendar-section">
+  
+  <!-- LEFT STACK: Application Overview & Jobs Overview -->
+  <div class="overview-stack">
+    
+    <!-- 1. Application Overview -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Application Overview</h3>
+        <a href="/admin-panel/reports/candidate/" class="card-action">View Report <i class="ti ti-arrow-right"></i></a>
+      </div>
+      <div class="donut-box">
+        <div class="donut-canvas-wrap">
+          <canvas id="appOverviewDonut" 
+                  data-applied="{{ app_applied|default:8256 }}"
+                  data-shortlisted="{{ app_shortlisted|default:4125 }}"
+                  data-interview="{{ app_interview|default:3245 }}"
+                  data-offered="{{ app_offered|default:1890 }}"
+                  data-rejected="{{ app_rejected|default:1240 }}">
+          </canvas>
+          <div class="donut-center">
+            <div class="donut-center-num">{{ total_applications|default:"18,756" }}</div>
+            <div class="donut-center-lbl">Total</div>
+          </div>
+        </div>
+        <div class="legend-list">
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#2563EB;"></span> Applied</div>
+            <span class="legend-val">{{ app_applied|default:"8,256" }} <span style="color:#94a3b8; font-weight:500;">(44%)</span></span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#10B981;"></span> Shortlisted</div>
+            <span class="legend-val">{{ app_shortlisted|default:"4,125" }} <span style="color:#94a3b8; font-weight:500;">(22%)</span></span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#7C3AED;"></span> Interview</div>
+            <span class="legend-val">{{ app_interview|default:"3,245" }} <span style="color:#94a3b8; font-weight:500;">(17%)</span></span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#EA580C;"></span> Offered</div>
+            <span class="legend-val">{{ app_offered|default:"1,890" }} <span style="color:#94a3b8; font-weight:500;">(10%)</span></span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#EF4444;"></span> Rejected</div>
+            <span class="legend-val">{{ app_rejected|default:"1,240" }} <span style="color:#94a3b8; font-weight:500;">(7%)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Jobs Overview -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Jobs Overview</h3>
+        <a href="/admin-panel/companies/requirements/all/" class="card-action">View Report <i class="ti ti-arrow-right"></i></a>
+      </div>
+      <div class="donut-box">
+        <div class="donut-canvas-wrap">
+          <canvas id="jobsOverviewDonut"
+                  data-live="{{ jobs_live|default:1845 }}"
+                  data-pending="{{ jobs_pending_approval|default:632 }}"
+                  data-draft="{{ jobs_draft|default:328 }}"
+                  data-expired="{{ jobs_expired|default:440 }}">
+          </canvas>
+          <div class="donut-center">
+            <div class="donut-center-num">{{ jobs_live|default:"3,245" }}</div>
+            <div class="donut-center-lbl">Total Jobs</div>
+          </div>
+        </div>
+        <div class="legend-list">
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#10B981;"></span> Live Jobs</div>
+            <span class="legend-val">{{ jobs_live|default:"1,845" }} <span style="color:#94a3b8; font-weight:500;">(56.8%)</span></span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#EA580C;"></span> Pending Approval</div>
+            <span class="legend-val">{{ jobs_pending_approval|default:"632" }} <span style="color:#94a3b8; font-weight:500;">(19.5%)</span></span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#2563EB;"></span> Draft Jobs</div>
+            <span class="legend-val">{{ jobs_draft|default:"328" }} <span style="color:#94a3b8; font-weight:500;">(10.1%)</span></span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left"><span class="dot" style="background:#EF4444;"></span> Expired Jobs</div>
+            <span class="legend-val">{{ jobs_expired|default:"440" }} <span style="color:#94a3b8; font-weight:500;">(13.6%)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN: Interview Calendar -->
+  <div class="calendar-column">
+    <div class="card calendar-card-height">
+      <div class="card-header">
+        <h3 class="card-title">Interview Calendar</h3>
+        <a href="/admin-panel/candidates/interviews/upcoming/" class="card-action">View Calendar <i class="ti ti-arrow-right"></i></a>
+      </div>
+      <div class="cal-header">
+        <i class="ti ti-chevron-left" style="cursor:pointer;"></i>
+        <span>May 2024</span>
+        <i class="ti ti-chevron-right" style="cursor:pointer;"></i>
+      </div>
+      <div class="cal-grid" style="margin-bottom:4px;">
+        <span class="cal-day-name">Sun</span><span class="cal-day-name">Mon</span><span class="cal-day-name">Tue</span><span class="cal-day-name">Wed</span><span class="cal-day-name">Thu</span><span class="cal-day-name">Fri</span><span class="cal-day-name">Sat</span>
+      </div>
+      <div class="cal-grid">
+        <span class="cal-date" style="color:#CBD5E1;">28</span><span class="cal-date" style="color:#CBD5E1;">29</span><span class="cal-date" style="color:#CBD5E1;">30</span><span class="cal-date">1</span><span class="cal-date">2</span><span class="cal-date">3</span><span class="cal-date">4</span>
+        <span class="cal-date">5</span><span class="cal-date">6</span><span class="cal-date">7</span><span class="cal-date">8</span><span class="cal-date">9</span><span class="cal-date">10</span><span class="cal-date">12</span>
+        <span class="cal-date">15</span><span class="cal-date">16</span><span class="cal-date">14</span><span class="cal-date">18</span><span class="cal-date">9</span><span class="cal-date">17</span><span class="cal-date">18</span>
+        <span class="cal-date">19</span><span class="cal-date">20</span><span class="cal-date">21</span><span class="cal-date">22</span><span class="cal-date">23</span><span class="cal-date active">24</span><span class="cal-date">28</span>
+        <span class="cal-date">26</span><span class="cal-date">27</span><span class="cal-date">28</span><span class="cal-date">29</span><span class="cal-date">30</span><span class="cal-date">31</span><span class="cal-date" style="color:#CBD5E1;">1</span>
+      </div>
+      <div class="cal-list" style="margin-top:auto;">
+        {% if upcoming_interviews %}
+          {% for iv in upcoming_interviews %}
+          <div class="cal-item">
+            <span style="font-weight:700; color:#2563EB;">{{ iv.interview_time|default:"10:00 AM" }}</span>
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:700; color:#0F172A;">{{ iv.candidate_name }}</span>
+              <span style="font-size:9.5px; color:#64748B;">{{ iv.job_title|default:"Sales Executive" }}</span>
+            </div>
+            <span class="badge-pill badge-shortlisted">Interview</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="cal-item">
+            <span style="font-weight:700; color:#2563EB;">10:00 AM</span>
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:700; color:#0F172A;">Rahul Kumar</span>
+              <span style="font-size:9.5px; color:#64748B;">Sales Executive</span>
+            </div>
+            <span class="badge-pill badge-shortlisted">Interview</span>
+          </div>
+          <div class="cal-item">
+            <span style="font-weight:700; color:#2563EB;">11:30 AM</span>
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:700; color:#0F172A;">Neha Verma</span>
+              <span style="font-size:9.5px; color:#64748B;">HR Manager</span>
+            </div>
+            <span class="badge-pill badge-shortlisted">Interview</span>
+          </div>
+          <div class="cal-item">
+            <span style="font-weight:700; color:#2563EB;">02:00 PM</span>
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:700; color:#0F172A;">Amit Singh</span>
+              <span style="font-size:9.5px; color:#64748B;">Software Developer</span>
+            </div>
+            <span class="badge-pill badge-shortlisted">Interview</span>
+          </div>
+          <div class="cal-item">
+            <span style="font-weight:700; color:#2563EB;">04:30 PM</span>
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:700; color:#0F172A;">Pooja Sharma</span>
+              <span style="font-size:9.5px; color:#64748B;">Accounts Executive</span>
+            </div>
+            <span class="badge-pill badge-shortlisted">Interview</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ROW: TOP JOB CATEGORIES (LEFT) & NOTIFICATIONS (RIGHT) -->
+<section class="grid-2-col">
+
+  <!-- Top Job Categories -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Top Job Categories</h3>
+      <a href="/admin-panel/companies/job-openings/" class="card-action">View All <i class="ti ti-arrow-right"></i></a>
+    </div>
+    <div class="bar-list">
+      <div class="bar-item">
+        <div class="bar-meta"><span>IT / Software</span> <span class="bar-val">1,245</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:85%; background:#2563EB;"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-meta"><span>Sales / Marketing</span> <span class="bar-val">845</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:65%; background:#2563EB;"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-meta"><span>Accounting</span> <span class="bar-val">632</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:50%; background:#0D9488;"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-meta"><span>HR / Admin</span> <span class="bar-val">512</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:40%; background:#0D9488;"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-meta"><span>Engineering</span> <span class="bar-val">398</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:32%; background:#D97706;"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-meta"><span>Customer Support</span> <span class="bar-val">256</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:22%; background:#EF4444;"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-meta"><span>Healthcare</span> <span class="bar-val">198</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:16%; background:#8B5CF6;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Notifications</h3>
+      <a href="/admin-panel/notifications/all/" class="card-action">View All <i class="ti ti-arrow-right"></i></a>
+    </div>
+    <div class="notif-feed">
+      <div class="notif-row">
+        <i class="ti ti-user-check" style="color:#D97706; font-size:14px;"></i>
+        <div style="flex:1;"><span style="font-weight:600;">New candidate Rahul Kumar registered</span></div>
+        <span style="font-size:9.5px; color:#94A3B8;">10:30 AM</span>
+      </div>
+      <div class="notif-row">
+        <i class="ti ti-briefcase" style="color:#2563EB; font-size:14px;"></i>
+        <div style="flex:1;"><span style="font-weight:600;">Job 'Sales Executive' pending approval</span></div>
+        <span style="font-size:9.5px; color:#94A3B8;">10:15 AM</span>
+      </div>
+      <div class="notif-row">
+        <i class="ti ti-calendar-event" style="color:#0D9488; font-size:14px;"></i>
+        <div style="flex:1;"><span style="font-weight:600;">Interview scheduled with Neha Verma</span></div>
+        <span style="font-size:9.5px; color:#94A3B8;">09:45 AM</span>
+      </div>
+      <div class="notif-row">
+        <i class="ti ti-building" style="color:#7C3AED; font-size:14px;"></i>
+        <div style="flex:1;"><span style="font-weight:600;">New employer ABC Pvt Ltd registered</span></div>
+        <span style="font-size:9.5px; color:#94A3B8;">09:30 AM</span>
+      </div>
+      <div class="notif-row">
+        <i class="ti ti-wallet" style="color:#16A34A; font-size:14px;"></i>
+        <div style="flex:1;"><span style="font-weight:600;">Payment received from Techno Soft</span></div>
+        <span style="font-size:9.5px; color:#94A3B8;">Yesterday</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- REMAINING CARDS IN 1-COLUMN LAYOUT -->
+<section class="grid-1-col">
+
+  <!-- 1. Recent Job Applications -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Recent Job Applications</h3>
+      <a href="/admin-panel/candidates/all/" class="card-action">View All <i class="ti ti-arrow-right"></i></a>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Candidate Name</th>
+            <th>Job Title</th>
+            <th>Employer / Agency</th>
+            <th>Applied On</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if recent_applications %}
+            {% for app in recent_applications %}
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">{{ app.full_name }}</td>
+              <td>{{ app.job_title|default:"Position" }}</td>
+              <td>{{ app.current_company|default:"ABC Pvt Ltd" }}</td>
+              <td>{{ app.applied_on|date:"d/m/Y"|default:"28/05/2024" }}</td>
+              <td>
+                {% if 'Shortlist' in app.status %}
+                  <span class="badge-pill badge-shortlisted">Shortlisted</span>
+                {% elif 'Interview' in app.status %}
+                  <span class="badge-pill badge-interview">Interview</span>
+                {% elif 'Offer' in app.status %}
+                  <span class="badge-pill badge-offered">Offered</span>
+                {% elif 'Reject' in app.status %}
+                  <span class="badge-pill badge-rejected">Rejected</span>
+                {% else %}
+                  <span class="badge-pill badge-applied">Applied</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">Rahul Kumar</td>
+              <td>Sales Executive</td>
+              <td>ABC Pvt Ltd</td>
+              <td>28/05/2024</td>
+              <td><span class="badge-pill badge-applied">Applied</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">Neha Verma</td>
+              <td>HR Manager</td>
+              <td>XYZ Solutions</td>
+              <td>28/05/2024</td>
+              <td><span class="badge-pill badge-shortlisted">Shortlisted</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">Amit Singh</td>
+              <td>Software Developer</td>
+              <td>Techno Soft</td>
+              <td>27/05/2024</td>
+              <td><span class="badge-pill badge-interview">Interview</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">Pooja Sharma</td>
+              <td>Accounts Executive</td>
+              <td>KLM Industries</td>
+              <td>27/05/2024</td>
+              <td><span class="badge-pill badge-applied">Applied</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">Vikash Yadav</td>
+              <td>Marketing Executive</td>
+              <td>Global Tech</td>
+              <td>26/05/2024</td>
+              <td><span class="badge-pill badge-applied">Applied</span></td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- ROW: PENDING APPROVALS (LEFT) & REVENUE OVERVIEW (RIGHT) -->
+<section class="grid-2-col">
+
+  <!-- 2. Pending Approvals -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Pending Approvals</h3>
+      <a href="/admin-panel/candidates/registrations/" class="card-action">View All <i class="ti ti-arrow-right"></i></a>
+    </div>
+    <div class="pending-list">
+      <a href="/admin-panel/candidates/registrations/" class="pending-row">
+        <div style="display:flex; align-items:center; gap:8px;"><i class="ti ti-user-check" style="color:#2563EB;"></i> <span>Candidates Pending Approval</span></div>
+        <span class="pending-count">{{ candidates_pending_approval|default:"215" }}</span>
+      </a>
+      <a href="/admin-panel/companies/all/" class="pending-row">
+        <div style="display:flex; align-items:center; gap:8px;"><i class="ti ti-building-cog" style="color:#2563EB;"></i> <span>Employers Pending Approval</span></div>
+        <span class="pending-count">{{ employers_pending_approval|default:"78" }}</span>
+      </a>
+      <a href="/admin-panel/internships/applications/all/" class="pending-row">
+        <div style="display:flex; align-items:center; gap:8px;"><i class="ti ti-school" style="color:#2563EB;"></i> <span>Internships Pending Review</span></div>
+        <span class="pending-count">{{ internships_pending_approval|default:agencies_pending_approval|default:"0" }}</span>
+      </a>
+      <a href="/admin-panel/companies/requirements/active/" class="pending-row">
+        <div style="display:flex; align-items:center; gap:8px;"><i class="ti ti-briefcase" style="color:#2563EB;"></i> <span>Jobs Pending Approval</span></div>
+        <span class="pending-count">{{ jobs_pending_approval|default:"132" }}</span>
+      </a>
+      <a href="/admin-panel/documents/verification/pending/" class="pending-row">
+        <div style="display:flex; align-items:center; gap:8px;"><i class="ti ti-shield-search" style="color:#2563EB;"></i> <span>Documents Pending Verification</span></div>
+        <span class="pending-count">186</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 3. Revenue Overview -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Revenue Overview</h3>
+      <div class="branch-dropdown" style="padding:2px 8px;">
+        <select style="font-size:11px;">
+          <option value="month" selected>This Month</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="year">This Year</option>
+        </select>
+      </div>
+    </div>
+    
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+      <div>
+        <span style="font-size:10.5px; color:#64748B; font-weight:600;">Total Revenue</span>
+        <div style="font-size:20px; font-weight:800; color:#0F172A;">₹ 12,85,000</div>
+      </div>
+      <span class="kpi-trend trend-up" style="font-size:11px;"><i class="ti ti-arrow-up-right"></i> 18.5% <span class="trend-txt">vs last month</span></span>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; background:#F8FAFC; padding:6px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:8px;">
+      <div>
+        <div style="font-size:9.5px; color:#64748B; font-weight:600;">Ledger Outstanding</div>
+        <div style="font-size:11.5px; font-weight:800; color:#0F172A;">₹ 4,25,000</div>
+        <span class="trend-up" style="font-size:9px; font-weight:700;"><i class="ti ti-arrow-up-right"></i> 15.2%</span>
+      </div>
+      <div>
+        <div style="font-size:9.5px; color:#64748B; font-weight:600;">Job Posting</div>
+        <div style="font-size:11.5px; font-weight:800; color:#0F172A;">₹ 6,40,000</div>
+        <span class="trend-up" style="font-size:9px; font-weight:700;"><i class="ti ti-arrow-up-right"></i> 20.7%</span>
+      </div>
+      <div>
+        <div style="font-size:9.5px; color:#64748B; font-weight:600;">Other Revenue</div>
+        <div style="font-size:11.5px; font-weight:800; color:#0F172A;">₹ 2,20,000</div>
+        <span class="trend-up" style="font-size:9px; font-weight:700;"><i class="ti ti-arrow-up-right"></i> 10.3%</span>
+      </div>
+    </div>
+
+    <div style="height:90px; width:100%; position:relative;">
+      <canvas id="revenueLineChart"></canvas>
+    </div>
+  </div>
+
+</section>
+
+<!-- REMAINING CARDS IN 1-COLUMN LAYOUT -->
+<section class="grid-1-col">
+
+  <!-- 1. Latest Job Postings (Pending Approval) -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Latest Job Postings (Pending Approval)</h3>
+      <a href="/admin-panel/companies/job-openings/" class="card-action">View All <i class="ti ti-arrow-right"></i></a>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Job Title</th>
+            <th>Employer / Agency</th>
+            <th>Location</th>
+            <th>Salary</th>
+            <th>Posted On</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if latest_jobs %}
+            {% for job in latest_jobs %}
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">{{ job.title }}</td>
+              <td>{{ job.company_name|default:"ABC Pvt Ltd" }}</td>
+              <td>{{ job.location|default:"Lucknow" }}</td>
+              <td>{{ job.salary|default:"30K - 45K" }}</td>
+              <td>{{ job.created_at|date:"d/m/Y"|default:"28/05/2024" }}</td>
+              <td>
+                <div style="display:flex; gap:4px;">
+                  <a href="/admin-panel/companies/job-openings/" style="color:#2563EB;"><i class="ti ti-eye"></i></a>
+                  <button style="color:#16A34A;"><i class="ti ti-check"></i></button>
+                  <button style="color:#DC2626;"><i class="ti ti-x"></i></button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">Business Development Manager</td>
+              <td>ABC Pvt Ltd</td>
+              <td>Lucknow</td>
+              <td>30K - 45K</td>
+              <td>28/05/2024</td>
+              <td>
+                <div style="display:flex; gap:4px;">
+                  <span style="color:#2563EB;"><i class="ti ti-eye"></i></span>
+                  <span style="color:#16A34A;"><i class="ti ti-check"></i></span>
+                  <span style="color:#DC2626;"><i class="ti ti-x"></i></span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">HR Executive</td>
+              <td>Global Solutions</td>
+              <td>Delhi</td>
+              <td>25K - 35K</td>
+              <td>28/05/2024</td>
+              <td>
+                <div style="display:flex; gap:4px;">
+                  <span style="color:#2563EB;"><i class="ti ti-eye"></i></span>
+                  <span style="color:#16A34A;"><i class="ti ti-check"></i></span>
+                  <span style="color:#DC2626;"><i class="ti ti-x"></i></span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:700; color:#0F172A;">Frontend Developer</td>
+              <td>Techno Soft</td>
+              <td>Noida</td>
+              <td>40K - 60K</td>
+              <td>27/05/2024</td>
+              <td>
+                <div style="display:flex; gap:4px;">
+                  <span style="color:#2563EB;"><i class="ti ti-eye"></i></span>
+                  <span style="color:#16A34A;"><i class="ti ti-check"></i></span>
+                  <span style="color:#DC2626;"><i class="ti ti-x"></i></span>
+                </div>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. Top Performing Employers -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Top Performing Employers</h3>
+      <a href="/admin-panel/companies/all/" class="card-action">View All <i class="ti ti-arrow-right"></i></a>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Employer Name</th>
+            <th>Jobs</th>
+            <th>Applications</th>
+            <th>Hired</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:700; color:#0F172A;">ABC Pvt Ltd</td>
+            <td>45</td>
+            <td>1,245</td>
+            <td>68</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#0F172A;">Global Solutions</td>
+            <td>32</td>
+            <td>985</td>
+            <td>49</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#0F172A;">Techno Soft</td>
+            <td>28</td>
+            <td>845</td>
+            <td>45</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#0F172A;">KLM Industries</td>
+            <td>25</td>
+            <td>632</td>
+            <td>32</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#0F172A;">XYZ Solutions</td>
+            <td>20</td>
+            <td>512</td>
+            <td>28</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. Quick Actions -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Quick Actions</h3>
+    </div>
+    <div class="quick-actions-list">
+      <a href="/admin-panel/candidates/add/" class="qa-btn btn-blue"><i class="ti ti-plus"></i> Add Candidate</a>
+      <a href="/admin-panel/companies/add/" class="qa-btn btn-green"><i class="ti ti-plus"></i> Add Employer</a>
+      <a href="/admin-panel/internships/add/" class="qa-btn btn-purple"><i class="ti ti-school"></i> Add Internship</a>
+      <a href="/admin-panel/companies/job-openings/" class="qa-btn btn-amber"><i class="ti ti-plus"></i> Post Job</a>
+      <a href="/admin-panel/candidates/interviews/upcoming/" class="qa-btn btn-teal"><i class="ti ti-plus"></i> Schedule Interview</a>
+      <a href="/admin-panel/reports/export/" class="qa-btn btn-red"><i class="ti ti-plus"></i> Generate Invoice</a>
+    </div>
+  </div>
+
+  </div>
+
+</section>
+
+{% endblock %}

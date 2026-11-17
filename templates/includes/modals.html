@@ -1,0 +1,637 @@
+{% load static %}
+<!-- ============ 1. APPLY MODAL (Quick Service Contact) ============ -->
+<div class="apply-modal-overlay" id="applyModalOverlay">
+  <div class="apply-modal">
+    <button class="apply-modal-close" id="applyModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="apply-modal-logo">
+      <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy">
+    </div>
+    <p class="apply-modal-subtitle">Apply now and let us bring your vision to life.</p>
+    <form class="apply-modal-form" id="applyModalForm">
+      <input type="text" name="website_url" class="d-none" style="display:none;" tabindex="-1" autocomplete="off">
+      <div class="apply-modal-row">
+        <div class="apply-modal-field">
+          <i class="fa-solid fa-user"></i>
+          <input type="text" id="name" name="name" placeholder="Your Name" required>
+        </div>
+        <div class="apply-modal-field">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" id="email" name="email" placeholder="Your Email" required>
+        </div>
+      </div>
+      <div class="apply-modal-row">
+        <div class="apply-modal-field">
+          <i class="fa-solid fa-phone"></i>
+          <input type="tel" id="phone" name="phone" placeholder="Your Phone" required>
+        </div>
+        <div class="apply-modal-field">
+          <i class="fa-solid fa-briefcase"></i>
+          <select id="service" name="service" required>
+            <option value="" disabled selected>Choose Service</option>
+            <option>Manpower Supply</option>
+            <option>Skilled Manpower</option>
+            <option>Unskilled Manpower</option>
+            <option>Industrial Workforce</option>
+            <option>Factory Staff</option>
+            <option>Office Staff</option>
+          </select>
+        </div>
+      </div>
+      <div class="apply-modal-field apply-modal-message">
+        <i class="fa-solid fa-comment"></i>
+        <textarea id="message" name="message" placeholder="Your Message" rows="1"></textarea>
+      </div>
+      <label class="apply-modal-agree">
+        <input type="checkbox" required>
+        <span class="apply-modal-checkbox"></span>
+        <span>I agree with the <a href="#">Terms Of Service.</a></span>
+      </label>
+      <button type="submit" class="apply-modal-submit">
+        <i class="fa-solid fa-paper-plane"></i> Submit Now
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ 2. JOB APPLICATION MODAL ============ -->
+<div class="job-apply-overlay" id="jobApplyOverlay">
+  <div class="job-apply-modal">
+    <button class="job-apply-close" id="jobApplyClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="job-apply-logo">
+      <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy">
+    </div>
+    <p class="job-apply-subtitle">Apply now and let us bring your vision to life.</p>
+    <form class="job-apply-form" id="jobApplyForm" enctype="multipart/form-data">
+      <input type="hidden" id="jobApplyIdInput" name="job_id" value="">
+      <div class="job-apply-grid">
+        <!-- LEFT PANEL: Personal & Professional Details -->
+        <div class="job-apply-panel">
+          <h4 class="job-apply-panel-title"><i class="fa-solid fa-user"></i> Personal &amp; Professional Details</h4>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Full Name <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-user"></i><input type="text" name="full_name" placeholder="e.g. Rahul Sharma" required></div>
+            </div>
+            <div class="job-apply-field">
+              <label>Email Address <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-envelope"></i><input type="email" name="email" placeholder="rahul@example.com" required></div>
+            </div>
+          </div>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Phone Number <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-phone"></i><input type="tel" name="phone" placeholder="e.g. 9876543210" required></div>
+            </div>
+            <div class="job-apply-field">
+              <label>Current Location (City, State) <span>*</span></label>
+              <div class="job-apply-split-inputs">
+                <div class="job-apply-input"><input type="text" name="city" placeholder="City (e.g. Lucknow)" required></div>
+                <div class="job-apply-input"><input type="text" name="state" placeholder="State (e.g. UP)" required></div>
+              </div>
+            </div>
+          </div>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Job Title / Position Applying For <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-briefcase"></i><input type="text" id="jobApplyTitleInput" name="job_title" placeholder="e.g. Java Developer" required></div>
+            </div>
+            <div class="job-apply-field">
+              <label>Highest Qualification <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-graduation-cap"></i><input type="text" name="qualification" placeholder="e.g. B.Tech / MBA / MCA" required></div>
+            </div>
+          </div>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Years of Experience</label>
+              <div class="job-apply-input"><i class="fa-solid fa-calendar-days"></i><input type="number" name="experience" min="0" placeholder="0"></div>
+            </div>
+            <div class="job-apply-field">
+              <label>Skills / Key Expertise</label>
+              <div class="job-apply-input"><i class="fa-solid fa-tags"></i><input type="text" name="skills" placeholder="HTML, JS, Java, SQL, Excel, etc."></div>
+            </div>
+          </div>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Current Company <span class="optional">(Optional)</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-building"></i><input type="text" name="current_company" placeholder="e.g. TCS / Infosys / Fresher"></div>
+            </div>
+            <div class="job-apply-field">
+              <label>Current Salary / CTC <span class="optional">(Optional)</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-indian-rupee-sign"></i><input type="text" name="current_salary" placeholder="e.g. 3.5 LPA"></div>
+            </div>
+          </div>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Expected Salary / CTC <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-indian-rupee-sign"></i><input type="text" name="expected_salary" placeholder="e.g. 5 LPA" required></div>
+            </div>
+            <div class="job-apply-field">
+              <label>Notice Period / Availability <span>*</span></label>
+              <div class="job-apply-input">
+                <i class="fa-solid fa-clock"></i>
+                <select name="availability" required>
+                  <option value="" disabled selected>Select Notice Period</option>
+                  <option value="Immediate Joiner">Immediate Joiner</option>
+                  <option value="15 Days">15 Days</option>
+                  <option value="30 Days">30 Days</option>
+                  <option value="45 Days">45 Days</option>
+                  <option value="60+ Days">60+ Days</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Cover Letter & Resume Upload -->
+        <div class="job-apply-panel">
+          <h4 class="job-apply-panel-title"><i class="fa-solid fa-file-lines"></i> Application Documents</h4>
+          <div class="job-apply-field">
+            <label>Cover Letter / Summary <span class="optional">(Optional)</span></label>
+            <div class="job-apply-input job-apply-textarea-wrap">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <textarea name="cover_letter" id="jobApplyCoverLetter" placeholder="Write a short message describing why you are a great fit..."></textarea>
+            </div>
+            <div class="job-apply-char-count"><span id="jobApplyCharCount">0</span> / 500 characters</div>
+          </div>
+          <div class="job-apply-field">
+            <label>Upload Resume / CV <span>*</span></label>
+            <div class="job-apply-upload-zone" id="jobApplyDropzone" role="button" tabindex="0" aria-label="Upload Resume or CV" style="cursor: pointer;">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <div class="job-apply-upload-title">Drag &amp; Drop your resume here</div>
+              <div class="job-apply-upload-subtitle">or <span class="browse-link">Browse from computer</span></div>
+              <div class="job-apply-upload-hint">Supported formats: PDF, DOC, DOCX (Max 10MB)</div>
+              <input type="file" id="jobApplyResumeFile" name="resume" accept=".pdf,.doc,.docx" class="job-apply-file-input">
+            </div>
+            <div class="job-apply-file-preview" id="jobApplyFilePreview" style="display: none;">
+              <i class="fa-solid fa-file-pdf"></i>
+              <div class="job-apply-file-info">
+                <div class="job-apply-file-name" id="jobApplyFileName">resume.pdf</div>
+                <div class="job-apply-file-size" id="jobApplyFileSize">0 KB</div>
+              </div>
+              <button type="button" class="job-apply-file-remove" id="jobApplyFileRemove" aria-label="Remove file">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+          <div class="job-apply-declaration">
+            <label class="job-apply-checkbox-label">
+              <input type="checkbox" id="jobApplyDeclaration" required>
+              <span class="job-apply-checkbox-custom"></span>
+              <span>I hereby declare that all information provided is accurate and true to the best of my knowledge.</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="job-apply-perks">
+        <div class="job-apply-perk"><i class="fa-solid fa-users"></i><div><b>1000+</b><span>Active Jobs</span></div></div>
+        <div class="job-apply-perk"><i class="fa-solid fa-building"></i><div><b>Top Companies</b><span>Hiring</span></div></div>
+        <div class="job-apply-perk"><i class="fa-solid fa-bolt"></i><div><b>Faster</b><span>Shortlisting</span></div></div>
+        <div class="job-apply-perk"><i class="fa-solid fa-shield-halved"></i><div><b>Secure &amp;</b><span>Confidential</span></div></div>
+        <div class="job-apply-perk"><i class="fa-solid fa-chart-line"></i><div><b>Career</b><span>Growth</span></div></div>
+      </div>
+      <button type="submit" class="job-apply-submit">
+        <i class="fa-solid fa-paper-plane"></i> Submit Application
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ 2.5 INTERNSHIP APPLICATION MODAL ============ -->
+<div class="job-apply-overlay" id="internshipApplyOverlay">
+  <div class="job-apply-modal">
+    <button class="job-apply-close" id="internshipApplyClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="job-apply-logo">
+      <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy">
+    </div>
+    <h2 class="hire-modal-title" style="margin-top: 8px; font-size: 22px;">Apply for Internship</h2>
+    <p class="job-apply-subtitle" style="margin-bottom: 20px;">Kickstart your career with our hands-on internship programs.</p>
+    <form class="job-apply-form" id="internshipApplyForm" enctype="multipart/form-data">
+      <input type="hidden" id="internshipApplyIdInput" name="internship_id" value="">
+      <div class="internship-apply-grid">
+        <!-- LEFT PANEL: Student / Applicant Information -->
+        <div class="job-apply-panel">
+          <h4 class="job-apply-panel-title"><i class="fa-solid fa-user-graduate"></i> Applicant Information</h4>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Full Name <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-user"></i><input type="text" name="full_name" placeholder="e.g. Rahul Sharma" required></div>
+            </div>
+            <div class="job-apply-field">
+              <label>Email Address <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-envelope"></i><input type="email" name="email" placeholder="rahul@example.com" required></div>
+            </div>
+          </div>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Phone Number <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-phone"></i><input type="tel" name="phone" placeholder="e.g. 9876543210" required></div>
+            </div>
+            <div class="job-apply-field">
+              <label>College / University <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-building-columns"></i><input type="text" name="college" placeholder="e.g. ABC Institute of Technology" required></div>
+            </div>
+          </div>
+          <div class="job-apply-row">
+            <div class="job-apply-field">
+              <label>Course / Stream <span>*</span></label>
+              <div class="job-apply-input"><i class="fa-solid fa-graduation-cap"></i><input type="text" name="course_stream" placeholder="e.g. B.Tech CS / BCA / MBA" required></div>
+            </div>
+            <div class="job-apply-field">
+              <label>Skills / Key Expertise</label>
+              <div class="job-apply-input"><i class="fa-solid fa-tags"></i><input type="text" name="skills" placeholder="HTML, JS, Python, MS Excel, etc."></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Internship Track & Application Details -->
+        <div class="job-apply-panel">
+          <h4 class="job-apply-panel-title"><i class="fa-solid fa-briefcase"></i> Internship Details</h4>
+          <div class="job-apply-field" style="margin-bottom: 12px;">
+            <label>Internship Program / Domain <span>*</span></label>
+            <div class="job-apply-input">
+              <i class="fa-solid fa-laptop-code"></i>
+              <select id="internshipApplyDomainSelect" name="internship_domain" required>
+                <option value="" disabled selected>Choose Internship Track</option>
+                <option value="HR Internship">HR Internship (Human Resources &amp; Recruitment)</option>
+                <option value="Finance Internship">Finance &amp; Accounting Internship</option>
+                <option value="Marketing Internship">Marketing &amp; Sales Internship</option>
+                <option value="IT Internship">IT &amp; Software / Web Development</option>
+                <option value="Digital Marketing Internship">Digital Marketing (SEO / Social Media)</option>
+                <option value="Graphic Design Internship">Graphic Design &amp; UI/UX</option>
+                <option value="Business Development Internship">Business Development (BDO / BDE)</option>
+                <option value="General Internship">General / Other Internship</option>
+              </select>
+            </div>
+          </div>
+          <div class="job-apply-row" style="margin-bottom: 12px;">
+            <div class="job-apply-field">
+              <label>Preferred Duration <span>*</span></label>
+              <div class="job-apply-input">
+                <i class="fa-solid fa-clock"></i>
+                <select name="duration" required>
+                  <option value="1 Month">1 Month</option>
+                  <option value="2 Months">2 Months</option>
+                  <option value="3 Months" selected>3 Months (Recommended)</option>
+                  <option value="6 Months">6 Months</option>
+                </select>
+              </div>
+            </div>
+            <div class="job-apply-field">
+              <label>Training Mode <span>*</span></label>
+              <div class="job-apply-input">
+                <i class="fa-solid fa-location-dot"></i>
+                <select name="mode" required>
+                  <option value="Work From Home / Remote" selected>Work From Home / Remote</option>
+                  <option value="Onsite / In-Office (Lucknow)">Onsite / In-Office</option>
+                  <option value="Hybrid">Hybrid (Online + Office)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="job-apply-field" style="margin-bottom: 12px;">
+            <label>Upload Resume / CV <span class="optional">(Optional)</span></label>
+            <div class="job-apply-upload-zone" id="internshipApplyDropzone" role="button" tabindex="0" aria-label="Upload Resume or CV" style="cursor: pointer;">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <div class="job-apply-upload-title">Drag &amp; Drop your resume here</div>
+              <div class="job-apply-upload-subtitle">or <span class="browse-link">Browse from computer</span></div>
+              <div class="job-apply-upload-hint">Supported formats: PDF, DOC, DOCX (Max 5MB)</div>
+              <input type="file" id="internshipApplyResumeFile" name="resume" accept=".pdf,.doc,.docx" class="job-apply-file-input">
+            </div>
+            <div class="job-apply-file-preview" id="internshipApplyFilePreview" style="display: none;">
+              <i class="fa-solid fa-file-pdf"></i>
+              <div class="job-apply-file-info">
+                <div class="job-apply-file-name" id="internshipApplyFileName">resume.pdf</div>
+                <div class="job-apply-file-size" id="internshipApplyFileSize">0 KB</div>
+              </div>
+              <button type="button" class="job-apply-file-remove" id="internshipApplyFileRemove" aria-label="Remove file">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+          <div class="job-apply-field" style="margin-bottom: 10px;">
+            <label>Cover Letter / Message <span class="optional">(Optional)</span></label>
+            <div class="job-apply-input internship-textarea-wrap">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <textarea name="message" id="internshipApplyMessage" placeholder="Tell us why you want to join this internship..."></textarea>
+            </div>
+            <div class="job-apply-char-count"><span id="internshipApplyCharCount">0</span> / 500 characters</div>
+          </div>
+          <div class="job-apply-declaration">
+            <label class="job-apply-checkbox-label">
+              <input type="checkbox" id="internshipApplyDeclaration" required>
+              <span>I hereby declare that all information provided is accurate and true.</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="job-apply-perks">
+        <div class="job-apply-perk"><i class="fa-solid fa-graduation-cap"></i><div><b>Hands-on</b><span>Learning</span></div></div>
+        <div class="job-apply-perk"><i class="fa-solid fa-certificate"></i><div><b>Verified</b><span>Certificate</span></div></div>
+        <div class="job-apply-perk"><i class="fa-solid fa-user-check"></i><div><b>Expert</b><span>Mentorship</span></div></div>
+        <div class="job-apply-perk"><i class="fa-solid fa-briefcase"></i><div><b>Placement</b><span>Support</span></div></div>
+      </div>
+      <button type="submit" class="job-apply-submit">
+        <i class="fa-solid fa-paper-plane"></i> Submit Internship Application
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ 3. HIRE TALENT MODAL ============ -->
+<div class="job-apply-overlay" id="hireTalentModalOverlay">
+  <div class="job-apply-modal">
+    <button class="job-apply-close" id="hireTalentModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="job-apply-logo">
+      <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy">
+    </div>
+    <h2 class="hire-modal-title">Recruiter Hiring Request</h2>
+    <p class="job-apply-subtitle">Submit your hiring requirement and we will source the perfect talent for your team.</p>
+    <form class="hire-modal-form" id="hireTalentForm">
+      <div class="job-apply-row">
+        <div class="job-apply-field">
+          <label>Recruiter Name <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-user"></i><input type="text" name="recruiter_name" placeholder="Enter recruiter name" required></div>
+        </div>
+        <div class="job-apply-field">
+          <label>Designation <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-briefcase"></i><input type="text" name="designation" placeholder="e.g. HR Manager" required></div>
+        </div>
+      </div>
+      <div class="job-apply-row">
+        <div class="job-apply-field">
+          <label>Company Name <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-building"></i><input type="text" name="company_name" placeholder="Enter company name" required></div>
+        </div>
+        <div class="job-apply-field">
+          <label>Mobile Number <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-phone"></i><input type="tel" name="phone" placeholder="e.g. 9876543210" required></div>
+        </div>
+      </div>
+      <div class="job-apply-row">
+        <div class="job-apply-field">
+          <label>Recruiter Email <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-envelope"></i><input type="email" name="email" placeholder="you@company.com" required></div>
+        </div>
+        <div class="job-apply-field">
+          <label>Company Full Address <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-location-dot"></i><input type="text" name="address" placeholder="full address" required></div>
+        </div>
+      </div>
+      <div class="job-apply-row">
+        <div class="job-apply-field">
+          <label>Job Title <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-briefcase"></i><input type="text" name="job_title" placeholder="e.g. Sales Executive" required></div>
+        </div>
+        <div class="job-apply-field">
+          <label>Department <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-people-group"></i><input type="text" name="department" placeholder="e.g. Sales" required></div>
+        </div>
+      </div>
+      <div class="job-apply-row">
+        <div class="job-apply-field">
+          <label>Industry <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-industry"></i><input type="text" name="industry" placeholder="e.g. IT" required></div>
+        </div>
+        <div class="job-apply-field">
+          <label>Openings <span>*</span></label>
+          <div class="job-apply-input">
+            <i class="fa-solid fa-users"></i>
+            <select name="vacancies" required>
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="5+">5+</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="job-apply-row">
+        <div class="job-apply-field">
+          <label>Job Type <span>*</span></label>
+          <div class="job-apply-input">
+            <i class="fa-solid fa-clock"></i>
+            <select name="job_type" required>
+              <option value="Full Time" selected>Full Time</option>
+              <option value="Part Time">Part Time</option>
+              <option value="Work From Home">Work From Home</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="job-apply-field">
+          <label>Application Deadline / Days to Close <span>*</span></label>
+          <div class="job-apply-input">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <select name="application_deadline" required>
+              <option value="7 Days">7 Days</option>
+              <option value="15 Days">15 Days</option>
+              <option value="30 Days" selected>30 Days (1 Month)</option>
+              <option value="45 Days">45 Days</option>
+              <option value="60 Days">60 Days (2 Months)</option>
+              <option value="90 Days">90 Days (3 Months)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="job-apply-row">
+        <div class="job-apply-field">
+          <label>Experience Required <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-arrow-trend-up"></i><input type="text" name="experience_req" placeholder="e.g. 1-3 years" required></div>
+        </div>
+        <div class="job-apply-field">
+          <label>Office Location <span>*</span></label>
+          <div class="job-apply-input"><i class="fa-solid fa-location-dot"></i><input type="text" name="location" placeholder="e.g. Lucknow" required></div>
+        </div>
+      </div>
+      <div class="job-apply-field">
+        <label>Candidate Requirements / Key Skills <span>*</span></label>
+        <div class="job-apply-input">
+          <i class="fa-solid fa-list-check"></i>
+          <input type="text" name="requirements" placeholder="e.g. Communication, Lead Generation, MS Excel, Graduate" required>
+        </div>
+      </div>
+      <div class="job-apply-field">
+        <label>Job Description <span>*</span></label>
+        <div class="job-apply-input job-apply-textarea-wrap">
+          <i class="fa-solid fa-file-lines"></i>
+          <textarea name="message" placeholder="Enter job description, roles, responsibilities..." required></textarea>
+        </div>
+      </div>
+      <div class="hire-privacy-footer">
+        <div class="hire-privacy-info">
+          <div class="hire-privacy-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <h5>We value your privacy</h5>
+            <p>Your information is secure and will be used only for recruitment purposes.</p>
+          </div>
+        </div>
+        <button type="submit" class="hire-submit-btn">
+          <i class="fa-solid fa-paper-plane"></i> Submit Hiring Request
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ 4. CAREERS RESUME UPLOAD MODAL ============ -->
+<div class="resume-modal-overlay" id="resumeModalOverlay" role="dialog" aria-modal="true" aria-labelledby="resumeModalHeading" aria-hidden="true">
+  <div class="resume-modal">
+    <button type="button" class="resume-modal-close" id="resumeModalClose" aria-label="Close modal">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="resume-modal-header">
+      <div class="resume-modal-logo">
+        <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy">
+      </div>
+      <h2 class="resume-modal-heading" id="resumeModalHeading">Upload Your Resume</h2>
+      <p class="resume-modal-subtitle">Take the first step toward your dream career. Submit your resume and our recruitment team will contact you if your profile matches any current or upcoming opportunities.</p>
+    </div>
+    <form class="resume-modal-form" id="resumeModalForm" novalidate>
+      <div class="resume-modal-row">
+        <div class="resume-modal-field">
+          <label for="rmFullName">Full Name <span class="req">*</span></label>
+          <div class="resume-modal-input-wrap">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="rmFullName" name="FullName" placeholder="Your full name" required>
+          </div>
+          <span class="resume-modal-error"></span>
+        </div>
+        <div class="resume-modal-field">
+          <label for="rmMobile">Mobile Number <span class="req">*</span></label>
+          <div class="resume-modal-input-wrap">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel" id="rmMobile" name="Mobile" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" required>
+          </div>
+          <span class="resume-modal-error"></span>
+        </div>
+      </div>
+      <div class="resume-modal-row">
+        <div class="resume-modal-field">
+          <label for="rmEmail">Email Address <span class="req">*</span></label>
+          <div class="resume-modal-input-wrap">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="rmEmail" name="Email" placeholder="you@example.com" required>
+          </div>
+          <span class="resume-modal-error"></span>
+        </div>
+        <div class="resume-modal-field">
+          <label for="rmCity">Current City <span class="req">*</span></label>
+          <div class="resume-modal-input-wrap">
+            <i class="fa-solid fa-location-dot"></i>
+            <input type="text" id="rmCity" name="City" placeholder="e.g. Lucknow">
+          </div>
+        </div>
+      </div>
+      <div class="resume-modal-row">
+        <div class="resume-modal-field">
+          <label for="rmQualification">Highest Qualification <span class="req">*</span></label>
+          <div class="resume-modal-input-wrap">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <input type="text" id="rmQualification" name="Qualification" placeholder="e.g. B.Com, MBA">
+          </div>
+        </div>
+        <div class="resume-modal-field">
+          <label for="rmExperience">Years of Experience</label>
+          <div class="resume-modal-input-wrap">
+            <i class="fa-solid fa-briefcase"></i>
+            <select id="rmExperience" name="Experience">
+              <option value="" selected>Select experience</option>
+              <option value="fresher">Fresher</option>
+              <option value="0-1">0 – 1 Year</option>
+              <option value="1-3">1 – 3 Years</option>
+              <option value="3-5">3 – 5 Years</option>
+              <option value="5+">5+ Years</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="resume-modal-field">
+        <label for="rmApplyingFor">Applying For <span class="req">*</span></label>
+        <div class="resume-modal-input-wrap">
+          <i class="fa-solid fa-file-lines"></i>
+          <select id="rmApplyingFor" name="ApplyingFor">
+            <option value="" selected>Select a role</option>
+            <option>HR Recruiter</option>
+            <option>Customer Support Executive</option>
+            <option>Sales Executive</option>
+            <option>Data Entry Operator</option>
+            <option>Delivery Executive</option>
+            <option>IT Support Executive</option>
+            <option>Other / Not Listed</option>
+          </select>
+        </div>
+      </div>
+      <div class="resume-modal-field">
+        <label for="rmResumeFile">Upload Resume <span class="req">*</span></label>
+        <div class="resume-upload-area" id="rmUploadArea">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <p class="rm-upload-title">Drag &amp; drop your resume here</p>
+          <p class="rm-upload-sub">or click to browse — PDF, DOC, DOCX (Max 5MB)</p>
+          <input type="file" id="rmResumeFile" name="ResumeFile" accept=".pdf,.doc,.docx">
+        </div>
+        <div class="resume-upload-filename" id="rmFileNameBox">
+          <i class="fa-solid fa-paperclip"></i>
+          <span id="rmFileNameText"></span>
+          <i class="fa-solid fa-xmark rm-remove-file" id="rmRemoveFile" title="Remove file"></i>
+        </div>
+        <span class="resume-modal-error" id="rmFileError"></span>
+      </div>
+      <div class="resume-modal-field">
+        <label for="rmMessage">Cover Letter / Message (Optional)</label>
+        <div class="resume-modal-textarea-wrap">
+          <i class="fa-solid fa-comment"></i>
+          <textarea id="rmMessage" name="Message" rows="3" placeholder="Tell us a little about yourself..."></textarea>
+        </div>
+      </div>
+      <div class="resume-modal-actions">
+        <button type="button" class="resume-modal-btn resume-modal-btn-secondary" id="resumeModalCancel">Cancel</button>
+        <button type="submit" class="resume-modal-btn resume-modal-btn-primary">
+          <i class="fa-solid fa-paper-plane"></i> Submit Resume
+        </button>
+      </div>
+    </form>
+    <div class="resume-modal-success" id="resumeModalSuccess" tabindex="-1">
+      <div class="rm-success-icon"><i class="fa-solid fa-check"></i></div>
+      <h3>Resume Uploaded Successfully!</h3>
+      <p>Thank you for submitting your resume. Our HR team will review your profile and contact you if a suitable opportunity is available.</p>
+      <button type="button" class="resume-modal-btn resume-modal-btn-primary" id="resumeModalOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 5. LIVE UPDATE WIDGET ============ -->
+<div class="live-widget" id="liveWidget">
+  <div class="live-title">
+    <span class="live-title-label">
+      <span class="live-dot"></span>
+      Live Update
+    </span>
+    <button class="live-widget-close" id="liveWidgetClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  <a href="{% url 'core:jobs' %}" class="live-box">
+    <div class="live-icon">💼</div>
+    <div class="live-text">
+      <h6 id="todayJobs">128</h6>
+      <p>Today's New Jobs</p>
+    </div>
+  </a>
+  <a href="{% url 'core:careers' %}" class="live-box">
+    <div class="live-icon">👤</div>
+    <div class="live-text">
+      <h6 id="todayCandidate">54</h6>
+      <p>Today's Joined Candidates</p>
+    </div>
+  </a>
+</div>

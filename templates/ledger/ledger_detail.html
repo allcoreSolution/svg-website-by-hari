@@ -1,0 +1,248 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+{% load ledger_tags %}
+
+{% block title %}Candidate Ledger Statement — {{ commission.candidate_name }}{% endblock %}
+{% block page_title %}Statement of Account{% endblock %}
+{% block breadcrumb_title %}Billing &amp; Finance / Ledger / Statement{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS for grid, forms & components -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  /* Header Bar */
+  .ledger-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .ledger-title-group h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Cards Styling */
+  .ledger-detail-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Table Card & Responsive Styling */
+  .ledger-table-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .ledger-table-responsive {
+    overflow-x: auto;
+  }
+  .ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .ledger-table thead th {
+    background: #F8FAFC;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+  }
+  .ledger-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #1E293B;
+    vertical-align: middle;
+  }
+  .ledger-table tbody tr:hover {
+    background: #F8FAFC;
+  }
+
+  /* Status Badges */
+  .badge-ledger {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .badge-ledger-pending { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+  .badge-ledger-partial { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+  .badge-ledger-paid { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+  .badge-ledger-waived { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+  .badge-ledger-cancelled { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="ledger-header-bar">
+  <div class="d-flex align-items-center gap-3">
+    <a href="/admin-panel/ledger/" class="btn btn-outline-secondary rounded-circle p-2 shadow-sm d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px;" title="Back to Ledger">
+      <i class="ti ti-arrow-left fs-5"></i>
+    </a>
+    <div class="ledger-title-group">
+      <h3>Statement of Account — {{ commission.candidate_name }}</h3>
+      <div class="text-muted small">Company: <strong class="text-dark">{{ commission.company_name }}</strong> &nbsp;|&nbsp; Position: <strong class="text-dark">{{ commission.position|default:"Staff" }}</strong></div>
+    </div>
+  </div>
+  <div>
+    <button onclick="window.print()" class="btn btn-outline-primary rounded-pill px-3 shadow-sm fw-semibold">
+      <i class="ti ti-printer me-1"></i> Print Statement
+    </button>
+  </div>
+</div>
+
+<!-- Commission Overview Card -->
+<div class="ledger-detail-card">
+  <div class="row g-3">
+    <div class="col-md-3">
+      <div class="text-muted small mb-1">Joining Date</div>
+      <div class="fw-bold text-dark fs-6"><i class="ti ti-calendar text-primary me-1"></i>{{ commission.joining_date|date:"d M Y"|default:"N/A" }}</div>
+    </div>
+    <div class="col-md-3">
+      <div class="text-muted small mb-1">First-Month Salary</div>
+      <div class="fw-bold text-dark fs-6">{{ commission.first_month_salary|indian_currency }}</div>
+      <div class="text-muted small text-truncate" style="font-size:11px;" title="{{ commission.salary_source }}">{{ commission.salary_source }}</div>
+    </div>
+    <div class="col-md-3">
+      <div class="text-muted small mb-1">Commission Due ({{ commission.commission_percent }}%)</div>
+      <div class="fw-bold text-dark fs-6">{{ commission.commission_amount|indian_currency }}</div>
+    </div>
+    <div class="col-md-3">
+      <div class="text-muted small mb-1">Payer &amp; Due Date</div>
+      <div class="fw-bold text-dark fs-6">{{ commission.payer_type }}</div>
+      <div class="text-muted small" style="font-size:11px;">Due: {{ commission.due_date|date:"d M Y"|default:"N/A" }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Statement Entries Card -->
+<div class="ledger-table-card">
+  <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-white">
+    <h5 class="fw-bold mb-0 text-dark" style="font-size:15px;"><i class="ti ti-history text-primary me-2"></i>Append-Only Ledger Transactions</h5>
+    <div>
+      {% if commission.status == 'PAID' %}
+        <span class="badge-ledger badge-ledger-paid">PAID</span>
+      {% elif commission.status == 'PARTIAL' %}
+        <span class="badge-ledger badge-ledger-partial">PARTIAL</span>
+      {% elif commission.status == 'WAIVED' %}
+        <span class="badge-ledger badge-ledger-waived">WAIVED</span>
+      {% elif commission.status == 'CANCELLED' %}
+        <span class="badge-ledger badge-ledger-cancelled">CANCELLED</span>
+      {% else %}
+        <span class="badge-ledger badge-ledger-pending">PENDING</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="ledger-table-responsive">
+    <table class="ledger-table">
+      <thead>
+        <tr>
+          <th class="ps-4">Date</th>
+          <th>Type</th>
+          <th>Receipt / Ref No.</th>
+          <th>Debit (Receivable)</th>
+          <th>Credit (Received)</th>
+          <th>Running Balance</th>
+          <th>Remarks</th>
+          <th class="pe-4 text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if entries %}
+          {% for e in entries %}
+            <tr>
+              <td class="ps-4 text-muted small">{{ e.entry_date|date:"d M Y" }}</td>
+              <td>
+                {% if e.entry_type == 'DEBIT' %}
+                  <span class="badge bg-primary-subtle text-primary fw-bold">DEBIT</span>
+                {% elif e.entry_type == 'CREDIT' %}
+                  <span class="badge bg-success-subtle text-success fw-bold">CREDIT</span>
+                {% elif e.entry_type == 'WAIVER' %}
+                  <span class="badge bg-secondary-subtle text-secondary fw-bold">WAIVER</span>
+                {% elif e.entry_type == 'REVERSAL' %}
+                  <span class="badge bg-danger-subtle text-danger fw-bold">REVERSAL</span>
+                {% else %}
+                  <span class="badge bg-warning-subtle text-warning-emphasis fw-bold">ADJUSTMENT</span>
+                {% endif %}
+              </td>
+              <td class="small font-monospace">
+                {{ e.receipt_no|default:e.reference_no|default:"-" }}
+                {% if e.payment_mode %}
+                  <span class="badge bg-light text-dark border ms-1">{{ e.payment_mode }}</span>
+                {% endif %}
+              </td>
+              <td class="fw-bold {% if e.entry_type == 'DEBIT' or e.entry_type == 'ADJUSTMENT_DR' %}text-primary{% else %}text-muted{% endif %}">
+                {% if e.entry_type == 'DEBIT' or e.entry_type == 'ADJUSTMENT_DR' %}
+                  {{ e.amount|indian_currency }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td class="fw-bold {% if e.entry_type == 'CREDIT' %}text-success{% elif e.entry_type == 'WAIVER' or e.entry_type == 'REVERSAL' or e.entry_type == 'ADJUSTMENT_CR' %}text-warning{% else %}text-muted{% endif %}">
+                {% if e.entry_type != 'DEBIT' and e.entry_type != 'ADJUSTMENT_DR' %}
+                  {{ e.amount|indian_currency }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td class="fw-bold text-dark">{{ e.running_balance|indian_currency }}</td>
+              <td class="small text-muted" style="max-width:220px;">{{ e.remarks|default:"-" }}</td>
+              <td class="pe-4 text-end">
+                {% if e.receipt_no %}
+                  <a href="/admin-panel/ledger/receipt/{{ e.id }}/" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
+                    <i class="ti ti-printer me-1"></i> Receipt
+                  </a>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="8" class="text-center py-4 text-muted">No transactions recorded yet.</td></tr>
+        {% endif %}
+      </tbody>
+      <tfoot class="bg-light fw-bold">
+        <tr>
+          <td colspan="3" class="ps-4 text-dark">Current Outstanding Balance:</td>
+          <td colspan="2"></td>
+          <td class="text-danger fs-6">{{ commission.balance|indian_currency }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

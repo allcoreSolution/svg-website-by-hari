@@ -1,0 +1,805 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ home_settings.meta_title|default:"Sky Vision Group of Consultancy | Recruitment & Staffing Lucknow" }}{% endblock %}
+
+{% block content %}
+    <!-- ============ HERO ============ -->
+    {% if home_settings.hero_visible %}
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+
+      <div class="hero-inner">
+
+        <div class="hero-copy">
+          {% if home_settings.hero_unit_tag %}
+          <h3><span class="highlight">{{ home_settings.hero_unit_tag }}</span></h3>
+          {% endif %}
+          {% if home_settings.hero_eyebrow %}
+          <span class="eyebrow">{{ home_settings.hero_eyebrow }}</span>
+          {% endif %}
+          <h1>
+            {% if home_settings.hero_title_highlight and home_settings.hero_title_highlight in home_settings.hero_title %}
+              {{ home_settings.hero_title|cut:home_settings.hero_title_highlight }}<span class="highlight">{{ home_settings.hero_title_highlight }}</span>
+            {% else %}
+              {{ home_settings.hero_title }}
+            {% endif %}
+          </h1>
+          {% if home_settings.hero_subtitle %}
+          <p>{{ home_settings.hero_subtitle }}</p>
+          {% endif %}
+
+          {% if hero_stats %}
+          <div class="hero-stats-inline">
+            {% for stat in hero_stats %}
+            <div class="hero-stat-badge">
+              <div class="hero-stat-icon"><i class="{{ stat.icon_class }}"></i></div>
+              <div>
+                <h4>{{ stat.value }}</h4>
+                <span>{{ stat.label }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="hero-actions">
+            {% if home_settings.hero_cta_primary_visible %}
+            <a href="{{ home_settings.hero_cta_primary_url|default:'#' }}" class="btn btn-primary apply-btn"><i class="fa-solid fa-magnifying-glass"></i> {{ home_settings.hero_cta_primary_label|default:'Apply Now' }}</a>
+            {% endif %}
+            {% if home_settings.hero_cta_secondary_visible %}
+            <a href="{{ home_settings.hero_cta_secondary_url|default:'/employer/hire-talent/' }}" class="btn btn-outline"><i class="fa-solid fa-users"></i> {{ home_settings.hero_cta_secondary_label|default:'Hire Talent' }}</a>
+            {% endif %}
+            {% if home_settings.hero_cta_internship_visible %}
+            <a href="{{ home_settings.hero_cta_internship_url|default:'#' }}" class="btn btn-ghost js-internship-popup" data-job-title="Internship">
+              <i class="fa-solid fa-graduation-cap"></i>
+              {{ home_settings.hero_cta_internship_label|default:'Apply Internship' }}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="hero-illustration">
+          {% if home_settings.hero_image %}
+            <img src="{{ home_settings.hero_image.url }}" alt="{{ home_settings.hero_image_alt|default:'Recruitment team illustration' }}">
+          {% else %}
+            <img src="{% static 'images/hero/hero image.png' %}" alt="{{ home_settings.hero_image_alt|default:'Recruitment team illustration' }}">
+          {% endif %}
+
+          {% if home_settings.hero_growth_steps_visible and growth_steps %}
+          <!-- Growth path now overlays the bottom of the image -->
+          <div class="arrow-path" aria-hidden="true">
+            <svg viewBox="0 0 320 60" fill="none" preserveAspectRatio="none">
+              <line x1="20" y1="15" x2="300" y2="15" stroke="rgba(255,255,255,.35)" stroke-width="2"
+                stroke-dasharray="5 7" />
+            </svg>
+            {% for step in growth_steps %}
+            <div class="path-step">
+              <div class="path-dot step-{{ step.step_number|default:forloop.counter }}">{{ step.step_number|default:forloop.counter }}</div>
+              <span>{{ step.title }}</span>
+              <small>{{ step.subtitle }}</small>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+
+      {% if home_settings.hero_search_visible %}
+      <!-- Search box only, full width below -->
+      <div class="hero-bottom-row">
+
+        <form class="search-box" action="{% url 'core:jobs' %}" method="GET">
+          <div class="search-field">
+            <i class="fa-solid fa-location-dot"></i>
+            <div class="search-field-text">
+              <select name="location" id="homeSearchLocation" aria-label="Select Location">
+                <option value="">Location</option>
+                {% for loc in available_locations %}
+                <option value="{{ loc }}" {% if search_location == loc %}selected{% endif %}>{{ loc }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="search-field">
+            <i class="fa-solid fa-briefcase"></i>
+            <div class="search-field-text">
+              <select name="category" id="homeSearchCategory" aria-label="Select Category">
+                <option value="">All Categories</option>
+                {% for cat in job_categories %}
+                <option value="{{ cat.name }}" {% if search_category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+                {% for extra_cat in extra_categories %}
+                <option value="{{ extra_cat }}" {% if search_category == extra_cat %}selected{% endif %}>{{ extra_cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> Search Job</button>
+        </form>
+
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- ============ JOB PILLS STRIP ============ -->
+    {% if home_settings.job_pills_visible %}
+    <section class="job-pills-section">
+      <div class="marquee">
+        <div class="marquee-content">
+
+          <!-- First Set -->
+          {% for pill in job_pills %}
+          <a class="job-pill" href="{{ pill.get_link }}">
+            <i class="{{ pill.icon }}"></i>
+            <div class="job-content">
+              <h4>{{ pill.name }}</h4><span>{{ pill.get_count_display }}</span>
+            </div>
+          </a>
+          {% empty %}
+          <a class="job-pill" href="/jobs/">
+            <i class="fas fa-briefcase"></i>
+            <div class="job-content">
+              <h4>All Jobs</h4><span>Openings Available</span>
+            </div>
+          </a>
+          {% endfor %}
+
+          <!-- Duplicate Set for Infinite Loop -->
+          {% for pill in job_pills %}
+          <a class="job-pill" href="{{ pill.get_link }}">
+            <i class="{{ pill.icon }}"></i>
+            <div class="job-content">
+              <h4>{{ pill.name }}</h4><span>{{ pill.get_count_display }}</span>
+            </div>
+          </a>
+          {% endfor %}
+
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ SERVICES ============ -->
+    {% if home_settings.services_visible and service_cards %}
+    <section class="services-section">
+      <div class="section-title">
+        {% if home_settings.services_tag %}<span class="tag">{{ home_settings.services_tag }}</span>{% endif %}
+        <h2>{{ home_settings.services_title }}</h2>
+        {% if home_settings.services_subtitle %}<p>{{ home_settings.services_subtitle }}</p>{% endif %}
+      </div>
+
+      <div class="services-container">
+        {% for card in service_cards %}
+        <div class="service-card">
+          <div class="card-header">
+            <div class="card-left">
+              <div class="service-icon {{ card.icon_color|default:'blue' }}"><i class="{{ card.icon_class }}"></i></div>
+            </div>
+            <h3>{{ card.title }}</h3>
+          </div>
+          {% with bullets=card.get_bullet_list %}
+          {% if bullets %}
+          <ul>
+            {% for b in bullets %}
+            <li>{{ b }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% endwith %}
+          <a href="{{ card.link_url|default:'/services/' }}">{{ card.link_text|default:'Read More' }} <i class="fas fa-arrow-right"></i></a>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ ABOUT SECTION ============ -->
+    {% if home_settings.about_visible %}
+    <section class="about-section">
+      <div class="about-container">
+
+        <div class="about-visual">
+          {% if home_settings.about_badge_text %}
+          <div class="about-visual-badge"><i class="fa-solid fa-star"></i> {{ home_settings.about_badge_text }}</div>
+          {% endif %}
+          {% if home_settings.about_image %}
+            <img src="{{ home_settings.about_image.url }}" alt="{{ home_settings.about_image_alt|default:'Sky Vision Office & Team' }}">
+          {% else %}
+            <img src="{% static 'images/blog/blog image 1.png' %}" alt="{{ home_settings.about_image_alt|default:'Sky Vision Office & Team' }}">
+          {% endif %}
+          {% if home_settings.about_sub_title %}<h3 style="color:#ffffff !important;">{{ home_settings.about_sub_title }}</h3>{% endif %}
+          {% if home_settings.about_sub_snippet %}<p>{{ home_settings.about_sub_snippet }}</p>{% endif %}
+        </div>
+
+        <div class="about-copy">
+          {% if home_settings.about_tag %}<span class="about-tag">{{ home_settings.about_tag }}</span>{% endif %}
+          <h2>
+            {% if home_settings.about_heading_highlight and home_settings.about_heading_highlight in home_settings.about_heading %}
+              {{ home_settings.about_heading|cut:home_settings.about_heading_highlight }}<span>{{ home_settings.about_heading_highlight }}</span>
+            {% else %}
+              {{ home_settings.about_heading }}
+            {% endif %}
+          </h2>
+          <p>{{ home_settings.about_content|linebreaksbr }}</p>
+
+          {% if home_settings.about_btn_visible and home_settings.about_btn_url %}
+          <div style="margin-bottom: 20px;">
+            <a href="{{ home_settings.about_btn_url }}" class="btn btn-outline" style="border-radius: 8px; font-weight: 600;">
+              {{ home_settings.about_btn_label|default:'Read More' }} <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          {% endif %}
+
+          <div class="about-box">
+            {% if home_settings.about_vision_title or home_settings.about_vision_desc %}
+            <div class="info-box">
+              <div class="icon blue"><i class="fas fa-eye"></i></div>
+              <div class="text">
+                <h3>{{ home_settings.about_vision_title|default:'Our Vision' }}</h3>
+                <p>{{ home_settings.about_vision_desc }}</p>
+              </div>
+            </div>
+            {% endif %}
+            {% if home_settings.about_mission_title or home_settings.about_mission_desc %}
+            <div class="info-box">
+              <div class="icon red"><i class="fas fa-bullseye"></i></div>
+              <div class="text">
+                <h3>{{ home_settings.about_mission_title|default:'Our Mission' }}</h3>
+                <p>{{ home_settings.about_mission_desc }}</p>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ WHY CHOOSE US ============ -->
+    {% if home_settings.why_choose_visible and why_choose_items %}
+    <section class="why-section">
+      <div class="why-heading">
+        {% if home_settings.why_choose_tag %}<span class="tag">{{ home_settings.why_choose_tag }}</span>{% endif %}
+        <h2>{{ home_settings.why_choose_title }}</h2>
+        {% if home_settings.why_choose_subtitle %}<p>{{ home_settings.why_choose_subtitle }}</p>{% endif %}
+      </div>
+
+      <div class="why-container">
+        {% for item in why_choose_items %}
+        <div class="why-card">
+          <div class="why-icon"><i class="{{ item.icon_class }}"></i></div>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ INDUSTRIES WE SERVE ============ -->
+    {% if home_settings.industries_visible %}
+    <section class="industry-section">
+      <div class="industry-container">
+        <div class="section-title">
+          {% if home_settings.industries_tag %}<span class="tag">{{ home_settings.industries_tag }}</span>{% endif %}
+          <h2>{{ home_settings.industries_title }}</h2>
+          {% if home_settings.industries_subtitle %}<p>{{ home_settings.industries_subtitle }}</p>{% endif %}
+        </div>
+
+        <div class="industry-grid">
+          {% for ind in industries %}
+          <a href="{% if ind.get_link %}{{ ind.get_link }}{% elif ind.link_url %}{{ ind.link_url }}{% else %}/jobs/?industry={{ ind.name|urlencode }}{% endif %}" class="industry-item">
+            <i class="{% if ind.icon_class %}{{ ind.icon_class }}{% elif ind.icon %}{{ ind.icon }}{% else %}fas fa-briefcase{% endif %}"></i><span>{{ ind.name }}</span>
+          </a>
+          {% empty %}
+          <div class="industry-item"><i class="fas fa-briefcase"></i><span>Various Industries</span></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ INTERNSHIP PROGRAMME ============ -->
+    {% if home_settings.internship_visible %}
+    <section class="internship-section">
+      <div class="internship-heading">
+        <h2>{{ home_settings.internship_heading }}</h2>
+        {% if home_settings.internship_subtitle %}<p>{{ home_settings.internship_subtitle }}</p>{% endif %}
+      </div>
+
+      <div class="internship-container">
+
+        <div class="internship-info">
+          <h2 class="internship-title" style="color:#ffffff !important;">{{ home_settings.internship_box_title }}</h2>
+          {% if internship_benefits %}
+          <ul class="internship-benefits">
+            {% for b in internship_benefits %}
+            <li>{{ b.text }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <a href="{{ home_settings.internship_cta_url|default:'#' }}" class="internship-btn js-internship-popup" data-job-title="Internship">{{ home_settings.internship_cta_label|default:'Apply Now' }}</a>
+        </div>
+
+        {% for card in internship_cards %}
+        <div class="internship-card">
+          <div class="industry-item"><i class="{{ card.icon_class }}"></i><span>{{ card.domain_name }}</span></div>
+          <h3 class="internship-card-title"></h3>
+          {% with b_list=card.get_bullet_list %}
+          {% if b_list %}
+          <ul class="internship-list">
+            {% for bl in b_list %}
+            <li>{{ bl }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% endwith %}
+          <a href="#" class="internship-card-apply js-internship-popup" data-internship-domain="{{ card.domain_name }}" style="margin-top:auto; padding-top:14px; color:{{ card.icon_color|default:'#2563EB' }}; font-weight:700; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">Apply Now <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        {% endfor %}
+
+      </div>
+
+      {% if internship_badges %}
+      <div class="internship-bottom">
+        {% for badge in internship_badges %}
+        <div class="internship-bottom-item"><i class="{{ badge.icon_class|default:'fa-solid fa-check' }}"></i><span>{{ badge.text }}</span></div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- ============ JOB CATEGORIES ============ -->
+    {% if home_settings.job_categories_visible %}
+    <section class="categories">
+      <div class="section-title">
+        <span class="tag">Browse By Category</span>
+        <h2>Job categories</h2>
+        <p>Pick a career track — we'll bring the right openings to you.</p>
+      </div>
+
+      <div class="job-cat-grid" id="jobCatGrid">
+        {% for cat in job_categories %}
+        <a href="{{ cat.get_link }}" class="job-cat-tile" data-field="{{ cat.field_slug }}"><i
+            class="{{ cat.icon }} {{ cat.badge_color }}"></i><b>{{ cat.name }}</b><span>{{ cat.get_count_display }}</span></a>
+        {% empty %}
+        <p style="grid-column: 1 / -1; text-align: center; color: #64748B;">No job categories available right now.</p>
+        {% endfor %}
+      </div>
+      <!-- Category jobs — shown after a category tile is clicked, hidden by default -->
+      <div class="category-jobs-view" id="categoryJobsView" style="display:none;">
+        <button type="button" class="cat-back-btn" id="categoryBackBtn">
+          <i class="fa-solid fa-arrow-left"></i> Back to Categories
+        </button>
+        <h3 class="category-jobs-heading" id="categoryJobsTitle">Jobs</h3>
+        <div class="latest-job-grid icon-style" id="categoryJobsGrid"></div>
+      </div>
+
+      <div class="view-more"><a href="{% url 'core:jobs' %}">View All Categories <i class="fa-solid fa-arrow-right"></i></a></div>
+    </section>
+    {% endif %}
+
+    <!-- ============ FEATURED CANDIDATES ============ -->
+    {% if home_settings.candidates_visible and featured_candidates %}
+    <section class="employers">
+      <div class="section-title">
+        {% if home_settings.candidates_tag %}<span class="tag">{{ home_settings.candidates_tag }}</span>{% endif %}
+        <h2>{{ home_settings.candidates_title }}</h2>
+        {% if home_settings.candidates_subtitle %}<p>{{ home_settings.candidates_subtitle }}</p>{% endif %}
+      </div>
+
+      <div class="carousel" id="employerCarousel">
+        <div class="carousel-track">
+          {% for cand in featured_candidates %}
+          <div class="employer-card">
+            {% if cand.photo %}
+              <div class="avatar" style="background-image:url('{{ cand.photo.url }}'); background-size:cover; background-position:center;"></div>
+            {% else %}
+              <div class="avatar" style="background:{{ cand.avatar_color|default:'linear-gradient(135deg,#5B7CFF,#2F3FA6)' }}">{{ cand.initials }}</div>
+            {% endif %}
+            <h3>{{ cand.name }}</h3>
+            <p>{{ cand.role }}{% if cand.experience %} &middot; {{ cand.experience }}{% endif %}</p>
+            {% if cand.company_placed %}
+            <p style="font-size: 11px; color: #16a34a; font-weight: 600; margin-top: -4px;"><i class="fa-solid fa-building-circle-check"></i> Placed at {{ cand.company_placed }}</p>
+            {% endif %}
+            <div class="employer-actions">
+              <a href="/contact/?interest=hire_candidate&role={{ cand.role|urlencode }}" title="Inquire Candidate"><i class="fa-solid fa-phone"></i></a>
+              <a href="/contact/?interest=hire_candidate&role={{ cand.role|urlencode }}" title="Email SVG"><i class="fa-solid fa-envelope"></i></a>
+              <a href="/contact/?interest=hire_candidate&role={{ cand.role|urlencode }}" class="view-details">Hire Now</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="carousel-nav">
+        <button id="prevEmp" aria-label="Previous"><i class="fa-solid fa-arrow-left"></i></button>
+        <button id="nextEmp" aria-label="Next"><i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ LATEST JOBS ============ -->
+    {% if home_settings.latest_jobs_visible %}
+    <section class="latest-jobs" id="latest-jobs">
+      <div class="section-title">
+        <span class="tag">Fresh Openings</span>
+        <h2>Latest jobs</h2>
+        <p>Find your dream job from the latest vacancies.</p>
+      </div>
+
+      {% if search_location or search_category or search_query %}
+      <div class="search-filter-banner" style="max-width:1100px; margin:0 auto 24px; background:#EFF6FF; border:1.5px solid #BFDBFE; border-radius:12px; padding:12px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i class="fa-solid fa-location-dot" style="color:#2563EB; font-size:16px;"></i>
+          <span style="font-size:14.5px; font-weight:700; color:#1E3A8A;">
+            Showing jobs {% if search_location %}in <span style="color:#2563EB;">"{{ search_location }}"</span>{% endif %} {% if search_category %}under <span style="color:#2563EB;">"{{ search_category }}"</span>{% endif %}
+          </span>
+        </div>
+        <a href="{% url 'core:home' %}#latest-jobs" style="background:#fff; color:#2563EB; border:1px solid #BFDBFE; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; text-decoration:none;">
+          <i class="fa-solid fa-rotate-left"></i> Clear Filter
+        </a>
+      </div>
+      {% endif %}
+
+      <div class="job-filter">
+        <button class="filter-btn active" data-filter="all">All Jobs</button>
+        <button class="filter-btn" data-filter="fulltime">Full Time</button>
+        <button class="filter-btn" data-filter="parttime">Part Time</button>
+        <button class="filter-btn" data-filter="wfh">Work From Home</button>
+        <button class="filter-btn" data-filter="other">Other</button>
+      </div>
+
+      <div class="jobs-grid">
+        {% if active_jobs %}
+          {% for j in active_jobs %}
+          {% with et=j.employment_type|default:'Full Time'|lower %}
+          <div class="job-card" data-category="{% if 'part' in et %}parttime{% elif 'home' in et or 'remote' in et or 'wfh' in et %}wfh{% elif 'full' in et %}fulltime{% else %}other{% endif %}" data-job-id="{{ j.id }}">
+            <span class="job-type {% if 'part' in et %}part-time{% elif 'home' in et or 'remote' in et or 'wfh' in et %}work-home{% elif 'full' in et %}full-time{% else %}other-time{% endif %}">{{ j.employment_type|default:'Full Time' }}</span>
+            <div class="job-logo"><i class="fa-solid fa-building"></i></div>
+            <h3>{{ j.title }}</h3>
+            <p>{% if j.description %}{{ j.description|truncatechars:85 }}{% else %}Requirement for {{ j.category|default:j.department|default:'General' }} role at {% if j.company %}{{ j.company.name }}{% elif j.employer %}{{ j.employer.company_name }}{% else %}SVG Consultancy{% endif %}.{% endif %}</p>
+            <div class="job-meta">
+              <span><i class="fas fa-map-marker-alt"></i> {{ j.location|default:'Lucknow, UP' }}</span>
+              <span><i class="fas fa-money-bill-wave"></i> {{ j.salary|default:'Negotiable' }}</span>
+            </div>
+            <div class="job-footer">
+              <span><i class="far fa-clock"></i> {{ j.created_at|timesince }} ago</span>
+              <div class="job-actions-btns">
+                <button type="button" class="job-action-btn js-share-job-btn" data-job-id="{{ j.id }}" data-job-title="{{ j.title|escapejs }}" title="Share Job">
+                  <i class="fa-solid fa-share-nodes"></i>
+                </button>
+                <button type="button" class="job-action-btn js-save-job-btn" data-job-id="{{ j.id }}" data-job-title="{{ j.title|escapejs }}" title="Save Job">
+                  <i class="fa-regular fa-bookmark"></i>
+                </button>
+              </div>
+              <a href="#" class="apply-btn open-job-modal-btn" data-job-id="{{ j.id }}" data-job-title="{{ j.title|escapejs }}">Apply Now</a>
+            </div>
+          </div>
+          {% endwith %}
+          {% endfor %}
+        {% else %}
+          <div class="no-jobs-card" style="grid-column: 1 / -1; text-align: center; padding: 40px; background: #fff; border-radius: 12px; border: 1px dashed #cbd5e1;">
+            <i class="fa-solid fa-briefcase" style="font-size: 2.2rem; color: #94a3b8; margin-bottom: 10px; display: block;"></i>
+            <h4 style="color: #334155; margin-bottom: 6px;">No Active Vacancies Available</h4>
+            <p style="color: #64748b; font-size: 0.9rem;">Check back soon for latest openings or submit your resume.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="view-more"><a href="{% url 'core:jobs' %}{% if search_location or search_category %}?{% if search_location %}location={{ search_location|urlencode }}{% endif %}{% if search_category %}&category={{ search_category|urlencode }}{% endif %}{% endif %}#jobs-list">View More Jobs <i class="fa-solid fa-arrow-right"></i></a></div>
+    </section>
+    {% endif %}
+
+    <!-- ==========================
+        OUR GALLERY SECTION
+    =========================== -->
+    {% if home_settings.gallery_visible and gallery_images %}
+    <section class="gallery-section">
+
+      <div class="section-title">
+        {% if home_settings.gallery_tag %}<span class="tag">{{ home_settings.gallery_tag }}</span>{% endif %}
+        <h2>{{ home_settings.gallery_title }}</h2>
+        {% if home_settings.gallery_subtitle %}<p>{{ home_settings.gallery_subtitle }}</p>{% endif %}
+      </div>
+
+      <div class="gallery-container">
+        {% for img in gallery_images %}
+        <div class="gallery-card">
+          <img src="{{ img.get_image_url }}" alt="{{ img.title }}" class="gallery-image">
+          <div class="gallery-overlay">
+            <h3 class="gallery-card-title">{{ img.title }}</h3>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if home_settings.gallery_btn_visible and home_settings.gallery_btn_url %}
+      <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+        <a href="{{ home_settings.gallery_btn_url }}" class="btn btn-primary" style="padding: 10px 24px; border-radius: 8px;">
+          {{ home_settings.gallery_btn_label|default:'View Full Gallery' }} <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+      {% endif %}
+
+      {% if gallery_info_boxes %}
+      <div class="gallery-info-section">
+        {% for box in gallery_info_boxes %}
+        <div class="gallery-info-box">
+          <div class="gallery-info-icon"><i class="{{ box.icon_class }}"></i></div>
+          <div class="gallery-info-content">
+            <h3 class="gallery-info-title">{{ box.title|linebreaksbr }}</h3>
+            <p class="gallery-info-text">{{ box.text }}</p>
+            <a href="{{ box.btn_url|default:'#' }}" class="gallery-info-btn{% if box.is_popup %} js-internship-popup{% endif %}" {% if box.is_popup %}data-job-title="Internship"{% endif %}>{{ box.btn_label }}</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </section>
+    {% endif %}
+
+    <!--====================================
+        CONTACT SECTION
+    =====================================-->
+    {% if home_settings.contact_visible %}
+    <div class="contact-container">
+
+      <div class="contact-info">
+        <h3 class="contact-title">{{ home_settings.contact_title|default:'Contact Information' }}</h3>
+
+        {% if site.office_phone_1 or site.helpline_phone %}
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+          <div class="contact-text"><span>{{ site.office_phone_1|default:site.helpline_phone }}</span></div>
+        </div>
+        {% endif %}
+
+        {% if site.office_email or site.support_email %}
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+          <div class="contact-text"><span>{{ site.office_email|default:site.support_email }}</span></div>
+        </div>
+        {% endif %}
+
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fa-solid fa-globe"></i></div>
+          <div class="contact-text"><span>www.skyvisiongroup.in</span></div>
+        </div>
+
+        {% if site.office_address or site.topbar_address %}
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+          <div class="contact-text"><span>{{ site.office_address|default:site.topbar_address }}</span></div>
+        </div>
+        {% endif %}
+
+        {% if social_links %}
+        <div class="contact-social">
+          {% for s in social_links %}
+          <a href="{{ s.url }}" target="_blank" rel="noopener"><i class="{{ s.icon_class }}"></i></a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="contact-form">
+        <h3 class="contact-form-title">{{ home_settings.contact_form_title|default:'Send Us a Message' }}</h3>
+
+        <form id="homeContactForm" class="contact-ajax-form" method="POST" action="/api/contact/" onsubmit="return handleContactSubmit(event, this);">
+          {% csrf_token %}
+          <input type="text" name="website_url" class="d-none" style="display:none;" tabindex="-1" autocomplete="off">
+          <div class="contact-form-row">
+            <input type="text" name="name" class="contact-input" placeholder="Full Name" required>
+            <input type="email" name="email" class="contact-input" placeholder="Email Address" required>
+          </div>
+
+          <div class="contact-form-row">
+            <input type="tel" name="phone" class="contact-input" placeholder="Mobile Number" required>
+            <select name="service" class="contact-select" required>
+              <option value="" disabled selected>Service Required</option>
+              <option value="Recruitment">Recruitment</option>
+              <option value="Internship">Internship</option>
+              <option value="HR Consultancy">HR Consultancy</option>
+              <option value="Payroll Outsourcing">Payroll Outsourcing</option>
+              <option value="Contract Staffing">Contract Staffing</option>
+              <option value="Manpower Supply">Manpower Supply</option>
+            </select>
+          </div>
+
+          <textarea name="message" class="contact-textarea" placeholder="Message"></textarea>
+
+          <button type="submit" class="contact-btn">Submit Now</button>
+        </form>
+
+        {% if contact_submitted %}
+        <div style="padding: 12px 16px; border-radius: 8px; background: #ecfdf5; color: #065f46; font-size: 14px; margin-top: 15px; border: 1px solid #a7f3d0; text-align: center; font-weight: 600;">
+          <i class="fa-solid fa-circle-check"></i> {{ contact_message }}
+        </div>
+        <script>
+          window.addEventListener('DOMContentLoaded', function() {
+            alert("✓ {{ contact_message|escapejs }}");
+            if (window.history && window.history.replaceState) {
+              window.history.replaceState(null, null, window.location.pathname);
+            }
+          });
+        </script>
+        {% endif %}
+
+        <script>
+        function handleContactSubmit(e, form) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          if (!form) form = document.getElementById("homeContactForm") || e.target;
+
+          const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('.contact-btn');
+          const originalText = submitBtn ? submitBtn.innerText : "Submit Now";
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Submitting...";
+          }
+
+          const nameInput = form.querySelector('input[name="name"]') || form.querySelector('input[type="text"]:not([name="website_url"])');
+          const emailInput = form.querySelector('input[name="email"]') || form.querySelector('input[type="email"]');
+          const phoneInput = form.querySelector('input[name="phone"]') || form.querySelector('input[type="tel"]');
+          const serviceInput = form.querySelector('select[name="service"]') || form.querySelector('select');
+          const messageInput = form.querySelector('textarea[name="message"]') || form.querySelector('textarea');
+          const honeypotInput = form.querySelector('input[name="website_url"]');
+
+          const serviceVal = serviceInput ? serviceInput.value : "";
+          const payload = {
+            name: nameInput ? nameInput.value.trim() : "",
+            email: emailInput ? emailInput.value.trim() : "",
+            phone: phoneInput ? phoneInput.value.trim() : "",
+            service: (serviceVal && serviceVal !== "Service Required") ? serviceVal : "General Inquiry",
+            message: messageInput ? messageInput.value.trim() : "",
+            website_url: honeypotInput ? honeypotInput.value : ""
+          };
+
+          function getToken() {
+            let t = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+            if (!t && typeof getCookie === 'function') t = getCookie('csrftoken');
+            if (!t) {
+              const m = document.cookie.match(/csrftoken=([^;]+)/);
+              if (m) t = m[1];
+            }
+            return t || '';
+          }
+
+          fetch('/api/contact/', {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "X-CSRFToken": getToken()
+            },
+            body: JSON.stringify(payload)
+          })
+          .then(async function(response) {
+            const result = await response.json().catch(function() { return {}; });
+            if (response.ok && result.status === "success") {
+              alert("✓ " + (result.message || "Thank you! Your enquiry has been submitted."));
+              form.reset();
+            } else if (response.status === 413) {
+              alert("❌ Payload too large. Please shorten your message.");
+            } else if (response.status === 429) {
+              alert("⚠️ " + (result.message || "Too many requests. Please try again later."));
+            } else {
+              alert("❌ " + (result.message || "Something went wrong. Please check your details."));
+            }
+          })
+          .catch(function(err) {
+            console.error("Contact Form Error:", err);
+            alert("Server Error! Please check your network connection.");
+          })
+          .finally(function() {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerText = originalText;
+            }
+          });
+
+          return false;
+        }
+        </script>
+      </div>
+
+    </div>
+
+    <!--====================================
+        CONTACT INFO CARDS (Address / Call / Email)
+    =====================================-->
+    <section class="info-cards-section">
+      <div class="info-cards-grid">
+
+        <!-- Address & Location -->
+        <div class="info-card">
+          <div class="info-card-icon"><i class="fa-solid fa-location-dot"></i></div>
+          <h3 class="info-card-title">Address &amp; Location</h3>
+
+          <div class="info-card-plain">
+            <span>{{ site.office_address|default:"12/2 Arvindo Park Road, Sector 12, Indira Nagar, Lucknow, UP 226016"|linebreaksbr }}</span>
+          </div>
+
+          <div class="info-map-wrap">
+            <iframe
+              src="{{ home_settings.contact_map_url|default:'https://www.google.com/maps?q=12/2+Arvindo+Park+Road+Sector+12+Indira+Nagar+Lucknow+Uttar+Pradesh+226016&output=embed' }}"
+              loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+            <a class="info-map-badge"
+              href="https://www.google.com/maps/search/?api=1&query={{ site.office_address|default:'12%2F2+Arvindo+Park+Road+Sector+12+Indira+Nagar+Lucknow+UP+226016'|urlencode }}"
+              target="_blank" rel="noopener">
+              <i class="fa-solid fa-up-right-from-square"></i> Maps
+            </a>
+          </div>
+
+          <a class="info-card-btn"
+            href="https://www.google.com/maps/dir/?api=1&destination={{ site.office_address|default:'12%2F2+Arvindo+Park+Road+Sector+12+Indira+Nagar+Lucknow+UP+226016'|urlencode }}"
+            target="_blank" rel="noopener">
+            <i class="fa-solid fa-location-arrow"></i> Get Directions
+          </a>
+        </div>
+
+        <!-- Call Us -->
+        <div class="info-card">
+          <div class="info-card-icon"><i class="fa-solid fa-phone"></i></div>
+          <h3 class="info-card-title">Call Us</h3>
+
+          <div class="info-row">
+            <span class="info-row-label">Manager</span>
+            <a href="tel:{{ site.office_phone_2|default:'+919120335299' }}">{{ site.office_phone_2|default:'+91-9120335299' }}</a>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">WhatsApp</span>
+            <a href="{{ site.floating_whatsapp_url|default:'https://wa.me/917068115299' }}" target="_blank" rel="noopener">{{ site.office_phone_1|default:'+91 7068115299' }}</a>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">HR</span>
+            <a href="tel:{{ site.office_phone_1|default:'+917068115299' }}">{{ site.office_phone_1|default:'+91 7068115299' }}</a>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Helpline</span>
+            <a href="tel:{{ site.helpline_phone|default:'+918853111111' }}">{{ site.helpline_phone|default:'+91 88531 11111' }}</a>
+          </div>
+        </div>
+
+        <!-- Email Us -->
+        <div class="info-card">
+          <div class="info-card-icon"><i class="fa-solid fa-envelope"></i></div>
+          <h3 class="info-card-title">Email Us</h3>
+
+          <div class="info-row">
+            <span class="info-row-label">Support</span>
+            <a href="mailto:{{ site.support_email|default:'info@skyvisiongroup.in' }}">{{ site.support_email|default:'info@skyvisiongroup.in' }}</a>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Office</span>
+            <a href="mailto:{{ site.office_email|default:'hrsvg.lkc@gmail.com' }}">{{ site.office_email|default:'hrsvg.lkc@gmail.com' }}</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+    {% endif %}
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('location') || params.get('category') || params.get('q')) {
+      const target = document.getElementById('latest-jobs');
+      if (target) {
+        setTimeout(function() {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      }
+    }
+  });
+</script>
+{% endblock %}

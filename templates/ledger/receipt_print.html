@@ -1,0 +1,120 @@
+{% load static %}
+{% load ledger_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Receipt — {{ entry.receipt_no }}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <style>
+    body {
+      background: #f8fafc;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      padding: 40px 20px;
+    }
+    .receipt-card {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 72px;
+      font-weight: 900;
+      color: rgba(37, 99, 235, 0.04);
+      user-select: none;
+      pointer-events: none;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .receipt-card { border: 1px solid #000; box-shadow: none; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="text-center mb-4 no-print">
+    <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
+      <i class="ti ti-printer me-1"></i> Print / Download PDF
+    </button>
+  </div>
+
+  <div class="receipt-card position-relative">
+    <div class="watermark">SKY VISION</div>
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+      <div>
+        <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy" style="height:56px; width:auto; display:block; margin-bottom:4px; object-fit:contain;">
+        <p class="text-muted small mb-0" style="font-size:11px;">Manpower Recruitment &amp; Executive Search Agency</p>
+        <p class="text-muted small mb-0" style="font-size:11px;">Lucknow, Uttar Pradesh, India</p>
+      </div>
+      <div class="text-end">
+        <div class="badge bg-primary fs-6 px-3 py-2 rounded-pill mb-1">PAYMENT RECEIPT</div>
+        <div class="fw-bold text-dark font-monospace">{{ entry.receipt_no }}</div>
+        <div class="small text-muted">Date: {{ entry.entry_date|date:"d M Y" }}</div>
+      </div>
+    </div>
+
+    <!-- Receipt Details Table -->
+    <table class="table table-bordered align-middle mb-4">
+      <tbody>
+        <tr>
+          <th class="bg-light text-secondary small w-30">Received From (Payer):</th>
+          <td class="fw-bold text-dark">{{ commission.payer_type }} ({{ commission.candidate_name }})</td>
+        </tr>
+        <tr>
+          <th class="bg-light text-secondary small">Candidate Name:</th>
+          <td class="fw-semibold text-dark">{{ commission.candidate_name }}</td>
+        </tr>
+        <tr>
+          <th class="bg-light text-secondary small">Placement Company:</th>
+          <td class="fw-semibold text-dark">{{ commission.company_name }} ({{ commission.position|default:"Staff" }})</td>
+        </tr>
+        <tr>
+          <th class="bg-light text-secondary small">Amount Received:</th>
+          <td class="fw-bold text-success fs-5">{{ entry.amount|indian_currency }}</td>
+        </tr>
+        <tr>
+          <th class="bg-light text-secondary small">Amount in Words:</th>
+          <td class="fw-semibold text-capitalize text-dark">{{ amount_words }}</td>
+        </tr>
+        <tr>
+          <th class="bg-light text-secondary small">Payment Mode &amp; Ref:</th>
+          <td>
+            <span class="badge bg-light text-dark border me-2">{{ entry.payment_mode }}</span>
+            <span class="font-monospace small text-muted">{{ entry.reference_no|default:"N/A" }}</span>
+          </td>
+        </tr>
+        <tr>
+          <th class="bg-light text-secondary small">Remarks:</th>
+          <td class="small text-muted">{{ entry.remarks|default:"Commission payment received with thanks." }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Footer Signatures -->
+    <div class="d-flex align-items-end justify-content-between pt-4 mt-4 border-top">
+      <div class="small text-muted">
+        <div>Issued By: <strong>{{ entry.created_by|default:"Admin" }}</strong></div>
+        <div>Computer generated receipt — no physical signature required.</div>
+      </div>
+      <div class="text-center" style="width:200px;">
+        <div class="border-bottom pb-4 mb-1"></div>
+        <div class="small fw-bold text-dark">Authorized Signatory</div>
+        <div class="small text-muted" style="font-size:10px;">Sky Vision Consultancy</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

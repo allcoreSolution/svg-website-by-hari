@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ po_settings.meta_title|default:"Payroll & Outsourcing — Sky Vision Group Consultancy" }}{% endblock %}
+{% block meta_description %}{{ po_settings.meta_description }}{% endblock %}
+{% block meta_keywords %}{{ po_settings.meta_keywords }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/payroll-outsourcing.css' %}?v=3.5">
+{% endblock %}
+
+{% block content %}
+  {% if po_settings.hero_visible %}
+  <!-- ============ HERO ============ -->
+  <section class="ms-hero">
+    <div class="wrap ms-hero-grid">
+      <div>
+        {% if po_settings.hero_eyebrow %}
+        <span class="cs-eyebrow-chip"><i class="fa-solid fa-file-invoice-dollar"></i> {{ po_settings.hero_eyebrow }}</span>
+        {% endif %}
+        <h1>{{ po_settings.formatted_hero_title|safe }}</h1>
+        {% if po_settings.hero_subtitle %}
+        <p class="lead">{{ po_settings.hero_subtitle }}</p>
+        {% endif %}
+        <div class="sv-hero-actions">
+          {% if po_settings.hero_primary_btn_text %}
+          <a href="{{ po_settings.hero_primary_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> {{ po_settings.hero_primary_btn_text }}</a>
+          {% endif %}
+          {% if po_settings.hero_secondary_btn_text %}
+          <a href="{{ po_settings.hero_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ po_settings.hero_secondary_btn_text }} <i class="fa-solid fa-arrow-right"></i></a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="ms-hero-visual">
+        <img src="{{ po_settings.get_hero_image }}" alt="{{ po_settings.hero_title_plain|default:'Payroll team at work' }}">
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if po_settings.about_visible %}
+  <!-- ============ ABOUT + IMAGE ============ -->
+  <section class="ms-about">
+    <div class="wrap po-about-grid">
+      <div class="cs-about-copy">
+        {% if po_settings.about_tag %}
+        <span class="sv-tag">{{ po_settings.about_tag }}</span>
+        <span class="cs-underline"></span>
+        {% endif %}
+        <h2>{{ po_settings.about_title }}</h2>
+        {% if po_settings.about_description %}
+        <p>{{ po_settings.about_description }}</p>
+        {% endif %}
+      </div>
+      <div class="po-about-visual">
+        <img src="{{ po_settings.get_about_image }}" alt="{{ po_settings.about_title|default:'Payroll calculation' }}">
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if po_settings.services_visible %}
+  <!-- ============ SERVICES GRID ============ -->
+  <section class="ms-services">
+    <div class="wrap">
+      {% if po_settings.services_title %}
+      <div class="sv-section-head">
+        <h2>{{ po_settings.services_title }}</h2>
+      </div>
+      {% endif %}
+      <div class="po-services-grid">
+        {% for item in po_services %}
+        <div class="sv-service-card po-card">
+          <div class="po-icon {{ item.badge_theme|default:'navy' }}"><i class="{{ item.icon_class|default:'fa-solid fa-file-invoice' }}"></i></div>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if po_settings.panel_visible %}
+  <!-- ============ INDUSTRIES / WHY CHOOSE / PROCESS ============ -->
+  <section class="cs-panel">
+    <div class="wrap cc-triple-grid">
+
+      <div class="cc-panel-box">
+        <span class="sv-tag">{{ po_settings.industries_tag|default:"Industries We Serve" }}</span>
+        <ul class="po-industry-list">
+          {% for item in po_industries %}
+          <li><i class="fa-solid fa-circle"></i> {{ item.name }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="po-why-card">
+        <span class="sv-tag" style="color:var(--amber-2);">{{ po_settings.why_choose_tag|default:"Why Choose Us?" }}</span>
+        <ul>
+          {% for item in po_why_choose %}
+          <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="cc-panel-box">
+        <span class="sv-tag">{{ po_settings.process_tag|default:"Our Payroll Process" }}</span>
+        <div class="cc-vertical-steps">
+          {% for item in po_process_steps %}
+          <div class="cc-vstep"><span class="dot"><i class="{{ item.icon_class|default:'fa-solid fa-database' }}"></i></span>
+            <div><b>{{ item.step_number }}</b>
+              <p>{{ item.title }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if po_settings.compare_visible %}
+  <!-- ============ FOR EMPLOYERS / FOR EMPLOYEES ============ -->
+  <section class="ms-services">
+    <div class="wrap">
+      <div class="po-compare">
+        <div class="po-compare-col">
+          <span class="po-compare-badge navy">{{ po_settings.employers_badge|default:"For Employers" }}</span>
+          <ul>
+            {% for item in po_employer_benefits %}
+            <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="po-compare-center"><i class="fa-solid fa-handshake"></i></div>
+        <div class="po-compare-col">
+          <span class="po-compare-badge amber">{{ po_settings.employees_badge|default:"For Employees" }}</span>
+          <ul>
+            {% for item in po_employee_benefits %}
+            <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if po_settings.faq_visible %}
+  <!-- ============ FAQ ============ -->
+  <section class="sv-faq">
+    <div class="sv-section-head">
+      <h2>{{ po_settings.faq_title|default:"Frequently Asked Questions" }}</h2>
+    </div>
+    <div class="po-faq-grid" id="poFaqList">
+      {% for item in po_faqs %}
+      <div class="sv-faq-item">
+        <button class="sv-faq-q" type="button">{{ item.question }} <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+        <div class="sv-faq-a">
+          <p>{{ item.answer }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if po_settings.cta_visible %}
+  <!-- ============ CTA BANNER ============ -->
+  <section class="sv-cta" id="contact">
+    <div class="sv-cta-inner">
+      <div>
+        <h2>{{ po_settings.formatted_cta_title|safe }}</h2>
+        {% if po_settings.cta_subtitle %}
+        <p>{{ po_settings.cta_subtitle }}</p>
+        {% endif %}
+      </div>
+      <div class="cs-cta-actions">
+        {% if po_settings.cta_primary_btn_text %}
+        <a href="{{ po_settings.cta_primary_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-regular fa-calendar-check"></i> {{ po_settings.cta_primary_btn_text }}</a>
+        {% endif %}
+        {% if po_settings.cta_secondary_btn_text %}
+        <a href="{{ po_settings.cta_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ po_settings.cta_secondary_btn_text }} <i class="fa-solid fa-arrow-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ cs_settings.meta_title|default:"Contract Staffing — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/contract-staffing.css' %}?v=4.0">
+{% endblock %}
+
+{% block content %}
+  {% if cs_settings.hero_visible %}
+  <!-- ============ HERO ============ -->
+  <section class="ms-hero">
+    <div class="wrap">
+      <div class="ms-hero-grid cs-hero-grid">
+        <div>
+          <span class="cs-eyebrow-chip"><i class="{{ cs_settings.hero_eyebrow_icon|default:'fa-solid fa-people-group' }}"></i> {{ cs_settings.hero_eyebrow|default:'Contract Staffing Services' }}</span>
+          <h1>{{ cs_settings.formatted_hero_title|safe }}</h1>
+          <p class="lead">{{ cs_settings.hero_subtitle|default:'We provide skilled, semi-skilled, and unskilled manpower on contract to help your business stay agile, productive, and cost-effective.' }}</p>
+
+          <div class="sv-hero-actions">
+            <a href="{{ cs_settings.hero_req_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> {{ cs_settings.hero_req_btn_text|default:'Request Manpower' }}</a>
+            <a href="{{ cs_settings.hero_contact_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ cs_settings.hero_contact_btn_text|default:'Contact Us' }} <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <div class="ms-hero-visual">
+          <img src="{{ cs_settings.get_hero_image }}" alt="{{ cs_settings.hero_title|striptags|default:'Contract Staffing Services' }}">
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cs_settings.about_visible %}
+  <!-- ============ ABOUT + STATS ============ -->
+  <section class="ms-about">
+    <div class="wrap cs-about-grid">
+
+      <div class="cs-about-copy">
+        <span class="sv-tag">{{ cs_settings.about_tag|default:'About Contract Staffing' }}</span>
+        <span class="cs-underline"></span>
+        <h2>{{ cs_settings.about_title|default:'Flexible Workforce Solutions for Every Business' }}</h2>
+        <p>{{ cs_settings.about_description|default:'At Sky Vision Group Consultancy, we provide reliable contract staffing services that enable organizations to hire qualified professionals without long-term employment commitments. Whether you require manpower for a short-term project, seasonal demand, or ongoing operations, our staffing experts ensure fast deployment of skilled candidates.' }}</p>
+      </div>
+
+      <div class="cs-stats-card">
+        <div class="cs-stat-row">
+          <i class="{{ cs_settings.about_stat1_icon|default:'fa-solid fa-user-group' }}"></i>
+          <div>
+            <h4>{{ cs_settings.about_stat1_value|default:'10,000+' }}</h4><span>{{ cs_settings.about_stat1_label|default:'Candidates Deployed' }}</span>
+          </div>
+        </div>
+        <div class="cs-stat-row">
+          <i class="{{ cs_settings.about_stat2_icon|default:'fa-solid fa-building' }}"></i>
+          <div>
+            <h4>{{ cs_settings.about_stat2_value|default:'500+' }}</h4><span>{{ cs_settings.about_stat2_label|default:'Clients Served' }}</span>
+          </div>
+        </div>
+        <div class="cs-stat-row">
+          <i class="{{ cs_settings.about_stat3_icon|default:'fa-solid fa-award' }}"></i>
+          <div>
+            <h4>{{ cs_settings.about_stat3_value|default:'15+' }}</h4><span>{{ cs_settings.about_stat3_label|default:'Years of Experience' }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cs_settings.services_visible %}
+  <!-- ============ SERVICES GRID ============ -->
+  <section class="ms-services">
+    <div class="wrap">
+      <div class="sv-section-head" style="text-align:left; max-width:none; margin-bottom:30px;">
+        <span class="sv-tag">{{ cs_settings.services_tag|default:'Our Contract Staffing Services' }}</span>
+      </div>
+
+      <div class="cs-services-grid">
+        {% for srv in cs_services %}
+        <div class="sv-service-card cs-card">
+          <div class="sv-service-icon i-blue"><i class="{{ srv.icon_class|default:'fa-regular fa-clock' }}"></i></div>
+          <h3>{{ srv.title }}</h3>
+          <p>{{ srv.description }}</p>
+          <span class="cs-card-underline"></span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cs_settings.industries_why_visible %}
+  <!-- ============ INDUSTRIES + IMAGE + WHY CHOOSE ============ -->
+  <section class="cs-panel">
+    <div class="wrap cs-panel-grid">
+
+      <div>
+        <span class="sv-tag">{{ cs_settings.industries_tag|default:'Industries We Serve' }}</span>
+        <ul class="cs-industry-list">
+          {% for ind in cs_industries %}
+          <li><i class="{{ ind.icon_class|default:'fa-solid fa-industry' }}"></i> {{ ind.name }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="cs-panel-visual">
+        {% if cs_settings.center_image %}
+        <img src="{{ cs_settings.center_image.url }}" alt="Contract staffing workforce team">
+        {% else %}
+        <img src="{% static 'images/general/team activities.png' %}" alt="Contract staffing workforce team">
+        {% endif %}
+      </div>
+
+      <div>
+        <span class="sv-tag">{{ cs_settings.why_choose_tag|default:'Why Choose Sky Vision Group Consultancy?' }}</span>
+        <div class="cs-why-grid">
+          <ul>
+            {% for item in cs_why_choose %}
+              {% if forloop.counter0|divisibleby:2 == 0 %}
+              <li><i class="{{ item.icon_class|default:'fa-solid fa-circle-check' }}"></i> {{ item.text }}</li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+          <ul>
+            {% for item in cs_why_choose %}
+              {% if forloop.counter0|divisibleby:2 != 0 %}
+              <li><i class="{{ item.icon_class|default:'fa-solid fa-circle-check' }}"></i> {{ item.text }}</li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cs_settings.process_visible %}
+  <!-- ============ STAFFING PROCESS ============ -->
+  <section class="sv-process">
+    <div class="wrap">
+      <div class="sv-process-head">
+        <div>
+          <span class="sv-tag">{{ cs_settings.process_tag|default:'Our Staffing Process' }}</span>
+          <h2>{{ cs_settings.process_title|default:'A Clear Path From Requirement to Deployment' }}</h2>
+        </div>
+        <p>{{ cs_settings.process_subtitle|default:'Every engagement follows the same disciplined six-step pipeline.' }}</p>
+      </div>
+
+      <div class="sv-process-line">
+        <div class="sv-process-track cs-process-track">
+          {% for step in cs_process_steps %}
+          <div class="sv-step cs-step">
+            <span class="num">{{ step.step_number|default:forloop.counter }}</span>
+            <div class="sv-step-dot"><i class="{{ step.icon_class|default:'fa-solid fa-comments' }}"></i></div>
+            <p>{{ step.title }}</p>
+            <span class="cs-step-desc">{{ step.description }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cs_settings.benefits_visible or cs_settings.faq_visible %}
+  <!-- ============ BENEFITS + FAQ ============ -->
+  <section class="ms-faq-cta">
+    <div class="wrap cs-benefits-faq-grid">
+
+      {% if cs_settings.benefits_visible %}
+      <div>
+        <div class="sv-section-head" style="text-align:left; margin:0 0 22px;">
+          <span class="sv-tag">{{ cs_settings.benefits_tag|default:'Our Benefits' }}</span>
+        </div>
+        <div class="cs-benefits-table">
+          <div class="cs-benefits-col cs-col-blue">
+            <h4>{{ cs_settings.benefits_employer_title|default:'For Employers' }}</h4>
+            <ul>
+              {% for b in cs_employer_benefits %}
+              <li><i class="{{ b.icon_class|default:'fa-solid fa-circle-check' }}"></i> {{ b.text }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="cs-benefits-col cs-col-amber">
+            <h4>{{ cs_settings.benefits_candidate_title|default:'For Candidates' }}</h4>
+            <ul>
+              {% for b in cs_candidate_benefits %}
+              <li><i class="{{ b.icon_class|default:'fa-solid fa-circle-check' }}"></i> {{ b.text }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if cs_settings.faq_visible %}
+      <div>
+        <div class="sv-section-head" style="text-align:left; margin:0 0 22px;">
+          <span class="sv-tag">{{ cs_settings.faq_tag|default:'Frequently Asked Questions' }}</span>
+        </div>
+        <div class="sv-faq-list" id="csFaqList">
+          {% for faq in cs_faqs %}
+          <div class="sv-faq-item">
+            <button class="sv-faq-q" type="button">{{ faq.question }} <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+            <div class="sv-faq-a">
+              <p>{{ faq.answer }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cs_settings.cta_visible %}
+  <!-- ============ CTA BANNER ============ -->
+  <section class="sv-cta" id="contact">
+    <div class="sv-cta-inner">
+      <div>
+        <span class="cs-cta-tag">{{ cs_settings.cta_tag|default:'Looking for Reliable Contract Staffing?' }}</span>
+        <h2>{{ cs_settings.cta_title|default:'Partner with Sky Vision Group Consultancy' }}</h2>
+        <p>{{ cs_settings.cta_subtitle|default:'for efficient, compliant, and cost-effective workforce solutions tailored to your business needs.' }}</p>
+      </div>
+      <div class="cs-cta-actions">
+        <a href="{{ cs_settings.cta_btn1_url|default:'/contact/' }}" class="btn btn-primary">{{ cs_settings.cta_btn1_text|default:'Get Free Consultation' }} <i class="fa-solid fa-arrow-right"></i></a>
+        <a href="{{ cs_settings.cta_btn2_url|default:'/contact/' }}" class="btn btn-outline">{{ cs_settings.cta_btn2_text|default:'Contact Our Team' }} <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/pages/contract-staffing.js' %}?v=4.2"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const faqList = document.getElementById('csFaqList');
+      if (!faqList) return;
+      const faqItems = faqList.querySelectorAll('.sv-faq-item');
+      faqItems.forEach(function(item) {
+        const btn = item.querySelector('.sv-faq-q');
+        if (!btn || btn.dataset.faqAttached) return;
+        btn.dataset.faqAttached = 'true';
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const wasActive = item.classList.contains('active');
+          faqItems.forEach(function(other) {
+            other.classList.remove('active');
+          });
+          if (!wasActive) {
+            item.classList.add('active');
+          }
+        });
+      });
+    });
+  </script>
+{% endblock %}

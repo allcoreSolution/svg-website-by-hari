@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ rp_settings.meta_title|default:"Recruitment & Placement · Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block meta_description %}{{ rp_settings.meta_description|default:"Sky Vision Group Consultancy provides professional recruitment, staffing, and placement services across India and abroad." }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/recruitment-placement.css' %}?v=3.5">
+{% endblock %}
+
+{% block content %}
+  {% if rp_settings.hero_visible %}
+  <!-- ============ HERO ============ -->
+  <section class="sv-hero">
+    <div class="wrap sv-hero-grid">
+      <div>
+        <span class="sv-eyebrow">{{ rp_settings.hero_eyebrow|default:"Connecting Talent · Creating Futures" }}</span>
+        <h1>{{ rp_settings.formatted_hero_title|safe }}</h1>
+        <p class="lead">{{ rp_settings.hero_subtitle|default:"We help businesses build high-performing teams and help job seekers find the right opportunities — with a process built for speed, fit and follow-through." }}</p>
+
+        <div class="sv-hero-actions">
+          <a href="{{ rp_settings.hero_hire_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-solid fa-users"></i> {{ rp_settings.hero_hire_btn_text|default:"Hire Talent" }}</a>
+          <a href="{{ rp_settings.hero_jobs_btn_url|default:'/jobs/' }}" class="btn btn-outline"><i class="fa-solid fa-briefcase"></i> {{ rp_settings.hero_jobs_btn_text|default:"Find Jobs" }}</a>
+        </div>
+
+        <div class="sv-hero-stats">
+          <div class="sv-hero-stat">
+            <h4>{{ rp_settings.hero_stat1_value|default:"10K+" }}</h4><span>{{ rp_settings.hero_stat1_label|default:"Active Candidates" }}</span>
+          </div>
+          <div class="sv-hero-stat">
+            <h4>{{ rp_settings.hero_stat2_value|default:"500+" }}</h4><span>{{ rp_settings.hero_stat2_label|default:"Happy Clients" }}</span>
+          </div>
+          <div class="sv-hero-stat">
+            <h4>{{ rp_settings.hero_stat3_value|default:"25K+" }}</h4><span>{{ rp_settings.hero_stat3_label|default:"Successful Placements" }}</span>
+          </div>
+          <div class="sv-hero-stat">
+            <h4>{{ rp_settings.hero_stat4_value|default:"15+" }}</h4><span>{{ rp_settings.hero_stat4_label|default:"Industries Served" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sv-match" aria-hidden="true">
+
+        <svg viewBox="0 0 520 460" class="sv-lines">
+
+          <defs>
+
+            <linearGradient id="svGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#6D75E8" />
+              <stop offset="100%" stop-color="#F2B44C" />
+            </linearGradient>
+
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+          </defs>
+
+          <!-- LEFT -->
+
+          <path class="sv-match-path" d="M110 70
+               C180 70
+               210 120
+               260 205" />
+
+          <path class="sv-match-path" d="M80 205
+   C145 205
+   185 205
+   260 205" />
+
+          <path class="sv-match-path" d="M110 340
+               C180 340
+               210 280
+               260 205" />
+
+          <!-- RIGHT -->
+
+          <path class="sv-match-path" d="M410 70
+               C340 70
+               310 120
+               260 205" />
+
+          <path class="sv-match-path" d="M440 205
+   C375 205
+   335 205
+   260 205" />
+
+          <path class="sv-match-path" d="M410 340
+               C340 340
+               310 280
+               260 205" />
+          <path class="sv-match-path" d="M60 210 C190 230 200 180 440 200" />
+
+        </svg>
+
+        <!-- Moving Pulse -->
+
+        <div class="sv-pulse p1"></div>
+        <div class="sv-pulse p2"></div>
+        <div class="sv-pulse p3"></div>
+        <div class="sv-pulse p4"></div>
+        <div class="sv-pulse p5"></div>
+        <div class="sv-pulse p6"></div>
+
+
+        <!-- Center -->
+
+        <div class="sv-match-core">
+
+          <div class="core-ring"></div>
+          <div class="core-ring ring2"></div>
+
+          <div class="core-icon">
+            <i class="fa-solid fa-handshake"></i>
+          </div>
+
+        </div>
+
+        <!-- LEFT NODES -->
+
+        <div class="sv-node candidate sv-n1">
+          <div class="ico">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <span>Candidate</span>
+        </div>
+
+        <div class="sv-node candidate sv-n2">
+          <div class="ico">
+            <i class="fa-solid fa-file-lines"></i>
+          </div>
+          <span>Resume</span>
+        </div>
+
+        <div class="sv-node candidate sv-n3">
+          <div class="ico">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <span>Skillset</span>
+        </div>
+
+        <!-- RIGHT NODES -->
+
+        <div class="sv-node role sv-n4">
+          <div class="ico">
+            <i class="fa-solid fa-building"></i>
+          </div>
+          <span>Company</span>
+        </div>
+
+        <div class="sv-node role sv-n5">
+          <div class="ico">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <span>Open Role</span>
+        </div>
+
+        <div class="sv-node role sv-n6">
+          <div class="ico">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <span>Growth</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if rp_settings.about_visible %}
+  <!-- ============ ABOUT US ============ -->
+  <section class="sv-about">
+    <div class="wrap sv-about-grid" {% if not rp_settings.why_partner_visible %}style="grid-template-columns: .86fr 1.6fr;"{% endif %}>
+
+      <div class="sv-about-visual">
+        <div class="sv-experience-badge">
+          <h3>{{ rp_settings.about_exp_years|default:"12+" }}</h3><span>{{ rp_settings.about_exp_label|safe|default:"Years of<br>Experience" }}</span>
+        </div>
+      </div>
+
+      <div>
+        <span class="sv-tag">{{ rp_settings.about_tag|default:"About Us" }}</span>
+        <h2>{{ rp_settings.about_title|default:"Sky Vision Group Consultancy" }}</h2>
+        <p>{{ rp_settings.about_desc1|default:"Sky Vision Group Consultancy is a trusted recruitment and placement partner for businesses across India and abroad. With over a decade of experience, we specialize in delivering end-to-end hiring solutions tailored to diverse industry needs." }}</p>
+        <p>{{ rp_settings.about_desc2|default:"Our mission is to connect the right talent with the right opportunities and drive growth for both businesses and individuals." }}</p>
+
+        <div class="sv-about-features">
+          <span><i class="{{ rp_settings.about_feat1_icon|default:'fa-solid fa-user-tie' }}"></i> {{ rp_settings.about_feat1_text|default:"Expert HR Team" }}</span>
+          <span><i class="{{ rp_settings.about_feat2_icon|default:'fa-solid fa-handshake' }}"></i> {{ rp_settings.about_feat2_text|default:"Client-Centric Approach" }}</span>
+          <span><i class="{{ rp_settings.about_feat3_icon|default:'fa-solid fa-shield-halved' }}"></i> {{ rp_settings.about_feat3_text|default:"Ethical & Transparent" }}</span>
+          <span><i class="{{ rp_settings.about_feat4_icon|default:'fa-solid fa-map-location-dot' }}"></i> {{ rp_settings.about_feat4_text|default:"Pan India Presence" }}</span>
+        </div>
+      </div>
+
+      {% if rp_settings.why_partner_visible %}
+      <div class="sv-why-partner">
+        <h3>{{ rp_settings.why_partner_title|default:"Why Partner With Us?" }}</h3>
+        {% if rp_why_partner_list %}
+        <ul>
+          {% for item in rp_why_partner_list %}
+          <li><i class="{{ item.icon_class|default:'fa-solid fa-check' }}"></i> {{ item.text }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <a href="{{ rp_settings.why_partner_learn_btn_url|default:'/about/journey/' }}" class="sv-learn-btn">{{ rp_settings.why_partner_learn_btn_text|default:"Learn More About Us" }} <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if rp_settings.services_visible %}
+  <!-- ============ SERVICES ============ -->
+  <section class="sv-services">
+    <div class="wrap">
+      <div class="sv-section-head">
+        <span class="sv-tag">{{ rp_settings.services_tag|default:"What We Do" }}</span>
+        <h2>{{ rp_settings.services_title|default:"Our Recruitment Services" }}</h2>
+        <p>{{ rp_settings.services_subtitle|default:"Purpose-built hiring solutions for every stage of your team's growth." }}</p>
+      </div>
+
+      <div class="sv-services-grid">
+        {% for srv in rp_services %}
+        <div class="sv-service-card">
+          <div class="sv-service-icon {{ srv.color_class|default:'i-blue' }}"><i class="{{ srv.icon_class|default:'fa-solid fa-user' }}"></i></div>
+          <h3>{{ srv.title }}</h3>
+          <p>{{ srv.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if rp_settings.process_visible %}
+  <!-- ============ RECRUITMENT PROCESS ============ -->
+  <section class="sv-process">
+    <div class="wrap">
+      <div class="sv-process-head">
+        <div>
+          <span class="sv-tag">{{ rp_settings.process_tag|default:"Our Process" }}</span>
+          <h2>{{ rp_settings.process_title|default:"From requirement to joining, in six steps" }}</h2>
+        </div>
+        <p>{{ rp_settings.process_subtitle|default:"A structured pipeline we follow for every mandate — nothing skipped, nothing rushed." }}</p>
+      </div>
+
+      <div class="sv-process-line">
+        <div class="sv-process-track">
+          {% for step in rp_process_steps %}
+          <div class="sv-step"><span class="num">{{ step.step_number|default:forloop.counter }}</span>
+            <div class="sv-step-dot"><i class="{{ step.icon_class|default:'fa-solid fa-clipboard-list' }}"></i></div>
+            <p>{{ step.title }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if rp_settings.insights_visible %}
+  <!-- ============ WHY CHOOSE / ACHIEVEMENTS / INDUSTRIES / TESTIMONIAL ============ -->
+  <section class="sv-insights">
+    <div class="wrap sv-insights-grid">
+
+      <div class="sv-card sv-why">
+        <h3>{{ rp_settings.why_choose_title|default:"Why Choose Us?" }}</h3>
+        {% if rp_why_choose_list %}
+        <ul>
+          {% for item in rp_why_choose_list %}
+          <li><i class="{{ item.icon_class|default:'fa-solid fa-circle-check' }}"></i> {{ item.text }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      <div class="sv-card">
+        <h3>{{ rp_settings.achievements_title|default:"Our Achievements" }}</h3>
+        <div class="sv-achieve-grid">
+          <div class="sv-achieve-item"><i class="{{ rp_settings.achieve1_icon|default:'fa-solid fa-user-group' }} {{ rp_settings.achieve1_color|default:'blue' }}"></i>
+            <h4>{{ rp_settings.achieve1_value|default:"10,000+" }}</h4><span>{{ rp_settings.achieve1_label|default:"Candidates Deployed" }}</span>
+          </div>
+          <div class="sv-achieve-item"><i class="{{ rp_settings.achieve2_icon|default:'fa-solid fa-building' }} {{ rp_settings.achieve2_color|default:'amber' }}"></i>
+            <h4>{{ rp_settings.achieve2_value|default:"500+" }}</h4><span>{{ rp_settings.achieve2_label|default:"Happy Clients" }}</span>
+          </div>
+          <div class="sv-achieve-item"><i class="{{ rp_settings.achieve3_icon|default:'fa-solid fa-award' }} {{ rp_settings.achieve3_color|default:'green' }}"></i>
+            <h4>{{ rp_settings.achieve3_value|default:"25,000+" }}</h4><span>{{ rp_settings.achieve3_label|default:"Successful Recruitments" }}</span>
+          </div>
+          <div class="sv-achieve-item"><i class="{{ rp_settings.achieve4_icon|default:'fa-solid fa-chart-column' }} {{ rp_settings.achieve4_color|default:'purple' }}"></i>
+            <h4>{{ rp_settings.achieve4_value|default:"15+" }}</h4><span>{{ rp_settings.achieve4_label|default:"Industries Presence" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sv-card sv-industries">
+        <h3>{{ rp_settings.industries_title|default:"Industries We Serve" }}</h3>
+        <div class="sv-industries-marquee">
+          <div class="sv-industries-track">
+            {% for ind in rp_industries %}
+            <div class="sv-pill"><i class="{{ ind.icon_class|default:'fa-solid fa-desktop' }}"></i><span>{{ ind.name }}</span></div>
+            {% endfor %}
+            {% for ind in rp_industries %}
+            <div class="sv-pill"><i class="{{ ind.icon_class|default:'fa-solid fa-desktop' }}"></i><span>{{ ind.name }}</span></div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="sv-card sv-testimonial">
+        <h3>{{ rp_settings.testimonial_title|default:"What Our Clients Say" }}</h3>
+        <i class="fa-solid fa-quote-left quote"></i>
+        <p>{{ rp_settings.testimonial_quote|default:"Sky Vision Group Consultancy has been a valuable partner in our growth. Their professional approach and quality candidates have helped us achieve our hiring goals consistently." }}</p>
+        <div class="sv-testimonial-author">
+          <div class="sv-avatar">{{ rp_settings.testimonial_avatar|default:"RS" }}</div>
+          <div>
+            <h4>{{ rp_settings.testimonial_author|default:"Rahul Sharma" }}</h4><span>{{ rp_settings.testimonial_role|default:"HR Manager, Tech Solutions Pvt. Ltd." }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if rp_settings.partners_visible %}
+  <!-- ============ TRUSTED PARTNERS ============ -->
+  <section class="sv-partners">
+    <div class="wrap">
+      <span class="sv-partners-heading">{{ rp_settings.partners_title|default:"Our Trusted Partners" }}</span>
+      <div class="sv-partners-marquee">
+        <div class="sv-partners-track">
+          {% for part in rp_partners %}
+          <div class="sv-partner-logo">{{ part.name }}</div>
+          {% endfor %}
+          {% for part in rp_partners %}
+          <div class="sv-partner-logo">{{ part.name }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if rp_settings.faq_visible %}
+  <!-- ============ FAQ ============ -->
+  <section class="sv-faq">
+    <div class="sv-section-head">
+      <span class="sv-tag">{{ rp_settings.faq_tag|default:"Questions" }}</span>
+      <h2>{{ rp_settings.faq_title|default:"Frequently Asked Questions" }}</h2>
+    </div>
+
+    <div class="sv-faq-list" id="faqList">
+      {% for faq in rp_faqs %}
+      <div class="sv-faq-item">
+        <button class="sv-faq-q" type="button">{{ faq.question }} <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+        <div class="sv-faq-a">
+          <p>{{ faq.answer }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if rp_settings.cta_visible %}
+  <!-- ============ CTA BANNER ============ -->
+  <section class="sv-cta" id="contact">
+    <div class="sv-cta-inner">
+      <div>
+        <h2>{{ rp_settings.cta_title|default:"Ready to hire the best talent?" }}</h2>
+        <p>{{ rp_settings.cta_subtitle|default:"Let us help you build a stronger team for a better tomorrow." }}</p>
+      </div>
+      <a href="{{ rp_settings.cta_btn_url|default:'/contact/' }}" class="btn btn-primary">{{ rp_settings.cta_btn_text|default:"Contact Us Today" }} <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+  </section>
+  {% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/pages/recruitment-Placement.js' %}?v=4.2"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const faqList = document.getElementById('faqList');
+      if (!faqList) return;
+      const faqItems = faqList.querySelectorAll('.sv-faq-item');
+      faqItems.forEach(function(item) {
+        const btn = item.querySelector('.sv-faq-q');
+        if (!btn || btn.dataset.faqAttached) return;
+        btn.dataset.faqAttached = 'true';
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const wasActive = item.classList.contains('active');
+          faqItems.forEach(function(other) {
+            other.classList.remove('active');
+          });
+          if (!wasActive) {
+            item.classList.add('active');
+          }
+        });
+      });
+    });
+  </script>
+{% endblock %}

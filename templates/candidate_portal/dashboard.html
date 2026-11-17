@@ -1,0 +1,218 @@
+{% extends 'candidate_portal/base_candidate.html' %}
+{% load static %}
+
+{% block title %}Candidate Dashboard — Sky Vision{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="welcome-banner-card mb-3 mb-md-4 p-3 p-md-4 rounded-4 bg-white border shadow-sm">
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <div class="min-w-0">
+      <h3 class="fw-bold mb-1 text-dark fs-5 fs-md-4 text-truncate">Welcome back, {{ candidate.full_name }}! 👋</h3>
+      <p class="text-muted mb-0 small">Track your job applications, interview schedules, and profile status.</p>
+    </div>
+    <div class="cand-track-btn-wrap flex-shrink-0">
+      <a href="/candidate/applied-jobs/" class="btn btn-primary rounded-pill px-4 py-2 text-nowrap cand-track-btn d-inline-flex align-items-center justify-content-center">
+        <i class="fa-solid fa-briefcase me-2"></i> Track Applications
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Approval Status Banner if needed -->
+{% if candidate.approval_status == 'pending' %}
+<div class="alert alert-warning border-0 shadow-sm rounded-4 mb-3 mb-md-4 p-3 d-flex align-items-center gap-3">
+  <i class="fa-solid fa-clock fa-2x text-warning flex-shrink-0"></i>
+  <div>
+    <h6 class="fw-bold mb-1">Account Pending Admin Approval</h6>
+    <p class="mb-0 small text-dark">Your candidate registration is currently under review by our admin team. Once approved, you can apply for active job openings.</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Stats Cards Grid: 2x2 grid on mobile, 4 columns on desktop -->
+<div class="row g-2 g-md-3 mb-3 mb-md-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card h-100 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 gap-sm-3">
+      <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+        <i class="ti ti-briefcase"></i>
+      </div>
+      <div class="min-w-0">
+        <h4 class="fw-bold mb-0" id="statApplied">0</h4>
+        <div class="text-muted small text-truncate">Applied Jobs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-card h-100 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 gap-sm-3">
+      <div class="stat-icon bg-purple bg-opacity-10 text-purple" style="color:#8b5cf6;">
+        <i class="ti ti-calendar-event"></i>
+      </div>
+      <div class="min-w-0">
+        <h4 class="fw-bold mb-0" id="statInterviews">0</h4>
+        <div class="text-muted small text-truncate">Interviews</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-card h-100 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 gap-sm-3">
+      <div class="stat-icon bg-success bg-opacity-10 text-success">
+        <i class="ti ti-award"></i>
+      </div>
+      <div class="min-w-0">
+        <h4 class="fw-bold mb-0" id="statOffers">0</h4>
+        <div class="text-muted small text-truncate">Job Offers</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-card h-100 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 gap-sm-3">
+      <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+        <i class="ti ti-bookmark"></i>
+      </div>
+      <div class="min-w-0">
+        <h4 class="fw-bold mb-0" id="statSaved">0</h4>
+        <div class="text-muted small text-truncate">Saved Jobs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Latest Messages & Announcements Card -->
+{% if recent_messages %}
+<div class="card border-0 shadow-sm rounded-4 mb-3 mb-md-4 overflow-hidden">
+  <div class="card-header bg-white py-3 px-3 px-sm-4 border-0 d-flex align-items-center justify-content-between">
+    <h5 class="fw-bold mb-0 text-dark fs-6 fs-sm-5"><i class="ti ti-mail text-primary me-2"></i>Latest Messages</h5>
+    <a href="/candidate/messages/" class="btn btn-sm btn-link text-decoration-none fw-semibold p-0">View Inbox <i class="fa-solid fa-arrow-right ms-1"></i></a>
+  </div>
+  <div class="card-body p-0">
+    <div class="list-group list-group-flush">
+      {% for mr in recent_messages %}
+        <a href="/candidate/messages/" class="list-group-item list-group-item-action py-3 px-3 px-sm-4">
+          <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-1 gap-sm-2 w-100">
+            <div class="min-w-0 pe-sm-2 w-100">
+              <div class="fw-bold text-dark mb-1 text-truncate">
+                {% if not mr.is_read %}<span class="badge bg-primary me-1">NEW</span>{% endif %}
+                {{ mr.bulk_message.title }}
+              </div>
+              <div class="text-muted small text-truncate">{{ mr.bulk_message.subject }}</div>
+            </div>
+            <span class="text-muted small flex-shrink-0 text-nowrap"><i class="ti ti-calendar me-1 d-sm-none"></i>{{ mr.bulk_message.created_at|date:"d M Y" }}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent Applications Section -->
+<div class="card border-0 shadow-sm rounded-4 mb-3 mb-md-4 overflow-hidden">
+  <div class="card-header bg-white py-3 px-3 px-sm-4 border-0 d-flex align-items-center justify-content-between">
+    <h5 class="fw-bold mb-0 text-dark fs-6 fs-sm-5"><i class="ti ti-history text-primary me-2"></i>Recent Applications</h5>
+    <a href="/candidate/applied-jobs/" class="btn btn-sm btn-link text-decoration-none fw-semibold p-0">View All <i class="fa-solid fa-arrow-right ms-1"></i></a>
+  </div>
+  <div class="card-body p-0">
+    <!-- Desktop Table View (>= 768px) -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table align-middle mb-0 table-hover">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3 ps-sm-4">Job Title</th>
+            <th>Applied Date</th>
+            <th>Current Status</th>
+            <th class="pe-3 pe-sm-4 text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody id="recentAppsTbody">
+          <tr><td colspan="4" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading recent applications...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card View (< 768px) - Zero Horizontal Cut-off! -->
+    <div class="d-md-none p-2 p-sm-3 d-flex flex-column gap-2" id="recentAppsMobileList">
+      <div class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading recent applications...</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('/api/candidate/dashboard-stats/');
+      const data = await res.json();
+
+      if (res.ok && data.status === 'success') {
+        document.getElementById('statApplied').innerText = data.stats.applied_jobs || 0;
+        document.getElementById('statInterviews').innerText = data.stats.interviews || 0;
+        document.getElementById('statOffers').innerText = data.stats.offers || 0;
+        document.getElementById('statSaved').innerText = data.stats.saved_jobs || 0;
+
+        renderRecentApps(data.recent_applications);
+      }
+    } catch (e) {
+      console.error('Error loading dashboard stats:', e);
+    }
+  });
+
+  function renderRecentApps(apps) {
+    const tbody = document.getElementById('recentAppsTbody');
+    const mobileList = document.getElementById('recentAppsMobileList');
+
+    if (!apps || apps.length === 0) {
+      const emptyHtml = `<div class="text-center py-4 text-muted">You haven't submitted any job applications yet. <a href="/" class="fw-bold text-primary">Browse available jobs</a></div>`;
+      if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">You haven't submitted any job applications yet. <a href="/" class="fw-bold text-primary">Browse available jobs</a></td></tr>`;
+      if (mobileList) mobileList.innerHTML = emptyHtml;
+      return;
+    }
+
+    // 1. Desktop Table (>= 768px)
+    if (tbody) {
+      tbody.innerHTML = apps.map(app => {
+        const statusText = (app.status && app.status.trim()) ? app.status : 'Application Submitted';
+        const badgeClass = app.badge_class || 'bg-warning text-dark';
+        const jobTitle = app.job_title || 'Job Opening';
+        return `
+          <tr>
+            <td class="ps-3 ps-sm-4 fw-bold text-dark text-nowrap">${jobTitle}</td>
+            <td class="text-muted small text-nowrap">${app.applied_on || 'N/A'}</td>
+            <td class="text-nowrap"><span class="badge ${badgeClass} badge-status rounded-pill px-3 py-1">${statusText}</span></td>
+            <td class="pe-3 pe-sm-4 text-end text-nowrap">
+              <a href="/candidate/applied-jobs/?app_id=${app.id}" class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="ti ti-eye me-1"></i> Track Progress</a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 2. Mobile Cards (< 768px) - 100% visible, no cut-offs
+    if (mobileList) {
+      mobileList.innerHTML = apps.map(app => {
+        const statusText = (app.status && app.status.trim()) ? app.status : 'Application Submitted';
+        const badgeClass = app.badge_class || 'bg-warning text-dark';
+        const jobTitle = app.job_title || 'Job Opening';
+        return `
+          <div class="cand-mobile-app-card p-3 rounded-3 border bg-light bg-opacity-50">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+              <div class="min-w-0">
+                <h6 class="fw-bold mb-1 text-dark text-truncate">${jobTitle}</h6>
+                <div class="text-muted small"><i class="ti ti-calendar me-1"></i>Applied: ${app.applied_on || 'N/A'}</div>
+              </div>
+              <span class="badge ${badgeClass} badge-status rounded-pill px-3 py-1 flex-shrink-0">${statusText}</span>
+            </div>
+            <a href="/candidate/applied-jobs/?app_id=${app.id}" class="btn btn-outline-primary btn-sm rounded-pill w-100 py-1 fw-semibold d-flex align-items-center justify-content-center gap-1 mt-2">
+              <i class="ti ti-eye"></i> Track Progress
+            </a>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+</script>
+{% endblock %}

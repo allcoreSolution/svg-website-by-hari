@@ -1,0 +1,362 @@
+{% extends 'employer_portal/base_employer.html' %}
+{% load static %}
+
+{% block title %}Company Profile & Account Settings — Sky Vision Employer{% endblock %}
+
+{% block content %}
+<style>
+  .profile-card {
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .company-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+  }
+  .form-label-custom {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .form-control-custom {
+    font-size: 12.5px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 7.5px 12px;
+    color: #1e293b;
+    transition: all 0.15s ease;
+  }
+  .form-control-custom:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+  }
+  .form-control-custom:disabled, .form-control-custom[readonly] {
+    background-color: #f8fafc;
+    color: #64748b;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+  }
+  .stat-mini-pill {
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+</style>
+
+<!-- Page Header -->
+<div class="d-flex align-items-start align-items-sm-center justify-content-between flex-column flex-sm-row gap-2 mb-3">
+  <div>
+    <h4 class="fw-bold mb-1 fs-5 fs-sm-4 text-dark">Company Profile &amp; Account Settings</h4>
+    <p class="text-muted mb-0 small">Manage company verification details, primary contact information, and security settings.</p>
+  </div>
+  <a href="/employer/dashboard/" class="btn btn-outline-secondary btn-sm rounded-pill px-3 w-100 w-sm-auto text-center" style="font-size: 12px;">
+    <i class="ti ti-arrow-left me-1"></i> Back to Dashboard
+  </a>
+</div>
+
+{% if success %}
+  <div class="alert alert-success d-flex align-items-center py-2 px-3 mb-3 border-0 rounded-3 shadow-sm" style="font-size: 12.5px; background: #ecfdf5; color: #065f46;">
+    <i class="ti ti-circle-check fs-5 me-2 text-success"></i>
+    <div>{{ success }}</div>
+  </div>
+{% endif %}
+
+{% if error %}
+  <div class="alert alert-danger d-flex align-items-center py-2 px-3 mb-3 border-0 rounded-3 shadow-sm" style="font-size: 12.5px; background: #fef2f2; color: #991b1b;">
+    <i class="ti ti-alert-triangle fs-5 me-2 text-danger"></i>
+    <div>{{ error }}</div>
+  </div>
+{% endif %}
+
+<!-- Company Header Card -->
+<div class="profile-card p-3 p-md-4 mb-3">
+  <div class="d-flex align-items-center flex-wrap gap-3">
+    <div class="company-avatar">
+      {{ employer.company_name|slice:":2"|upper }}
+    </div>
+    <div class="flex-grow-1">
+      <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+        <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem;">{{ employer.company_name }}</h5>
+        {% if employer.status == 'APPROVED' %}
+          <span class="badge border" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #dcfce7; color: #15803d; border-color: #bbf7d0 !important;">
+            <i class="ti ti-circle-check-filled me-1"></i>Approved &amp; Verified
+          </span>
+        {% elif employer.status == 'PENDING' %}
+          <span class="badge border" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #fef3c7; color: #b45309; border-color: #fde68a !important;">
+            <i class="ti ti-clock me-1"></i>Pending Verification
+          </span>
+        {% else %}
+          <span class="badge border" style="font-size: 11px; font-weight: 700; padding: 3px 8px; background: #fee2e2; color: #b91c1c; border-color: #fca5a5 !important;">
+            {{ employer.status }}
+          </span>
+        {% endif %}
+      </div>
+      <div class="d-flex align-items-center flex-wrap gap-3 text-muted" style="font-size: 12px;">
+        <span><i class="ti ti-user me-1 text-primary"></i>{{ employer.contact_name|default:"Primary Contact" }}</span>
+        <span><i class="ti ti-mail me-1 text-primary"></i>{{ employer.email }}</span>
+        <span><i class="ti ti-phone me-1 text-primary"></i>{{ employer.phone|default:"Not specified" }}</span>
+        {% if employer.city %}
+          <span><i class="ti ti-map-pin me-1 text-primary"></i>{{ employer.city }}{% if employer.state %}, {{ employer.state }}{% endif %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Edit Forms -->
+  <div class="col-lg-8">
+    <!-- Company Information Form -->
+    <div class="profile-card p-3 p-md-4 mb-3">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div class="fw-bold text-dark" style="font-size: 13.5px;">
+          <i class="ti ti-building text-primary me-2"></i>Company &amp; Contact Details
+        </div>
+        <span class="text-muted" style="font-size: 11px;"><span class="text-danger">*</span> Required fields</span>
+      </div>
+
+      <form method="POST" action="/employer/profile/" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_profile">
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">
+              <span>Company Legal Name</span>
+              <span class="badge bg-light text-muted border fw-normal" style="font-size: 9.5px;"><i class="ti ti-lock me-1"></i>Verified</span>
+            </label>
+            <input type="text" class="form-control form-control-custom" value="{{ employer.company_name }}" readonly disabled>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">
+              <span>Primary Contact Person <span class="text-danger">*</span></span>
+            </label>
+            <input type="text" name="contact_name" class="form-control form-control-custom" value="{{ employer.contact_name }}" required placeholder="e.g. Amit Rajbhar">
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">
+              <span>Official Login Email</span>
+              <span class="badge bg-light text-muted border fw-normal" style="font-size: 9.5px;"><i class="ti ti-lock me-1"></i>Account ID</span>
+            </label>
+            <input type="email" class="form-control form-control-custom" value="{{ employer.email }}" readonly disabled>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">
+              <span>Phone / Mobile <span class="text-danger">*</span></span>
+            </label>
+            <input type="tel" name="phone" class="form-control form-control-custom" value="{{ employer.phone }}" required placeholder="e.g. 9876543210">
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">Industry Sector</label>
+            <input type="text" name="industry" class="form-control form-control-custom" value="{{ employer.industry|default:'' }}" placeholder="e.g. IT & Software, Manufacturing">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Company Size</label>
+            <select name="company_size" class="form-select form-control-custom">
+              <option value="1-10 Employees" {% if employer.company_size == '1-10 Employees' %}selected{% endif %}>1-10 Employees</option>
+              <option value="11-50 Employees" {% if employer.company_size == '11-50 Employees' or not employer.company_size %}selected{% endif %}>11-50 Employees</option>
+              <option value="51-200 Employees" {% if employer.company_size == '51-200 Employees' %}selected{% endif %}>51-200 Employees</option>
+              <option value="201-500 Employees" {% if employer.company_size == '201-500 Employees' %}selected{% endif %}>201-500 Employees</option>
+              <option value="500+ Employees" {% if employer.company_size == '500+ Employees' %}selected{% endif %}>500+ Employees</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label-custom">City</label>
+            <input type="text" name="city" class="form-control form-control-custom" value="{{ employer.city|default:'' }}" placeholder="e.g. Lucknow">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">State</label>
+            <input type="text" name="state" class="form-control form-control-custom" value="{{ employer.state|default:'' }}" placeholder="e.g. Uttar Pradesh">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">Website</label>
+            <input type="text" name="website" class="form-control form-control-custom" value="{{ employer.website|default:'' }}" placeholder="https://example.com">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-custom">Office Address</label>
+          <textarea name="address" class="form-control form-control-custom" rows="2" placeholder="Full registered office address...">{{ employer.address|default:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-custom">
+            <span>Company Verification Document (GST / PAN / Incorporation)</span>
+            <span class="badge bg-light text-muted border fw-normal" style="font-size: 9.5px;">PDF, DOC, JPG (Max 10MB)</span>
+          </label>
+          {% if employer.document %}
+            <div class="mb-2">
+              <a href="/media/uploads/company_documents/{{ employer.document }}" target="_blank" class="badge text-primary text-decoration-none border" style="font-size: 10.5px; padding: 3px 8px; background: #eff6ff; border-color: #bfdbfe !important;">
+                <i class="ti ti-file-text me-1"></i>View Uploaded Document
+              </a>
+            </div>
+          {% endif %}
+          <input type="file" name="document" class="form-control form-control-custom" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+        </div>
+
+        <div class="mb-3">
+          <div class="form-check form-switch p-2.5 bg-light rounded-3 border d-flex align-items-center gap-2">
+            <input class="form-check-input ms-1 me-2" type="checkbox" role="switch" id="empEmailNotifSwitch" name="email_notifications_enabled" value="true" {% if employer.email_notifications_enabled %}checked{% endif %}>
+            <label class="form-check-label fw-semibold small text-dark mb-0" for="empEmailNotifSwitch">
+              <i class="ti ti-mail text-primary me-1"></i> Receive official email announcements, candidate updates & digests
+            </label>
+          </div>
+        </div>
+
+        <div class="text-end pt-2 border-top">
+          <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm" style="font-size: 12.5px;">
+            <i class="ti ti-device-floppy me-1"></i> Save Profile Details
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Security & Password Card -->
+    <div class="profile-card p-3 p-md-4">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div class="fw-bold text-dark" style="font-size: 13.5px;">
+          <i class="ti ti-lock text-primary me-2"></i>Change Account Password
+        </div>
+        <span class="text-muted" style="font-size: 11px;">Minimum 6 characters</span>
+      </div>
+
+      <form method="POST" action="/employer/profile/">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_password">
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label-custom">Current Password <span class="text-danger">*</span></label>
+            <input type="password" name="current_password" class="form-control form-control-custom" required placeholder="Enter current">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">New Password <span class="text-danger">*</span></label>
+            <input type="password" name="new_password" class="form-control form-control-custom" required placeholder="Enter new">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">Confirm New Password <span class="text-danger">*</span></label>
+            <input type="password" name="confirm_password" class="form-control form-control-custom" required placeholder="Re-enter new">
+          </div>
+        </div>
+
+        <div class="text-end pt-2 border-top">
+          <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-4" style="font-size: 12.5px;">
+            <i class="ti ti-key me-1"></i> Update Password
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Column: Verification & Summary Cards -->
+  <div class="col-lg-4">
+    <!-- Verification Status Card -->
+    <div class="profile-card p-3 p-md-4 mb-3">
+      <div class="fw-bold text-dark mb-3" style="font-size: 13.5px;">
+        <i class="ti ti-shield-check text-success me-2"></i>Account Verification
+      </div>
+
+      <div class="p-3 rounded-3 border text-center mb-3" style="background: #f8fafc;">
+        {% if employer.status == 'APPROVED' %}
+          <div class="text-success mb-2" style="font-size: 2.2rem; line-height: 1;"><i class="ti ti-circle-check-filled"></i></div>
+          <h6 class="fw-bold text-success mb-1" style="font-size: 14px;">Verified Employer</h6>
+          <div class="text-muted" style="font-size: 11px;">
+            Approved on {{ employer.approved_at|date:"d M Y, h:i A"|default:"Active" }}
+          </div>
+        {% elif employer.status == 'PENDING' %}
+          <div class="text-warning mb-2" style="font-size: 2.2rem; line-height: 1;"><i class="ti ti-clock-filled"></i></div>
+          <h6 class="fw-bold text-warning mb-1" style="font-size: 14px;">Pending Verification</h6>
+          <div class="text-muted" style="font-size: 11px;">
+            Awaiting verification by Sky Vision Admin team.
+          </div>
+        {% else %}
+          <div class="text-danger mb-2" style="font-size: 2.2rem; line-height: 1;"><i class="ti ti-circle-x-filled"></i></div>
+          <h6 class="fw-bold text-danger mb-1" style="font-size: 14px;">{{ employer.status }}</h6>
+        {% endif %}
+      </div>
+
+      <div class="d-flex flex-column gap-2" style="font-size: 11.5px; color: #475569;">
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+          <span class="text-muted">Registered On</span>
+          <span class="fw-semibold">{{ employer.created_at|date:"d M Y" }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+          <span class="text-muted">Employer ID</span>
+          <span class="fw-bold text-primary">#EMP-{{ employer.id|stringformat:"04d" }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center py-1">
+          <span class="text-muted">Account Email</span>
+          <span class="fw-semibold text-truncate" style="max-width: 150px;" title="{{ employer.email }}">{{ employer.email }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Activity Summary -->
+    <div class="profile-card p-3 p-md-4 mb-3">
+      <div class="fw-bold text-dark mb-3" style="font-size: 13.5px;">
+        <i class="ti ti-chart-bar text-primary me-2"></i>Hiring Activity Overview
+      </div>
+
+      <div class="row g-2">
+        <div class="col-4 text-center">
+          <div class="stat-mini-pill">
+            <div class="fw-bold text-primary fs-5 mb-0">{{ jobs_count|default:0 }}</div>
+            <div class="text-muted" style="font-size: 10.5px;">Job Posts</div>
+          </div>
+        </div>
+        <div class="col-4 text-center">
+          <div class="stat-mini-pill">
+            <div class="fw-bold text-info fs-5 mb-0">{{ applicants_count|default:0 }}</div>
+            <div class="text-muted" style="font-size: 10.5px;">Applicants</div>
+          </div>
+        </div>
+        <div class="col-4 text-center">
+          <div class="stat-mini-pill">
+            <div class="fw-bold text-success fs-5 mb-0">{{ hired_count|default:0 }}</div>
+            <div class="text-muted" style="font-size: 10.5px;">Hired</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Support Assistance Card -->
+    <div class="profile-card p-3 border-0 shadow-sm" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="p-2 rounded-circle bg-white text-primary shadow-sm"><i class="ti ti-headset fs-5"></i></div>
+        <div class="fw-bold text-dark" style="font-size: 12.5px;">Employer Support</div>
+      </div>
+      <p class="text-muted mb-2" style="font-size: 11px;">Need help updating company documents, posting urgent job vacancies, or screening candidates?</p>
+      <div class="d-flex align-items-center justify-content-between" style="font-size: 11.5px;">
+        <a href="mailto:info@skyvisiongroup.in" class="text-primary fw-semibold text-decoration-none">
+          <i class="ti ti-mail me-1"></i>info@skyvisiongroup.in
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

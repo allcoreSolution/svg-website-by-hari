@@ -1,0 +1,101 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/components/application-stepper.css' %}?v=1.0">
+
+{% with current_step=applicant.flow_step|default:flow_step|default:2 is_rejected=applicant.approval_status|default:approval_status %}
+<div class="app-flow-card">
+  <div class="app-flow-header">
+    <div class="app-flow-header-title">
+      <i class="ti ti-timeline"></i>
+      <span>APPLICATION FLOW (DETAILED)</span>
+    </div>
+    {% if is_rejected == 'Rejected' or applicant.status == 'Rejected' %}
+      <span class="badge bg-danger text-white">REJECTED</span>
+    {% elif current_step >= 7 %}
+      <span class="badge bg-success text-white">JOINED</span>
+    {% elif is_rejected == 'Pending' or current_step == 2 %}
+      <span class="badge bg-warning text-dark">PENDING ADMIN APPROVAL</span>
+    {% else %}
+      <span class="badge bg-info text-dark">STEP {{ current_step }} OF 7</span>
+    {% endif %}
+  </div>
+
+  <div class="app-flow-body">
+    <div class="app-flow-stepper">
+      
+      <!-- Step 1: Candidate Applies Job -->
+      <div class="app-flow-step step-blue {% if current_step >= 1 and is_rejected != 'Rejected' %}completed{% elif current_step == 1 %}current{% else %}pending{% endif %}">
+        <div class="app-flow-step-num">Step 1</div>
+        <div class="app-flow-circle">
+          {% if current_step > 1 and is_rejected != 'Rejected' %}<i class="ti ti-check"></i>{% else %}<i class="ti ti-user-check"></i>{% endif %}
+        </div>
+        <div class="app-flow-label">Candidate Applies Job</div>
+      </div>
+
+      <!-- Step 2: Application Submitted -->
+      <div class="app-flow-step step-blue {% if current_step > 2 and is_rejected != 'Rejected' %}completed{% elif current_step == 2 and is_rejected != 'Rejected' %}current{% else %}pending{% endif %}">
+        <div class="app-flow-step-num">Step 2</div>
+        <div class="app-flow-circle">
+          {% if current_step > 2 and is_rejected != 'Rejected' %}<i class="ti ti-check"></i>{% else %}<i class="ti ti-send"></i>{% endif %}
+        </div>
+        <div class="app-flow-label">Application Submitted</div>
+      </div>
+
+      <!-- Step 3: Employer Reviews -->
+      <div class="app-flow-step step-blue {% if current_step > 3 and is_rejected != 'Rejected' %}completed{% elif current_step == 3 and is_rejected != 'Rejected' %}current{% else %}pending{% endif %}">
+        <div class="app-flow-step-num">Step 3</div>
+        <div class="app-flow-circle">
+          {% if current_step > 3 and is_rejected != 'Rejected' %}<i class="ti ti-check"></i>{% else %}<i class="ti ti-eye"></i>{% endif %}
+        </div>
+        <div class="app-flow-label">Employer Reviews</div>
+      </div>
+
+      <!-- Step 4: Shortlisted -->
+      <div class="app-flow-step step-green {% if current_step > 4 and is_rejected != 'Rejected' %}completed completed-green{% elif current_step == 4 and is_rejected != 'Rejected' %}current{% else %}pending{% endif %}">
+        <div class="app-flow-step-num">Step 4</div>
+        <div class="app-flow-circle">
+          {% if current_step > 4 and is_rejected != 'Rejected' %}<i class="ti ti-check"></i>{% else %}<i class="ti ti-star"></i>{% endif %}
+        </div>
+        <div class="app-flow-label">Shortlisted</div>
+      </div>
+
+      <!-- Step 5: Interview Scheduled -->
+      <div class="app-flow-step step-orange {% if current_step > 5 and is_rejected != 'Rejected' %}completed completed-orange{% elif current_step == 5 and is_rejected != 'Rejected' %}current{% else %}pending{% endif %}">
+        <div class="app-flow-step-num">Step 5</div>
+        <div class="app-flow-circle">
+          {% if current_step > 5 and is_rejected != 'Rejected' %}<i class="ti ti-check"></i>{% else %}<i class="ti ti-calendar-event"></i>{% endif %}
+        </div>
+        <div class="app-flow-label">Interview Scheduled</div>
+      </div>
+
+      <!-- Step 6: Offer Released -->
+      <div class="app-flow-step step-orange {% if current_step > 6 and is_rejected != 'Rejected' %}completed completed-orange{% elif current_step == 6 and is_rejected != 'Rejected' %}current{% else %}pending{% endif %}">
+        <div class="app-flow-step-num">Step 6</div>
+        <div class="app-flow-circle">
+          {% if current_step > 6 and is_rejected != 'Rejected' %}<i class="ti ti-check"></i>{% else %}<i class="ti ti-file-certificate"></i>{% endif %}
+        </div>
+        <div class="app-flow-label">Offer Released</div>
+      </div>
+
+      <!-- Step 7: Candidate Joined -->
+      <div class="app-flow-step step-orange {% if current_step >= 7 and is_rejected != 'Rejected' %}completed completed-orange current{% else %}pending{% endif %}">
+        <div class="app-flow-step-num">Step 7</div>
+        <div class="app-flow-circle">
+          {% if current_step >= 7 and is_rejected != 'Rejected' %}<i class="ti ti-check"></i>{% else %}<i class="ti ti-award"></i>{% endif %}
+        </div>
+        <div class="app-flow-label">Candidate Joined</div>
+      </div>
+
+    </div>
+
+    {% if is_rejected == 'Rejected' or applicant.status == 'Rejected' %}
+      <div class="app-flow-rejected-banner">
+        <i class="ti ti-alert-triangle-filled" style="font-size: 18px;"></i>
+        <div>
+          <strong>Application Rejected:</strong> {{ applicant.rejection_reason|default:rejection_reason|default:"Your application was not approved to move forward." }}
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endwith %}

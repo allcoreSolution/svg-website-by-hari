@@ -1,0 +1,1306 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Registration & Approval — Super Admin Panel{% endblock %}
+{% block page_title %}Registration & Approval{% endblock %}
+{% block breadcrumb_title %}Registration & Approval{% endblock %}
+
+{% block extra_head %}
+<style>
+  .reg-card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .reg-card {
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .reg-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .reg-card-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748B;
+  }
+  .reg-card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .reg-card-num {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0F172A;
+  }
+  .reg-card-sub {
+    font-size: 10px;
+    color: #64748B;
+  }
+
+  /* Tabs & Filter Styling */
+  .reg-tabs-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #FFFFFF;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .reg-tabs {
+    display: flex;
+    gap: 3px;
+    background: #F1F5F9;
+    padding: 3px;
+    border-radius: 7px;
+  }
+  .reg-tab {
+    padding: 5px 11px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reg-tab.active {
+    background: #FFFFFF;
+    color: #2563EB;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  }
+  .reg-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .reg-search-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 5px 10px;
+    width: 200px;
+  }
+  .reg-search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 11px;
+    width: 100%;
+  }
+
+  /* Table styling */
+  .reg-table-container {
+    background: #FFFFFF;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    overflow-x: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    width: 100%;
+  }
+  .reg-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    table-layout: fixed;
+  }
+  .reg-table th {
+    background: #F8FAFC;
+    color: #475569;
+    font-weight: 700;
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-sizing: border-box;
+  }
+  .reg-table td {
+    padding: 7px 6px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #334155;
+    vertical-align: middle;
+    font-size: 11px;
+    line-height: 1.3;
+    box-sizing: border-box;
+  }
+  .reg-table tr:hover {
+    background: #F8FAFC;
+  }
+
+  /* Type Badges */
+  .badge-cand {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9.5px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .badge-emp {
+    background: #F5F3FF;
+    color: #6D28D9;
+    border: 1px solid #DDD6FE;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9.5px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  /* Status Badges */
+  .badge-status-approved, .reg-table .badge.bg-success {
+    background: #DCFCE7 !important;
+    color: #15803D !important;
+    border: 1px solid #BBF7D0 !important;
+    font-weight: 600 !important;
+    padding: 2.5px 8px !important;
+    border-radius: 4px !important;
+    font-size: 9.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    white-space: nowrap !important;
+  }
+  .badge-status-pending, .reg-table .badge.bg-warning {
+    background: #FEF3C7 !important;
+    color: #B45309 !important;
+    border: 1px solid #FDE68A !important;
+    font-weight: 600 !important;
+    padding: 2.5px 8px !important;
+    border-radius: 4px !important;
+    font-size: 9.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    white-space: nowrap !important;
+  }
+  .badge-status-rejected, .reg-table .badge.bg-danger {
+    background: #FEE2E2 !important;
+    color: #B91C1C !important;
+    border: 1px solid #FECACA !important;
+    font-weight: 600 !important;
+    padding: 2.5px 8px !important;
+    border-radius: 4px !important;
+    font-size: 9.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    white-space: nowrap !important;
+  }
+  .badge-status-suspended, .reg-table .badge.bg-secondary {
+    background: #F1F5F9 !important;
+    color: #475569 !important;
+    border: 1px solid #CBD5E1 !important;
+    font-weight: 600 !important;
+    padding: 2.5px 8px !important;
+    border-radius: 4px !important;
+    font-size: 9.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    white-space: nowrap !important;
+  }
+
+  .reg-table .badge {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+    font-weight: 600 !important;
+    border-radius: 4px !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+  }
+
+  /* Three Dots Dropdown Menu */
+  .reg-action-dropdown-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .btn-reg-action-dots {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-reg-action-dots:hover, .btn-reg-action-dots.active {
+    background: #EFF6FF;
+    color: #2563EB;
+    border-color: #BFDBFE;
+  }
+  .reg-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.18);
+    min-width: 190px;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    padding: 4px;
+  }
+  .reg-dropdown-menu.show {
+    display: flex;
+  }
+  .reg-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+    white-space: nowrap;
+    text-align: left;
+  }
+  .reg-dropdown-item:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+  }
+  .reg-dropdown-item.text-success { color: #16A34A; }
+  .reg-dropdown-item.text-success:hover { background: #DCFCE7; }
+  .reg-dropdown-item.text-danger { color: #DC2626; }
+  .reg-dropdown-item.text-danger:hover { background: #FEE2E2; }
+  .reg-dropdown-item.text-warning { color: #D97706; }
+  .reg-dropdown-item.text-warning:hover { background: #FEF3C7; }
+
+  /* Bulk Action Bar */
+  .bulk-action-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0F172A;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: 30px;
+    display: none;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 1050;
+  }
+
+  /* Side Drawer */
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    z-index: 1100;
+    display: none;
+  }
+  .drawer-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 460px;
+    max-width: 90vw;
+    background: #FFFFFF;
+    z-index: 1101;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer-panel.open {
+    transform: translateX(0);
+  }
+  .drawer-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #F8FAFC;
+  }
+  .drawer-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .drawer-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 0;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .detail-lbl {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .detail-val {
+    font-size: 13px;
+    color: #0F172A;
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  /* Action Buttons (Drawer, Bulk bar, Modals) */
+  .btn-admin {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 7px 16px !important;
+    border-radius: 7px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    line-height: 1.4 !important;
+  }
+  .btn-admin-secondary {
+    background: #FFFFFF !important;
+    color: #475569 !important;
+    border: 1px solid #CBD5E1 !important;
+  }
+  .btn-admin-secondary:hover {
+    background: #F1F5F9 !important;
+    color: #0F172A !important;
+    border-color: #94A3B8 !important;
+  }
+  .btn-admin-danger {
+    background: #DC2626 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #DC2626 !important;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.25) !important;
+  }
+  .btn-admin-danger:hover {
+    background: #B91C1C !important;
+    border-color: #B91C1C !important;
+    color: #FFFFFF !important;
+  }
+  .btn-admin-success {
+    background: #16A34A !important;
+    color: #FFFFFF !important;
+    border: 1px solid #16A34A !important;
+    box-shadow: 0 2px 4px rgba(22, 163, 74, 0.25) !important;
+  }
+  .btn-admin-success:hover {
+    background: #15803D !important;
+    border-color: #15803D !important;
+    color: #FFFFFF !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- 1. Header Card -->
+<div class="module-header-card">
+  <div class="module-title-group">
+    <div class="module-icon-box" style="background:#EFF6FF; color:#2563EB;">
+      <i class="ti ti-user-check"></i>
+    </div>
+    <div>
+      <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">
+        {% if sub_type == 'candidates' %}Candidate Registrations
+        {% elif sub_type == 'employers' %}Employer Registrations
+        {% elif sub_type == 'rejected' %}Rejected &amp; Suspended Accounts
+        {% else %}Registration &amp; Approval{% endif %}
+      </h3>
+      <span style="font-size:12px; color:#64748B;">
+        {% if sub_type == 'candidates' %}Review, approve or reject candidate account registrations
+        {% elif sub_type == 'employers' %}Review, approve, reject or suspend employer company accounts
+        {% elif sub_type == 'rejected' %}Overview of rejected candidates and suspended employer accounts
+        {% else %}Review, approve, reject or suspend new candidate and employer accounts{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <div class="module-actions-group">
+    <button type="button" class="btn-admin btn-admin-secondary" id="btnRefreshRegs" onclick="fetchSummary(); fetchTableData();">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
+    <button type="button" class="btn-admin btn-admin-secondary" onclick="exportRegistrationsCSV();">
+      <i class="ti ti-file-export"></i> Export CSV
+    </button>
+  </div>
+</div>
+
+<!-- 2. Top 4 Summary Cards -->
+<div class="reg-card-grid">
+  <!-- Total -->
+  <div class="reg-card">
+    <div class="reg-card-head">
+      <span class="reg-card-title">
+        {% if sub_type == 'candidates' %}TOTAL CANDIDATES
+        {% elif sub_type == 'employers' %}TOTAL EMPLOYERS
+        {% elif sub_type == 'rejected' %}TOTAL REJECTED / SUSPENDED
+        {% else %}TOTAL REGISTRATIONS{% endif %}
+      </span>
+      <div class="reg-card-icon" style="background:#E0F2FE; color:#0284C7;"><i class="ti ti-users"></i></div>
+    </div>
+    <div class="reg-card-num" id="cardTotal">0</div>
+    <div class="reg-card-sub" id="cardTotalSub">Loading...</div>
+  </div>
+
+  <!-- Pending -->
+  <div class="reg-card">
+    <div class="reg-card-head">
+      <span class="reg-card-title">
+        {% if sub_type == 'rejected' %}REJECTED CANDIDATES{% else %}PENDING APPROVAL{% endif %}
+      </span>
+      <div class="reg-card-icon" style="background:#FEF3C7; color:#D97706;"><i class="ti ti-clock"></i></div>
+    </div>
+    <div class="reg-card-num" style="color:#D97706;" id="cardPending">0</div>
+    <div class="reg-card-sub" id="cardPendingSub">Loading...</div>
+  </div>
+
+  <!-- Approved -->
+  <div class="reg-card">
+    <div class="reg-card-head">
+      <span class="reg-card-title">
+        {% if sub_type == 'rejected' %}REJECTED EMPLOYERS{% else %}APPROVED{% endif %}
+      </span>
+      <div class="reg-card-icon" style="background:#DCFCE7; color:#16A34A;"><i class="ti ti-circle-check"></i></div>
+    </div>
+    <div class="reg-card-num" style="color:#16A34A;" id="cardApproved">0</div>
+    <div class="reg-card-sub" id="cardApprovedSub">Loading...</div>
+  </div>
+
+  <!-- Rejected / Suspended -->
+  <div class="reg-card">
+    <div class="reg-card-head">
+      <span class="reg-card-title">
+        {% if sub_type == 'rejected' %}SUSPENDED EMPLOYERS{% else %}REJECTED / SUSPENDED{% endif %}
+      </span>
+      <div class="reg-card-icon" style="background:#FEE2E2; color:#DC2626;"><i class="ti ti-circle-x"></i></div>
+    </div>
+    <div class="reg-card-num" style="color:#DC2626;" id="cardRejected">0</div>
+    <div class="reg-card-sub" id="cardRejectedSub">Loading...</div>
+  </div>
+</div>
+
+<!-- 3. Tabs & Filter Bar -->
+<div class="reg-tabs-bar">
+  <div class="reg-tabs">
+    {% if sub_type == 'candidates' %}
+      <button class="reg-tab active" data-tab="all" onclick="switchTab('all', this)">All Candidates</button>
+      <button class="reg-tab" data-tab="pending" onclick="switchTab('pending', this)">Pending</button>
+      <button class="reg-tab" data-tab="approved" onclick="switchTab('approved', this)">Approved</button>
+      <button class="reg-tab" data-tab="rejected" onclick="switchTab('rejected', this)">Rejected</button>
+    {% elif sub_type == 'employers' %}
+      <button class="reg-tab active" data-tab="all" onclick="switchTab('all', this)">All Employers</button>
+      <button class="reg-tab" data-tab="pending" onclick="switchTab('pending', this)">Pending</button>
+      <button class="reg-tab" data-tab="approved" onclick="switchTab('approved', this)">Approved</button>
+      <button class="reg-tab" data-tab="rejected" onclick="switchTab('rejected', this)">Rejected / Suspended</button>
+    {% elif sub_type == 'rejected' %}
+      <button class="reg-tab active" data-tab="all" onclick="switchTab('all', this)">All Rejected / Suspended</button>
+      <button class="reg-tab" data-tab="candidates" onclick="switchTab('candidates', this)">Rejected Candidates</button>
+      <button class="reg-tab" data-tab="employers" onclick="switchTab('employers', this)">Rejected Employers</button>
+    {% else %}
+      <button class="reg-tab active" data-tab="all" onclick="switchTab('all', this)">All</button>
+      <button class="reg-tab" data-tab="candidates" onclick="switchTab('candidates', this)">Candidates</button>
+      <button class="reg-tab" data-tab="employers" onclick="switchTab('employers', this)">Employers</button>
+      <button class="reg-tab" data-tab="pending" onclick="switchTab('pending', this)">Pending</button>
+      <button class="reg-tab" data-tab="approved" onclick="switchTab('approved', this)">Approved</button>
+      <button class="reg-tab" data-tab="rejected" onclick="switchTab('rejected', this)">Rejected / Suspended</button>
+    {% endif %}
+  </div>
+
+  <div class="reg-filter-group">
+    <div class="reg-search-box">
+      <i class="ti ti-search" style="color:#94A3B8;"></i>
+      <input type="text" id="regSearchInput" placeholder="Search name, email, phone..." oninput="debounceSearch()">
+    </div>
+
+    <input type="date" id="fromDate" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 10px;" onchange="fetchTableData()">
+    <input type="date" id="toDate" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 10px;" onchange="fetchTableData()">
+
+    <select id="perPageSelect" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 10px;" onchange="fetchTableData()">
+      <option value="10" selected>10 per page</option>
+      <option value="25">25 per page</option>
+      <option value="50">50 per page</option>
+    </select>
+  </div>
+</div>
+
+<!-- 4. Unified Registrations Table -->
+<div class="reg-table-container">
+  <table class="reg-table">
+    <thead>
+      <tr>
+        <th style="width:3.5%; min-width:32px; text-align:center;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)"></th>
+        {% if sub_type == 'candidates' %}
+          <th style="width:8.5%; min-width:80px;">TYPE</th>
+          <th style="width:15%;">CANDIDATE NAME</th>
+          <th style="width:18%;">EMAIL</th>
+          <th style="width:10%; min-width:95px;">PHONE</th>
+          <th style="width:13%;">CITY / LOCATION</th>
+          <th style="width:12%; min-width:95px;">REGISTERED ON</th>
+          <th style="width:12%; min-width:90px; text-align:center;">STATUS</th>
+          <th style="width:8%; min-width:65px; text-align:center;">ACTIONS</th>
+        {% elif sub_type == 'employers' %}
+          <th style="width:8.5%; min-width:80px;">TYPE</th>
+          <th style="width:15%;">COMPANY &amp; CONTACT</th>
+          <th style="width:18%;">EMAIL</th>
+          <th style="width:10%; min-width:95px;">PHONE</th>
+          <th style="width:13%;">INDUSTRY / CITY</th>
+          <th style="width:12%; min-width:95px;">REGISTERED ON</th>
+          <th style="width:12%; min-width:90px; text-align:center;">STATUS</th>
+          <th style="width:8%; min-width:65px; text-align:center;">ACTIONS</th>
+        {% else %}
+          <th style="width:8.5%; min-width:80px;">TYPE</th>
+          <th style="width:15%;">NAME / COMPANY</th>
+          <th style="width:18%;">EMAIL</th>
+          <th style="width:10%; min-width:95px;">PHONE</th>
+          <th style="width:13%;">CITY / INDUSTRY</th>
+          <th style="width:12%; min-width:95px;">REGISTERED ON</th>
+          <th style="width:12%; min-width:90px; text-align:center;">STATUS</th>
+          <th style="width:8%; min-width:65px; text-align:center;">ACTIONS</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody id="regTableBody">
+      <tr>
+        <td colspan="9" style="text-align:center; padding:30px; color:#64748B;">
+          <i class="ti ti-loader spin-fast" style="font-size:24px; color:#2563EB;"></i><br>Loading registrations...
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Pagination Bar -->
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid #E2E8F0; background:#F8FAFC;">
+    <span style="font-size:12px; color:#64748B;" id="paginationInfo">Showing 0 of 0</span>
+    <div style="display:flex; gap:6px;" id="paginationControls">
+      <button class="btn-admin btn-admin-secondary" id="btnPrevPage" disabled onclick="changePage(-1)"><i class="ti ti-chevron-left"></i> Prev</button>
+      <button class="btn-admin btn-admin-secondary" id="btnNextPage" disabled onclick="changePage(1)">Next <i class="ti ti-chevron-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Bulk Action Bar -->
+<div class="bulk-action-bar" id="bulkActionBar">
+  <span style="font-size:13px; font-weight:600;"><span id="selectedCount">0</span> selected</span>
+  <div style="display:flex; gap:8px;">
+    <button class="btn-admin btn-admin-success" style="padding:4px 12px; font-size:12px;" onclick="executeBulkAction('approve')">
+      <i class="ti ti-check"></i> Approve Selected
+    </button>
+    <button class="btn-admin btn-admin-danger" style="padding:4px 12px; font-size:12px;" onclick="promptBulkReject()">
+      <i class="ti ti-x"></i> Reject Selected
+    </button>
+  </div>
+</div>
+
+<!-- 6. Detail Drawer -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer-panel" id="drawerPanel">
+  <div class="drawer-header">
+    <div>
+      <h4 style="margin:0; font-size:15px; font-weight:700; color:#0F172A;" id="drawerTitle">Registration Details</h4>
+      <span style="font-size:11px; color:#64748B;" id="drawerSub">View full profile &amp; status</span>
+    </div>
+    <button type="button" style="font-size:18px; color:#64748B; cursor:pointer;" onclick="closeDrawer()"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- Populated by JS -->
+  </div>
+  <div class="drawer-footer" id="drawerFooter">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- 7. Rejection Reason Modal -->
+<div class="modal-backdrop" id="rejectModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:1200; align-items:center; justify-center:center;">
+  <div style="background:#FFFFFF; border-radius:12px; width:440px; max-width:90vw; padding:20px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <h4 style="margin:0; font-size:15px; font-weight:700; color:#DC2626;"><i class="ti ti-alert-triangle"></i> Registration Rejection</h4>
+      <button type="button" style="border:none; background:none; cursor:pointer; font-size:16px; color:#64748B;" onclick="closeRejectModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div>
+      <p style="margin:0 0 8px 0; font-size:12.5px; color:#475569;">Please specify the mandatory reason for rejecting this registration. This reason will be emailed to the user.</p>
+      <textarea id="rejectionReasonInput" style="width:100%; height:90px; padding:8px; border:1px solid #CBD5E1; border-radius:8px; font-size:12px; outline:none; resize:none;" placeholder="Enter rejection reason..."></textarea>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn-admin btn-admin-secondary" onclick="closeRejectModal()">Cancel</button>
+      <button class="btn-admin btn-admin-danger" id="btnConfirmReject" onclick="submitRejection()">Reject Account</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const subType = "{{ sub_type|default:'all' }}"; // 'all', 'candidates', 'employers', 'rejected'
+  let currentTab = 'all';
+  let currentPage = 1;
+  let currentTarget = null; // { type, id }
+  let isBulkReject = false;
+  let searchTimeout = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Read URL params if deep-linked (e.g. ?status=pending)
+    const urlParams = new URLSearchParams(window.location.search);
+    const statusParam = urlParams.get('status');
+
+    if (statusParam && ['pending', 'approved', 'rejected', 'candidates', 'employers'].includes(statusParam)) {
+      currentTab = statusParam;
+    }
+
+    // Update active tab button UI
+    document.querySelectorAll('.reg-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === currentTab);
+    });
+
+    fetchSummary();
+    fetchTableData();
+
+    // Auto-refresh polling every 30 seconds
+    setInterval(() => {
+      fetchSummary();
+      fetchTableData(true); // silent refresh
+    }, 30000);
+  });
+
+  function switchTab(tabKey, btn) {
+    currentTab = tabKey;
+    currentPage = 1;
+    document.querySelectorAll('.reg-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    fetchTableData();
+  }
+
+  function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      currentPage = 1;
+      fetchTableData();
+    }, 300);
+  }
+
+  function fetchSummary() {
+    fetch('/api/admin/registrations/summary/')
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success' && res.counts) {
+          const c = res.counts;
+          if (subType === 'candidates') {
+            document.getElementById('cardTotal').textContent = c.total_candidates;
+            document.getElementById('cardTotalSub').textContent = "All Candidate Registrations";
+
+            document.getElementById('cardPending').textContent = c.pending_candidates;
+            document.getElementById('cardPendingSub').textContent = "Awaiting Admin Approval";
+
+            document.getElementById('cardApproved').textContent = c.approved_candidates;
+            document.getElementById('cardApprovedSub').textContent = "Verified Candidate Profiles";
+
+            document.getElementById('cardRejected').textContent = c.rejected_candidates;
+            document.getElementById('cardRejectedSub').textContent = "Rejected Candidate Accounts";
+          } else if (subType === 'employers') {
+            document.getElementById('cardTotal').textContent = c.total_employers;
+            document.getElementById('cardTotalSub').textContent = "All Employer Accounts";
+
+            document.getElementById('cardPending').textContent = c.pending_employers;
+            document.getElementById('cardPendingSub').textContent = "Awaiting Verification";
+
+            document.getElementById('cardApproved').textContent = c.approved_employers;
+            document.getElementById('cardApprovedSub').textContent = "Verified Hiring Partners";
+
+            document.getElementById('cardRejected').textContent = c.rejected_employers + c.suspended_employers;
+            document.getElementById('cardRejectedSub').textContent = `Rejected: ${c.rejected_employers} · Suspended: ${c.suspended_employers}`;
+          } else if (subType === 'rejected') {
+            const totRej = c.rejected_candidates + c.rejected_employers + c.suspended_employers;
+            document.getElementById('cardTotal').textContent = totRej;
+            document.getElementById('cardTotalSub').textContent = "All Rejected & Suspended";
+
+            document.getElementById('cardPending').textContent = c.rejected_candidates;
+            document.getElementById('cardPendingSub').textContent = "Candidate Registrations";
+
+            document.getElementById('cardApproved').textContent = c.rejected_employers;
+            document.getElementById('cardApprovedSub').textContent = "Employer Registrations";
+
+            document.getElementById('cardRejected').textContent = c.suspended_employers;
+            document.getElementById('cardRejectedSub').textContent = "Suspended Employer Accounts";
+          } else {
+            document.getElementById('cardTotal').textContent = c.total;
+            document.getElementById('cardTotalSub').textContent = `Candidates: ${c.total_candidates} · Employers: ${c.total_employers}`;
+
+            document.getElementById('cardPending').textContent = c.pending;
+            document.getElementById('cardPendingSub').textContent = `Candidates: ${c.pending_candidates} · Employers: ${c.pending_employers}`;
+
+            document.getElementById('cardApproved').textContent = c.approved;
+            document.getElementById('cardApprovedSub').textContent = `Candidates: ${c.approved_candidates} · Employers: ${c.approved_employers}`;
+
+            document.getElementById('cardRejected').textContent = c.rejected_suspended;
+            document.getElementById('cardRejectedSub').textContent = `Candidates: ${c.rejected_candidates} · Employers: ${c.rejected_employers + c.suspended_employers}`;
+          }
+        }
+      })
+      .catch(err => console.error('Failed to fetch summary:', err));
+  }
+
+  function fetchTableData(silent = false) {
+    const tbody = document.getElementById('regTableBody');
+    if (!silent) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#64748B;"><i class="ti ti-loader spin-fast" style="font-size:24px; color:#2563EB;"></i><br>Loading registrations...</td></tr>`;
+    }
+
+    let typeFilter = 'all';
+    let statusFilter = 'all';
+
+    if (subType === 'candidates') {
+      typeFilter = 'candidate';
+      if (currentTab === 'pending') statusFilter = 'pending';
+      else if (currentTab === 'approved') statusFilter = 'approved';
+      else if (currentTab === 'rejected') statusFilter = 'rejected';
+      else statusFilter = 'all';
+    } else if (subType === 'employers') {
+      typeFilter = 'employer';
+      if (currentTab === 'pending') statusFilter = 'pending';
+      else if (currentTab === 'approved') statusFilter = 'approved';
+      else if (currentTab === 'rejected') statusFilter = 'rejected_suspended';
+      else statusFilter = 'all';
+    } else if (subType === 'rejected') {
+      statusFilter = 'rejected_suspended';
+      if (currentTab === 'candidates') typeFilter = 'candidate';
+      else if (currentTab === 'employers') typeFilter = 'employer';
+      else typeFilter = 'all';
+    } else {
+      if (currentTab === 'candidates') typeFilter = 'candidate';
+      else if (currentTab === 'employers') typeFilter = 'employer';
+      else if (currentTab === 'pending') statusFilter = 'pending';
+      else if (currentTab === 'approved') statusFilter = 'approved';
+      else if (currentTab === 'rejected') statusFilter = 'rejected_suspended';
+    }
+
+    const q = document.getElementById('regSearchInput').value.trim();
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    const perPage = document.getElementById('perPageSelect').value;
+
+    const queryParams = new URLSearchParams({
+      type: typeFilter,
+      status: statusFilter,
+      q: q,
+      from: fromDate,
+      to: toDate,
+      page: currentPage,
+      per_page: perPage
+    });
+
+    fetch(`/api/admin/registrations/?${queryParams.toString()}`)
+      .then(r => r.json())
+      .then(res => {
+        if (res.status !== 'success') {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#DC2626;">Error: ${res.message || 'Failed to load registrations'}</td></tr>`;
+          return;
+        }
+
+        if (!res.items || res.items.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" style="text-align:center; padding:40px 20px;">
+                <div style="font-size:36px; color:#CBD5E1; margin-bottom:8px;"><i class="ti ti-folder-off"></i></div>
+                <div style="font-weight:700; color:#0F172A; font-size:14px;">No registrations found.</div>
+                <div style="font-size:12px; color:#64748B;">No candidate or employer records match your current filters.</div>
+              </td>
+            </tr>`;
+          updatePagination(0, 1, 10, 1);
+          return;
+        }
+
+        renderTableRows(res.items);
+        updatePagination(res.total_count, res.page, res.per_page, res.total_pages);
+      })
+      .catch(err => {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#DC2626;">Server Connection Error.</td></tr>`;
+      });
+  }
+
+  // Global dictionary to store items by key for safe JS reference
+  window.regItemsStore = {};
+
+  function renderTableRows(items) {
+    const tbody = document.getElementById('regTableBody');
+    window.regItemsStore = {};
+
+    tbody.innerHTML = items.map(it => {
+      const itemKey = `${it.type}_${it.id}`;
+      window.regItemsStore[itemKey] = it;
+
+      const typeBadge = it.type === 'candidate' 
+        ? `<span class="badge-cand"><i class="ti ti-user"></i> Candidate</span>`
+        : `<span class="badge-emp"><i class="ti ti-building"></i> Employer</span>`;
+
+      let statusPill = '';
+      const st = (it.status || '').toLowerCase();
+      if (st === 'pending') statusPill = `<span class="badge-status-pending"><i class="ti ti-clock"></i> Pending</span>`;
+      else if (st === 'approved') statusPill = `<span class="badge-status-approved"><i class="ti ti-check"></i> Approved</span>`;
+      else if (st === 'rejected') statusPill = `<span class="badge-status-rejected"><i class="ti ti-x"></i> Rejected</span>`;
+      else if (st === 'suspended') statusPill = `<span class="badge-status-suspended"><i class="ti ti-ban"></i> Suspended</span>`;
+
+      // Build Three-Dot Menu Options
+      let menuItemsHtml = `
+        <a class="reg-dropdown-item" onclick="openDrawerByKey('${itemKey}'); closeAllRegDropdowns();">
+          <i class="ti ti-file-text" style="color:#2563EB;"></i> View Profile &amp; Documents
+        </a>
+      `;
+
+      if (st === 'pending' || st === 'rejected' || st === 'suspended') {
+        menuItemsHtml += `
+          <a class="reg-dropdown-item text-success" onclick="approveSingle('${it.type}', ${it.id}, this); closeAllRegDropdowns();">
+            <i class="ti ti-check"></i> Approve Registration
+          </a>
+        `;
+      }
+      if (st === 'pending' || st === 'approved') {
+        menuItemsHtml += `
+          <a class="reg-dropdown-item text-danger" onclick="promptSingleReject('${it.type}', ${it.id}); closeAllRegDropdowns();">
+            <i class="ti ti-x"></i> Reject Registration
+          </a>
+        `;
+      }
+      if (it.type === 'employer' && st === 'approved') {
+        menuItemsHtml += `
+          <a class="reg-dropdown-item text-warning" onclick="suspendEmployer(${it.id}); closeAllRegDropdowns();">
+            <i class="ti ti-ban"></i> Suspend Access
+          </a>
+        `;
+      }
+
+      const actionsDropdownHtml = `
+        <div class="reg-action-dropdown-wrap">
+          <button type="button" class="btn-reg-action-dots" title="Actions Menu" onclick="toggleRegDropdown(event, '${itemKey}')">
+            <i class="ti ti-dots-vertical"></i>
+          </button>
+          <div class="reg-dropdown-menu" id="regDropdown_${itemKey}">
+            ${menuItemsHtml}
+          </div>
+        </div>
+      `;
+
+      const displayName = it.type === 'employer' 
+        ? `<div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;" title="${escapeHtml(it.company_name)} (Contact: ${escapeHtml(it.contact_name)})">
+             <strong style="color:#0F172A; font-weight:600; font-size:11px;">${escapeHtml(it.company_name)}</strong>
+             <div style="font-size:9.5px; color:#64748B; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Contact: ${escapeHtml(it.contact_name)}</div>
+           </div>` 
+        : `<div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; font-weight:600; color:#0F172A; font-size:11px;" title="${escapeHtml(it.name)}">
+             ${escapeHtml(it.name)}
+           </div>`;
+
+      let regDateHtml = escapeHtml(it.registered_on);
+      if (it.registered_on && it.registered_on.includes(' ')) {
+        const parts = it.registered_on.split(' ');
+        regDateHtml = `<div style="font-weight:600; font-size:10.5px; color:#1E293B; line-height:1.2;">${escapeHtml(parts[0])}</div><div style="font-size:9.5px; color:#94A3B8; line-height:1.1;">${escapeHtml(parts[1])}</div>`;
+      }
+
+      return `
+        <tr>
+          <td style="text-align:center;"><input type="checkbox" class="row-checkbox" data-type="${it.type}" data-id="${it.id}" onclick="updateBulkSelection()"></td>
+          <td>${typeBadge}</td>
+          <td>${displayName}</td>
+          <td><div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; color:#2563EB; font-size:10.5px; font-weight:500;" title="${escapeHtml(it.email)}">${escapeHtml(it.email)}</div></td>
+          <td><div style="white-space:nowrap; font-size:10.5px; color:#334155; font-weight:500;">${escapeHtml(it.phone)}</div></td>
+          <td><div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; color:#475569; font-size:10.5px;" title="${escapeHtml(it.city_or_industry)}">${escapeHtml(it.city_or_industry)}</div></td>
+          <td>${regDateHtml}</td>
+          <td style="text-align:center;">${statusPill}</td>
+          <td style="text-align:center;">${actionsDropdownHtml}</td>
+        </tr>`;
+    }).join('');
+
+    updateBulkSelection();
+  }
+
+  function toggleRegDropdown(event, itemKey) {
+    event.stopPropagation();
+    const dropdownId = `regDropdown_${itemKey}`;
+    const targetDropdown = document.getElementById(dropdownId);
+    const isCurrentlyShown = targetDropdown && targetDropdown.classList.contains('show');
+
+    closeAllRegDropdowns();
+
+    if (targetDropdown && !isCurrentlyShown) {
+      targetDropdown.classList.add('show');
+    }
+  }
+
+  function closeAllRegDropdowns() {
+    document.querySelectorAll('.reg-dropdown-menu').forEach(menu => menu.classList.remove('show'));
+  }
+
+  document.addEventListener('click', () => {
+    closeAllRegDropdowns();
+  });
+
+  function openDrawerByKey(itemKey) {
+    const item = window.regItemsStore[itemKey];
+    if (item) {
+      openDrawer(item);
+    }
+  }
+
+  function updatePagination(total, page, perPage, totalPages) {
+    currentPage = page;
+    const start = total === 0 ? 0 : (page - 1) * perPage + 1;
+    const end = Math.min(page * perPage, total);
+    document.getElementById('paginationInfo').textContent = `Showing ${start} - ${end} of ${total}`;
+
+    document.getElementById('btnPrevPage').disabled = (page <= 1);
+    document.getElementById('btnNextPage').disabled = (page >= totalPages);
+  }
+
+  function changePage(delta) {
+    currentPage += delta;
+    fetchTableData();
+  }
+
+  /* Single Action Handlers with Anti-Double Click Lock */
+  const activeApprovalRequests = new Set();
+
+  function approveSingle(type, id, btnElem) {
+    const reqKey = `${type}_${id}`;
+    if (activeApprovalRequests.has(reqKey)) {
+      console.warn(`Approval for ${reqKey} is already in progress.`);
+      return;
+    }
+    activeApprovalRequests.add(reqKey);
+
+    let originalHtml = '';
+    if (btnElem) {
+      originalHtml = btnElem.innerHTML;
+      btnElem.disabled = true;
+      btnElem.style.pointerEvents = 'none';
+      btnElem.style.opacity = '0.7';
+      btnElem.innerHTML = `<i class="ti ti-loader spin-fast"></i> Approving...`;
+    }
+
+    const url = type === 'candidate' 
+      ? `/api/admin/candidate-registrations/${id}/approve/`
+      : `/api/admin/employer-registrations/${id}/approve/`;
+
+    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          showToast(res.message, 'success');
+          closeDrawer();
+          fetchSummary();
+          fetchTableData();
+        } else {
+          alert('Error: ' + res.message);
+        }
+      })
+      .catch(err => alert('Failed to process approval.'))
+      .finally(() => {
+        activeApprovalRequests.delete(reqKey);
+        if (btnElem) {
+          btnElem.disabled = false;
+          btnElem.style.pointerEvents = 'auto';
+          btnElem.style.opacity = '1';
+          btnElem.innerHTML = originalHtml;
+        }
+      });
+  }
+
+  function promptSingleReject(type, id) {
+    currentTarget = { type, id };
+    isBulkReject = false;
+    document.getElementById('rejectionReasonInput').value = '';
+    document.getElementById('rejectModal').style.display = 'flex';
+  }
+
+  function suspendEmployer(id) {
+    const reason = prompt("Enter suspension reason for this employer account:");
+    if (!reason || !reason.trim()) return;
+
+    fetch(`/api/admin/employer-registrations/${id}/suspend/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ reason: reason.trim() })
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        showToast(res.message, 'success');
+        closeDrawer();
+        fetchSummary();
+        fetchTableData();
+      } else {
+        alert('Error: ' + res.message);
+      }
+    });
+  }
+
+  function submitRejection() {
+    const reason = document.getElementById('rejectionReasonInput').value.trim();
+    if (!reason) {
+      alert("Rejection reason is mandatory.");
+      return;
+    }
+
+    if (isBulkReject) {
+      executeBulkAction('reject', reason);
+      closeRejectModal();
+      return;
+    }
+
+    if (!currentTarget) return;
+
+    const url = currentTarget.type === 'candidate'
+      ? `/api/admin/candidate-registrations/${currentTarget.id}/reject/`
+      : `/api/admin/employer-registrations/${currentTarget.id}/reject/`;
+
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ reason: reason })
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        showToast(res.message, 'success');
+        closeRejectModal();
+        closeDrawer();
+        fetchSummary();
+        fetchTableData();
+      } else {
+        alert('Error: ' + res.message);
+      }
+    });
+  }
+
+  function closeRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+    currentTarget = null;
+  }
+
+  /* Bulk Actions Logic */
+  function toggleSelectAll(masterCb) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = masterCb.checked);
+    updateBulkSelection();
+  }
+
+  function updateBulkSelection() {
+    const selected = document.querySelectorAll('.row-checkbox:checked');
+    const bar = document.getElementById('bulkActionBar');
+    document.getElementById('selectedCount').textContent = selected.length;
+    bar.style.display = selected.length > 0 ? 'flex' : 'none';
+  }
+
+  function executeBulkAction(action, reason = '') {
+    const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => ({
+      type: cb.dataset.type,
+      id: parseInt(cb.dataset.id, 10)
+    }));
+
+    if (selected.length === 0) return;
+
+    fetch('/api/admin/registrations/bulk-action/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ action, items: selected, reason })
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        showToast(res.message, 'success');
+        document.getElementById('selectAllCheckbox').checked = false;
+        fetchSummary();
+        fetchTableData();
+      } else {
+        alert('Error: ' + res.message);
+      }
+    });
+  }
+
+  function promptBulkReject() {
+    isBulkReject = true;
+    document.getElementById('rejectionReasonInput').value = '';
+    document.getElementById('rejectModal').style.display = 'flex';
+  }
+
+  /* Drawer Details View */
+  function openDrawer(item) {
+    const d = item.detail;
+    document.getElementById('drawerTitle').textContent = item.type === 'candidate' ? item.name : item.company_name;
+    document.getElementById('drawerSub').textContent = item.type === 'candidate' ? `Candidate Account #${item.id}` : `Employer Account #${item.id}`;
+
+    let contentHtml = '';
+    if (item.type === 'candidate') {
+      const resumeUrl = d.resume ? `/media/uploads/resumes/${d.resume}` : null;
+
+      contentHtml = `
+        <div class="detail-row"><span class="detail-lbl">ACCOUNT TYPE</span><span class="detail-val"><span class="badge-cand">Candidate</span></span></div>
+        <div class="detail-row"><span class="detail-lbl">FULL NAME</span><span class="detail-val">${escapeHtml(d.full_name)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">EMAIL ADDRESS</span><span class="detail-val">${escapeHtml(d.email)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">PHONE NUMBER</span><span class="detail-val">${escapeHtml(d.phone)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">LOCATION</span><span class="detail-val">${escapeHtml(d.city || 'N/A')}, ${escapeHtml(d.state || 'N/A')}</span></div>
+        <div class="detail-row"><span class="detail-lbl">QUALIFICATION</span><span class="detail-val">${escapeHtml(d.qualification || 'N/A')}</span></div>
+        <div class="detail-row"><span class="detail-lbl">EXPERIENCE</span><span class="detail-val">${d.experience || 0} years</span></div>
+        <div class="detail-row"><span class="detail-lbl">SKILLS</span><span class="detail-val">${escapeHtml(d.skills || 'N/A')}</span></div>
+        <div class="detail-row"><span class="detail-lbl">REGISTERED ON</span><span class="detail-val">${escapeHtml(d.created_at)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">APPROVAL STATUS</span><span class="detail-val">${escapeHtml(d.approval_status).toUpperCase()}</span></div>
+        ${d.rejection_reason ? `<div class="detail-row" style="background:#FEE2E2; padding:8px; border-radius:6px;"><span class="detail-lbl" style="color:#DC2626;">REJECTION REASON</span><span class="detail-val" style="color:#DC2626;">${escapeHtml(d.rejection_reason)}</span></div>` : ''}
+        <div class="detail-row">
+          <span class="detail-lbl">RESUME DOCUMENT</span>
+          <span class="detail-val">
+            ${resumeUrl ? `<a href="${resumeUrl}" target="_blank" class="btn-admin btn-admin-secondary" style="font-size:11px; padding:4px 8px; display:inline-flex; align-items:center; gap:4px; margin-top:4px;"><i class="ti ti-file-text"></i> View Resume</a>` : '<span style="color:#94A3B8;">No resume uploaded</span>'}
+          </span>
+        </div>`;
+    } else {
+      const docUrl = d.document ? `/media/uploads/company_documents/${d.document}` : null;
+
+      contentHtml = `
+        <div class="detail-row"><span class="detail-lbl">ACCOUNT TYPE</span><span class="detail-val"><span class="badge-emp">Employer</span></span></div>
+        <div class="detail-row"><span class="detail-lbl">COMPANY NAME</span><span class="detail-val">${escapeHtml(d.company_name)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">CONTACT PERSON</span><span class="detail-val">${escapeHtml(d.contact_name)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">EMAIL ADDRESS</span><span class="detail-val">${escapeHtml(d.email)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">PHONE NUMBER</span><span class="detail-val">${escapeHtml(d.phone)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">INDUSTRY</span><span class="detail-val">${escapeHtml(d.industry || 'N/A')}</span></div>
+        <div class="detail-row"><span class="detail-lbl">COMPANY SIZE</span><span class="detail-val">${escapeHtml(d.company_size || 'N/A')}</span></div>
+        <div class="detail-row"><span class="detail-lbl">LOCATION</span><span class="detail-val">${escapeHtml(d.city || 'N/A')}, ${escapeHtml(d.state || 'N/A')}</span></div>
+        <div class="detail-row"><span class="detail-lbl">GST / REG NO</span><span class="detail-val">${escapeHtml(d.gst_number || 'N/A')}</span></div>
+        <div class="detail-row"><span class="detail-lbl">WEBSITE</span><span class="detail-val">${d.website ? `<a href="${escapeHtml(d.website)}" target="_blank" style="color:#2563EB;">${escapeHtml(d.website)}</a>` : 'N/A'}</span></div>
+        <div class="detail-row"><span class="detail-lbl">REGISTERED ON</span><span class="detail-val">${escapeHtml(d.created_at)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">ACCOUNT STATUS</span><span class="detail-val">${escapeHtml(d.status)}</span></div>
+        ${d.approved_at ? `<div class="detail-row"><span class="detail-lbl">APPROVED AT</span><span class="detail-val">${escapeHtml(d.approved_at)}</span></div>` : ''}
+        ${d.rejection_reason ? `<div class="detail-row" style="background:#FEE2E2; padding:8px; border-radius:6px;"><span class="detail-lbl" style="color:#DC2626;">REJECTION / SUSPENSION REASON</span><span class="detail-val" style="color:#DC2626;">${escapeHtml(d.rejection_reason)}</span></div>` : ''}
+        <div class="detail-row">
+          <span class="detail-lbl">COMPANY DOCUMENTS</span>
+          <span class="detail-val">
+            ${docUrl ? `<a href="${docUrl}" target="_blank" class="btn-admin btn-admin-secondary" style="font-size:11px; padding:4px 8px; display:inline-flex; align-items:center; gap:4px; margin-top:4px;"><i class="ti ti-file-certificate"></i> View Document</a>` : '<span style="color:#94A3B8;">No document uploaded</span>'}
+          </span>
+        </div>`;
+    }
+
+    document.getElementById('drawerBody').innerHTML = contentHtml;
+
+    // Drawer footer action buttons
+    const st = (item.status || '').toLowerCase();
+    let footerBtns = `<button type="button" class="btn-admin btn-admin-secondary" style="background:#FFFFFF !important; color:#475569 !important; border:1px solid #CBD5E1 !important; padding:8px 18px !important; border-radius:7px !important; font-weight:600 !important; font-size:12.5px !important; cursor:pointer !important;" onclick="closeDrawer()">Close</button>`;
+
+    if (st === 'pending' || st === 'rejected' || st === 'suspended') {
+      footerBtns += `<button type="button" class="btn-admin btn-admin-success" style="background:#16A34A !important; color:#FFFFFF !important; border:1px solid #16A34A !important; padding:8px 18px !important; border-radius:7px !important; font-weight:700 !important; font-size:12.5px !important; cursor:pointer !important; display:inline-flex !important; align-items:center !important; gap:6px !important; box-shadow:0 2px 4px rgba(22,163,74,0.3) !important;" onclick="approveSingle('${item.type}', ${item.id}, this)"><i class="ti ti-check" style="font-size:14px; font-weight:bold;"></i> Approve</button>`;
+    }
+    if (st === 'pending' || st === 'approved') {
+      footerBtns += `<button type="button" class="btn-admin btn-admin-danger" style="background:#DC2626 !important; color:#FFFFFF !important; border:1px solid #DC2626 !important; padding:8px 18px !important; border-radius:7px !important; font-weight:700 !important; font-size:12.5px !important; cursor:pointer !important; display:inline-flex !important; align-items:center !important; gap:6px !important; box-shadow:0 2px 4px rgba(220,38,38,0.3) !important;" onclick="promptSingleReject('${item.type}', ${item.id})"><i class="ti ti-x" style="font-size:14px; font-weight:bold;"></i> Reject</button>`;
+    }
+    if (item.type === 'employer' && st === 'approved') {
+      footerBtns += `<button type="button" class="btn-admin btn-admin-secondary" style="background:#FEF2F2 !important; color:#DC2626 !important; border:1px solid #FECACA !important; padding:8px 18px !important; border-radius:7px !important; font-weight:700 !important; font-size:12.5px !important; cursor:pointer !important; display:inline-flex !important; align-items:center !important; gap:6px !important;" onclick="suspendEmployer(${item.id})"><i class="ti ti-ban" style="font-size:14px;"></i> Suspend</button>`;
+    }
+
+    document.getElementById('drawerFooter').innerHTML = footerBtns;
+
+    document.getElementById('drawerOverlay').style.display = 'block';
+    document.getElementById('drawerPanel').classList.add('open');
+  }
+
+  function closeDrawer() {
+    document.getElementById('drawerPanel').classList.remove('open');
+    document.getElementById('drawerOverlay').style.display = 'none';
+  }
+
+  function exportRegistrationsCSV() {
+    let typeFilter = 'all';
+    let statusFilter = 'all';
+    if (currentTab === 'candidates') typeFilter = 'candidate';
+    else if (currentTab === 'employers') typeFilter = 'employer';
+    else if (currentTab === 'pending') statusFilter = 'pending';
+    else if (currentTab === 'approved') statusFilter = 'approved';
+    else if (currentTab === 'rejected') statusFilter = 'rejected';
+
+    window.location.href = `/api/admin/registrations/export/?type=${typeFilter}&status=${statusFilter}`;
+  }
+
+  /* Utility functions */
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function showToast(msg, type = 'success') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `position:fixed; top:20px; right:20px; background:${type === 'success' ? '#10B981' : '#EF4444'}; color:#FFF; padding:12px 20px; border-radius:8px; font-size:13px; font-weight:600; box-shadow:0 10px 20px rgba(0,0,0,0.15); z-index:9999; transition:all 0.3s ease;`;
+    toast.innerHTML = `<i class="ti ti-${type === 'success' ? 'circle-check' : 'alert-circle'}"></i> ${msg}`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+  }
+</script>
+{% endblock %}

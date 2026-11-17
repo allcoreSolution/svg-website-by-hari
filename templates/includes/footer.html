@@ -1,0 +1,155 @@
+{% load static %}
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-container">
+
+    <div class="footer-col footer-about">
+      <a href="{% url 'core:home' %}" class="logo footer-logo">
+        {% if site and site.footer_logo %}
+          <img src="{{ site.footer_logo.url }}" alt="{{ site.logo_alt_text|default:'Sky Vision Group Consultancy Logo' }}">
+        {% elif site and site.header_logo %}
+          <img src="{{ site.header_logo.url }}" alt="{{ site.logo_alt_text|default:'Sky Vision Group Consultancy Logo' }}">
+        {% else %}
+          <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy Logo">
+        {% endif %}
+      </a>
+      <p>{{ site.footer_about|default:"Delivering excellence through personalized service and innovative solutions — bespoke recruitment, HR and consultancy that helps businesses and individuals grow with confidence." }}</p>
+      <div class="footer-socials">
+        {% for soc in social_links %}
+          {% if soc.is_enabled and soc.url %}
+          <a href="{{ soc.url }}" aria-label="{{ soc.get_platform_display }}" target="_blank" rel="noopener"><i class="{{ soc.icon_class }}"></i></a>
+          {% endif %}
+        {% empty %}
+          <a href="https://www.facebook.com/share/197C5xryds/" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://www.instagram.com/skyvisiongroupconsultancy?igsh=NGpkb2NnZ2hhM21k" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+          <a href="https://www.linkedin.com/company/skyvisiongroup/" target="_blank" rel="noopener"><i class="fab fa-linkedin-in"></i></a>
+          <a href="https://youtube.com/@skyvisiongroupconsultancy?si=-b8dk8MV6SzJfhM1" target="_blank" rel="noopener"><i class="fab fa-youtube"></i></a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if footer_columns %}
+      {% for col in footer_columns %}
+      <div class="footer-col">
+        <h4>{{ col.title }}</h4>
+        <ul>
+          {% for link in col.links.all %}
+            {% if link.is_visible %}
+            <li><a href="{{ link.url }}" {% if link.new_tab %}target="_blank" rel="noopener"{% endif %}>{{ link.label }}</a></li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="{% url 'core:home' %}">Home</a></li>
+          <li><a href="{% url 'core:about' %}">About Us</a></li>
+          <li><a href="{% url 'core:services' %}">Services</a></li>
+          <li><a href="{% url 'core:internship' %}">Internship</a></li>
+          <li><a href="{% url 'core:jobs' %}">Jobs</a></li>
+          <li><a href="{% url 'core:gallery' %}">Gallery</a></li>
+        </ul>
+      </div>
+    {% endif %}
+
+    {% if footer_services %}
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        {% for srv in footer_services %}
+          <li><a href="{{ srv.url }}">{{ srv.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% else %}
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="{% url 'core:manpower_supply' %}">Manpower Supply</a></li>
+        <li><a href="{% url 'core:recruitment_placement' %}">Recruitment &amp; Placement</a></li>
+        <li><a href="{% url 'core:contract_staffing' %}">Contract Staffing</a></li>
+        <li><a href="{% url 'core:educational_consultancy' %}">Educational Consultancy</a></li>
+        <li><a href="{% url 'core:payroll_outsourcing' %}">Payroll &amp; Outsourcing</a></li>
+        <li><a href="{% url 'core:hr_support' %}">HR Support</a></li>
+        <li><a href="{% url 'core:internship' %}">Internship Programme</a></li>
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="footer-col">
+      <h4>Get In Touch</h4>
+      {% if site and site.office_address %}
+      <div class="footer-info"><i class="fa-solid fa-location-dot"></i><span>{{ site.office_address }}</span></div>
+      {% else %}
+      <div class="footer-info"><i class="fa-solid fa-location-dot"></i><span>12/2 Arvindo Park Road, Sector 12, Indira Nagar, Lucknow, UP</span></div>
+      {% endif %}
+
+      {% if site and site.office_email %}
+      <div class="footer-info"><i class="fa-solid fa-envelope"></i><a href="mailto:{{ site.office_email }}" style="color:inherit; text-decoration:none;"><span>{{ site.office_email }}</span></a></div>
+      {% else %}
+      <div class="footer-info"><i class="fa-solid fa-envelope"></i><span>info@skyvisiongroup.in</span></div>
+      {% endif %}
+
+      {% if site and site.office_phone_1 %}
+      <div class="footer-info"><i class="fa-solid fa-phone"></i><a href="tel:{{ site.office_phone_1 }}" style="color:inherit; text-decoration:none;"><span>{{ site.office_phone_1 }}</span></a></div>
+      {% else %}
+      <div class="footer-info"><i class="fa-solid fa-phone"></i><span>+91 7068115299</span></div>
+      {% endif %}
+
+      {% if site and site.office_phone_2 %}
+      <div class="footer-info"><i class="fa-solid fa-phone"></i><a href="tel:{{ site.office_phone_2 }}" style="color:inherit; text-decoration:none;"><span>{{ site.office_phone_2 }}</span></a></div>
+      {% else %}
+      <div class="footer-info"><i class="fa-solid fa-phone"></i><span>+91 9532625299</span></div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <div class="copyright">{{ site.copyright_text|default:"© 2026 Sky Vision Group Consultancy. All rights reserved." }}</div>
+    <div class="footer-policy">
+      <a href="{{ site.privacy_policy_url|default:'#' }}">Privacy Policy</a><span>|</span><a href="{{ site.terms_url|default:'#' }}">Terms &amp; Conditions</a>
+    </div>
+    <div class="footer-credit">{{ site.footer_credit|default:"Designed with ❤️ by Allcore Solution" }}</div>
+  </div>
+
+  <a href="#" class="scroll-top sv-scroll-top" id="scrollTop" aria-label="Scroll to top"><i class="fas fa-arrow-up"></i></a>
+</footer>
+
+<!-- ============ FLOATING CONTACT BUTTONS ============ -->
+{% if not site or site.show_floating_buttons %}
+<div class="floating-contact-buttons" id="floatingContactButtons">
+  {% if site and site.floating_call_number %}
+  <a href="tel:{{ site.floating_call_number }}" class="fcb-btn fcb-call" aria-label="Call Us">
+    <span class="fcb-pulse" aria-hidden="true"></span>
+    <i class="fas fa-phone-alt" aria-hidden="true"></i>
+    <span class="fcb-tooltip">Call Us</span>
+  </a>
+  {% else %}
+  <a href="tel:+917068115299" class="fcb-btn fcb-call" aria-label="Call Us">
+    <span class="fcb-pulse" aria-hidden="true"></span>
+    <i class="fas fa-phone-alt" aria-hidden="true"></i>
+    <span class="fcb-tooltip">Call Us</span>
+  </a>
+  {% endif %}
+
+  {% if site and site.floating_whatsapp_url %}
+  <a href="{{ site.floating_whatsapp_url }}" target="_blank" rel="noopener noreferrer" class="fcb-btn fcb-whatsapp"
+    aria-label="Chat on WhatsApp">
+    <span class="fcb-pulse" aria-hidden="true"></span>
+    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+    <span class="fcb-tooltip">Chat on WhatsApp</span>
+  </a>
+  {% else %}
+  <a href="https://whatsapp.com/channel/0029VamiX875K3zaWy6ysU31" target="_blank" rel="noopener noreferrer" class="fcb-btn fcb-whatsapp"
+    aria-label="Chat on WhatsApp">
+    <span class="fcb-pulse" aria-hidden="true"></span>
+    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+    <span class="fcb-tooltip">Chat on WhatsApp</span>
+  </a>
+  {% endif %}
+</div>
+{% endif %}

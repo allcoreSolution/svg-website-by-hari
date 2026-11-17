@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ intern_settings.meta_title|default:"Internship Programme — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/internship.css' %}?v=3.6">
+  <style>
+    /* Enhanced FAQ Accordion Styling */
+    .faq-item {
+      cursor: pointer;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+    }
+    .faq-item:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+    }
+    .faq-item .faq-q {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: transparent;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      text-align: left;
+      cursor: pointer;
+      gap: 12px;
+    }
+    .faq-item .faq-q .plus {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 13px;
+      transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+    }
+    .faq-item.active {
+      border-color: #2563eb !important;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
+    }
+    .faq-item.active .faq-q {
+      color: #2563eb;
+    }
+    .faq-item.active .faq-q .plus {
+      transform: rotate(45deg) !important;
+      background: #2563eb !important;
+      color: #ffffff !important;
+    }
+    .faq-item .faq-a {
+      display: none !important;
+      padding: 0 20px 18px 20px !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    .faq-item.active .faq-a {
+      display: block !important;
+      animation: faqFadeIn 0.25s ease-out;
+    }
+    .faq-item .faq-a p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #475569;
+    }
+    @keyframes faqFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Button styles */
+    .hero-actions .btn, .cta-actions .btn {
+      cursor: pointer;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  {% if intern_settings.hero_visible %}
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="stars"></div>
+    <div class="wrap">
+      <div class="breadcrumb">
+        <a href="{% url 'core:home' %}">Home</a>
+        <i class="fa-solid fa-chevron-right"></i>
+        <a href="{% url 'core:services' %}">Services</a>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>{{ intern_settings.hero_eyebrow|default:"Internship Programme" }}</span>
+      </div>
+      <div class="hero-grid">
+        <div>
+          <span class="chip"><i class="fa-solid fa-rocket"></i> {{ intern_settings.hero_eyebrow|default:"Internship Programme" }}</span>
+          <h1>{{ intern_settings.formatted_hero_title|safe }}</h1>
+          {% if intern_settings.hero_tagline %}
+          <p class="tagline">{{ intern_settings.hero_tagline }}</p>
+          {% endif %}
+          {% if intern_settings.hero_subtitle %}
+          <p class="lead">{{ intern_settings.hero_subtitle }}</p>
+          {% endif %}
+          <div class="hero-actions">
+            {% if intern_settings.hero_primary_btn_text %}
+            <a href="{{ intern_settings.hero_primary_btn_url|default:'#contact' }}" class="btn btn-primary">{{ intern_settings.hero_primary_btn_text }} <i class="fa-solid fa-arrow-right"></i></a>
+            {% endif %}
+            {% if intern_settings.hero_secondary_btn_text %}
+            <a href="{{ intern_settings.hero_secondary_btn_url|default:'#process' }}" class="btn btn-outline">{{ intern_settings.hero_secondary_btn_text }}</a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="{{ intern_settings.get_hero_image }}" alt="Interns collaborating">
+          {% if intern_settings.hero_badge_text %}
+          <div class="hero-badge"><i class="fa-solid fa-rocket"></i> {{ intern_settings.hero_badge_text }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% if intern_settings.strip_visible and intern_strip_items %}
+    <div class="strip">
+      <div class="wrap strip-grid">
+        {% for item in intern_strip_items %}
+        <div class="strip-item"><i class="{{ item.icon_class|default:'fa-solid fa-circle-check' }}"></i><span>{{ item.title }}</span></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if intern_settings.domains_visible or intern_settings.highlights_visible %}
+  <!-- ============ DOMAINS & HIGHLIGHTS ============ -->
+  <section class="section domains-wrap">
+    <div class="wrap">
+      {% if intern_settings.domains_visible %}
+      <div class="section-head">
+        <span class="tag" style="justify-content:center">{{ intern_settings.domains_tag|default:"Explore" }}</span>
+        <h2>{{ intern_settings.domains_title|default:"Pick your mission" }}</h2>
+        {% if intern_settings.domains_subtitle %}
+        <p>{{ intern_settings.domains_subtitle }}</p>
+        {% endif %}
+      </div>
+      <div class="domain-grid">
+        {% for track in intern_tracks %}
+        <div class="domain-card {{ track.card_style|default:'d1' }}" data-n="{{ track.badge_number|default:forloop.counter }}">
+          <i class="{{ track.icon_class|default:'fa-solid fa-user-group' }}"></i>
+          <h4>{{ track.title }}</h4>
+          <p>{{ track.description }}</p>
+        </div>
+        {% empty %}
+        <div class="domain-card d1" data-n="01"><i class="fa-solid fa-user-group"></i>
+          <h4>HR Internship</h4>
+          <p>Recruitment, talent acquisition, employee management and HR operations.</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if intern_settings.highlights_visible %}
+      <div class="highlights-panel">
+        <span class="tag">{{ intern_settings.highlights_tag|default:"Programme Highlights" }}</span>
+        <div class="hl-grid">
+          {% for hl in intern_highlights %}
+          <div class="hl-item"><i class="{{ hl.icon_class|default:'fa-solid fa-circle-check' }}"></i>{{ hl.title }}</div>
+          {% empty %}
+          <div class="hl-item"><i class="fa-solid fa-circle-check"></i>Duration: 1–6 months</div>
+          <div class="hl-item"><i class="fa-solid fa-circle-check"></i>Flexible timings</div>
+          <div class="hl-item"><i class="fa-solid fa-circle-check"></i>Online &amp; offline training</div>
+          <div class="hl-item"><i class="fa-solid fa-circle-check"></i>Placement support</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if intern_settings.who_can_apply_visible or intern_settings.what_you_learn_visible or intern_settings.process_visible %}
+  <!-- ============ WHO / LEARN / PROCESS ============ -->
+  <section class="section panel-bg" id="process">
+    <div class="wrap triple">
+      {% if intern_settings.who_can_apply_visible %}
+      <div class="panel-box">
+        <h3><i class="fa-solid fa-users" style="color:var(--indigo);margin-right:8px"></i>{{ intern_settings.who_can_apply_title|default:"Who Can Apply?" }}</h3>
+        <ul class="check-list">
+          {% for w in intern_who_can_apply %}
+          <li><i class="{{ w.icon_class|default:'fa-solid fa-circle-check' }}"></i> {{ w.title }}</li>
+          {% empty %}
+          <li><i class="fa-solid fa-circle-check"></i> College Students</li>
+          <li><i class="fa-solid fa-circle-check"></i> Fresh Graduates</li>
+          <li><i class="fa-solid fa-circle-check"></i> Job Seekers</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if intern_settings.what_you_learn_visible %}
+      <div class="panel-box">
+        <h3><i class="fa-solid fa-graduation-cap" style="color:var(--indigo);margin-right:8px"></i>{{ intern_settings.what_you_learn_title|default:"What You'll Learn" }}</h3>
+        <ul class="check-list">
+          {% for l in intern_what_you_learn %}
+          <li><i class="{{ l.icon_class|default:'fa-solid fa-circle-check' }}"></i> {{ l.title }}</li>
+          {% empty %}
+          <li><i class="fa-solid fa-circle-check"></i> Professional Communication</li>
+          <li><i class="fa-solid fa-circle-check"></i> Industry Tools &amp; Software</li>
+          <li><i class="fa-solid fa-circle-check"></i> Project Execution</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if intern_settings.process_visible %}
+      <div class="flight-panel">
+        <span class="tag">{{ intern_settings.process_tag|default:"Flight Path" }}</span>
+        <h3 style="color:#fff;font-size:15.5px;margin-bottom:22px">{{ intern_settings.process_title|default:"Our Internship Process" }}</h3>
+        <div class="flight-track">
+          {% for step in intern_process_steps %}
+          <div class="fstep {% if step.is_final %}final{% endif %}">
+            <span class="dot"><i class="{{ step.icon_class|default:'fa-solid fa-file-signature' }}"></i></span>
+            <div>
+              <b>{{ step.step_number }}</b>
+              <p>{{ step.title }}</p>
+            </div>
+          </div>
+          {% empty %}
+          <div class="fstep"><span class="dot"><i class="fa-solid fa-file-signature"></i></span><div><b>Step 1</b><p>Submit Application</p></div></div>
+          <div class="fstep final"><span class="dot"><i class="fa-solid fa-award"></i></span><div><b>Step 6 – Touchdown</b><p>Certificate &amp; Placement Support</p></div></div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if intern_settings.benefits_visible or intern_settings.faqs_visible %}
+  <!-- ============ BENEFITS + FAQ ============ -->
+  <section class="section" style="background:#fff">
+    <div class="wrap split2">
+      {% if intern_settings.benefits_visible %}
+      <div>
+        <span class="tag">{{ intern_settings.benefits_tag|default:"Benefits of Joining" }}</span>
+        <h2 style="font-size:22px;margin-bottom:24px">{{ intern_settings.benefits_title|default:"Why interns choose us" }}</h2>
+        <div class="benefit-grid">
+          {% for b in intern_benefits %}
+          <div class="benefit-item"><i class="{{ b.icon_class|default:'fa-solid fa-chart-line' }}"></i><span>{{ b.title }}</span></div>
+          {% empty %}
+          <div class="benefit-item"><i class="fa-solid fa-chart-line"></i><span>Industry Exposure</span></div>
+          <div class="benefit-item"><i class="fa-solid fa-certificate"></i><span>Professional Certificate</span></div>
+          <div class="benefit-item"><i class="fa-solid fa-handshake"></i><span>Placement Assistance</span></div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if intern_settings.faqs_visible %}
+      <div>
+        <span class="tag">{{ intern_settings.faqs_tag|default:"FAQs" }}</span>
+        <h2 style="font-size:22px;margin-bottom:24px">{{ intern_settings.faqs_title|default:"Common questions" }}</h2>
+        <div class="faq-list">
+          {% for faq in intern_faqs %}
+          <div class="faq-item">
+            <button type="button" class="faq-q">
+              <span>{{ faq.question }}</span>
+              <span class="plus"><i class="fa-solid fa-plus"></i></span>
+            </button>
+            <div class="faq-a">
+              <p>{{ faq.answer }}</p>
+            </div>
+          </div>
+          {% empty %}
+          <div class="faq-item">
+            <button type="button" class="faq-q"><span>Is this internship paid?</span> <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+            <div class="faq-a"><p>Both paid and unpaid internships are available depending on domain and project.</p></div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if intern_settings.openings_visible %}
+  <!-- ============ OPEN INTERNSHIPS LIST ============ -->
+  <section class="section" id="open-internships" style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:60px 0;">
+    <div class="wrap">
+      <div class="section-head" style="text-align:center; margin-bottom:40px;">
+        <span class="tag" style="justify-content:center">{{ intern_settings.openings_tag|default:"Live Openings" }}</span>
+        <h2>{{ intern_settings.openings_title|default:"Available Internship Positions" }}</h2>
+        {% if intern_settings.openings_subtitle %}
+        <p>{{ intern_settings.openings_subtitle }}</p>
+        {% endif %}
+      </div>
+
+      <div id="publicInternshipsContainer" class="open-internships-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:24px;">
+        {% if open_internships %}
+          {% for item in open_internships %}
+          <div class="internship-open-card" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:14px; padding:24px; box-shadow:0 4px 12px rgba(15,23,42,0.05); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <span style="font-size:11px; font-weight:700; text-transform:uppercase; background:#eff6ff; color:#2563eb; padding:4px 10px; border-radius:20px;">
+                  {{ item.mode }}
+                </span>
+                <span style="font-size:12px; font-weight:600; color:#16a34a; background:#dcfce7; padding:3px 8px; border-radius:12px;">
+                  {{ item.seats }} Available Seats
+                </span>
+              </div>
+              <h3 style="font-size:18px; font-weight:700; color:#0f172a; margin:0 0 8px 0;">{{ item.title }}</h3>
+              <div style="font-size:13px; color:#64748b; margin-bottom:14px;">
+                <i class="fa-solid fa-building" style="color:#4650d6; margin-right:4px;"></i> {{ item.provider.name|default:"Sky Vision Group" }}
+                <span style="margin:0 6px;">•</span>
+                <i class="fa-solid fa-clock" style="color:#4650d6; margin-right:4px;"></i> {{ item.duration }}
+              </div>
+              {% if item.stipend %}
+              <div style="font-size:13px; font-weight:600; color:#059669; margin-bottom:12px;">
+                <i class="fa-solid fa-coins"></i> Stipend: {{ item.stipend }}
+              </div>
+              {% endif %}
+              {% if item.skills_required %}
+              <div style="font-size:12.5px; color:#334155; background:#f8fafc; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:16px;">
+                <strong>Skills:</strong> {{ item.skills_required }}
+              </div>
+              {% endif %}
+            </div>
+            <div style="margin-top:16px; padding-top:12px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:12px; color:#94a3b8;">{{ item.location|default:"Lucknow / Remote" }}</span>
+              <button type="button" class="btn btn-primary btn-apply-public-modal" data-id="{{ item.id }}" data-title="{{ item.title }}" style="padding:8px 18px; font-size:13px; border-radius:8px; cursor:pointer;">
+                Apply Now <i class="fa-solid fa-paper-plane" style="margin-left:4px;"></i>
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="grid-column:1/-1; text-align:center; padding:40px; background:#ffffff; border-radius:12px; border:1px dashed #cbd5e1; color:#64748b;">
+            <i class="fa-solid fa-briefcase" style="font-size:32px; color:#94a3b8; margin-bottom:10px;"></i>
+            <p style="margin:0;">No specific open vacancies posted right now. Submit a general application below!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if intern_settings.cta_visible %}
+  <!-- ============ CTA ============ -->
+  <section class="cta" id="contact">
+    <div class="cta-inner">
+      <div>
+        <h2>{{ intern_settings.formatted_cta_title|safe }}</h2>
+        {% if intern_settings.cta_subtitle %}
+        <p>{{ intern_settings.cta_subtitle }}</p>
+        {% endif %}
+      </div>
+      <div class="cta-actions">
+        {% if intern_settings.cta_primary_btn_text %}
+        <button type="button" class="btn btn-primary btn-apply-public-modal" data-id="" data-title="General Internship Programme">
+          {{ intern_settings.cta_primary_btn_text }} <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        {% endif %}
+        {% if intern_settings.cta_secondary_btn_text %}
+        <a href="{{ intern_settings.cta_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ intern_settings.cta_secondary_btn_text }} <i class="fa-solid fa-phone"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- PUBLIC APPLICATION MODAL -->
+  <div id="publicApplyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); z-index:99999; justify-content:center; align-items:center; padding:16px;">
+    <div style="background:#ffffff; border-radius:16px; width:100%; max-width:560px; padding:28px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); position:relative; max-height:90vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:16px; margin-bottom:20px;">
+        <h3 style="font-size:18px; font-weight:700; color:#0f172a; margin:0;" id="publicApplyModalTitle">Apply for Internship</h3>
+        <button type="button" id="closePublicApplyModal" style="background:none; border:none; font-size:20px; color:#64748b; cursor:pointer; padding:4px;">&times;</button>
+      </div>
+
+      <form id="publicApplyForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="internship_id" id="applyModalInternshipId" value="">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+          <div>
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Full Name *</label>
+            <input type="text" name="name" required placeholder="e.g. Rahul Sharma" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;">
+          </div>
+          <div>
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Email Address *</label>
+            <input type="email" name="email" required placeholder="e.g. rahul@example.com" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;">
+          </div>
+          <div>
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Phone Number *</label>
+            <input type="tel" name="phone" required placeholder="e.g. 9876543210" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;">
+          </div>
+          <div>
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">City / Current Location</label>
+            <input type="text" name="city" placeholder="e.g. Lucknow" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;">
+          </div>
+          <div>
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">College / Institute</label>
+            <input type="text" name="college" placeholder="e.g. Lucknow University" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;">
+          </div>
+          <div>
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Course / Stream</label>
+            <input type="text" name="course_stream" placeholder="e.g. B.Tech CS / BCA / MBA" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;">
+          </div>
+          <div style="grid-column: span 2;">
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Key Skills</label>
+            <input type="text" name="skills" placeholder="e.g. Python, Communication, MS Excel" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;">
+          </div>
+          <div style="grid-column: span 2;">
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Upload Resume (PDF/DOC, Max 5 MB)</label>
+            <input type="file" name="resume" accept=".pdf,.doc,.docx" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px; background:#f8fafc;">
+          </div>
+          <div style="grid-column: span 2;">
+            <label style="font-size:12.5px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Cover Note / Message</label>
+            <textarea name="message" rows="3" placeholder="Tell us why you're interested in this internship..." style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;"></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #e2e8f0; padding-top:16px;">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('publicApplyModal').style.display='none';">Cancel</button>
+          <button type="submit" id="btnSubmitPublicApply" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const applyModal = document.getElementById('publicApplyModal');
+  const closeModalBtn = document.getElementById('closePublicApplyModal');
+  const applyForm = document.getElementById('publicApplyForm');
+  const modalTitle = document.getElementById('publicApplyModalTitle');
+
+  // FAQ Accordion Toggle - Single authoritative click handler
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const qBtn = item.querySelector('.faq-q');
+    if (!qBtn) return;
+    qBtn.dataset.faqBound = "true";
+    qBtn.dataset.faqAttached = "true"; // Prevent script.js duplicate attachment
+
+    const toggleFaq = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isActive = item.classList.contains('active');
+      document.querySelectorAll('.faq-item').forEach(other => {
+        if (other !== item) other.classList.remove('active');
+      });
+      if (isActive) {
+        item.classList.remove('active');
+      } else {
+        item.classList.add('active');
+      }
+    };
+
+    qBtn.addEventListener('click', toggleFaq);
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.faq-a')) return;
+      if (!e.target.closest('.faq-q')) {
+        toggleFaq(e);
+      }
+    });
+  });
+
+  // Open Modal Handler
+  document.querySelectorAll('.btn-apply-public-modal').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const title = btn.getAttribute('data-title') || 'Internship';
+      document.getElementById('applyModalInternshipId').value = id || '';
+      if (modalTitle) modalTitle.textContent = `Apply for ${title}`;
+      if (applyModal) applyModal.style.display = 'flex';
+    });
+  });
+
+  if (closeModalBtn && applyModal) {
+    closeModalBtn.addEventListener('click', () => {
+      applyModal.style.display = 'none';
+    });
+  }
+
+  // Handle Form Submission to api/internship-apply
+  if (applyForm) {
+    applyForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btnSubmitPublicApply');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...'; }
+
+      const formData = new FormData(applyForm);
+
+      fetch('/api/internship-apply/', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success' || data.success) {
+          alert(data.message || '✓ Application submitted successfully!');
+          applyForm.reset();
+          if (applyModal) applyModal.style.display = 'none';
+        } else {
+          alert(data.message || 'Error submitting application.');
+        }
+      })
+      .catch(err => {
+        alert('Network error while submitting application. Please try again.');
+      })
+      .finally(() => {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Application'; }
+      });
+    });
+  }
+});
+</script>
+
+{% endblock %}

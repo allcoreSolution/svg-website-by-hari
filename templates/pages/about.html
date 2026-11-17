@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}About Us — Sky Vision Group Consultancy{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/about.css' %}?v=5.2">
+  <link rel="stylesheet" href="{% static 'css/global/about-responsive.css' %}?v=5.2">
+{% endblock %}
+
+{% block content %}
+<!-- ============ PAGE HEADER ============ -->
+    <section class="page-header">
+      <div class="page-header-bg" aria-hidden="true"></div>
+      <div class="page-header-inner">
+        <span class="eyebrow">{{ about_settings.page_eyebrow|default:'Get To Know Us' }}</span>
+        <h1>{{ about_settings.page_title|default:'About Company of Sky Vision Group of Consultancy' }}</h1>
+        <div class="breadcrumb">
+          <a href="{% url 'core:home' %}">Home</a>
+          <i class="fa-solid fa-chevron-right"></i>
+          <span>About Us</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT SECTION ============ -->
+    <section class="about-section" id="vision">
+      <div class="about-container">
+
+        <div class="about-visual">
+          <div class="about-visual-badge"><i class="fa-solid fa-star"></i> {{ about_settings.experience_badge|default:'Trusted since 2014' }}</div>
+          <img src="{{ about_settings.get_visual_image_url }}" alt="Sky Vision About Image">
+          <h3>{{ about_settings.visual_heading|default:"6+ years placing India's workforce" }}</h3>
+          <p>{{ about_settings.visual_subtext|default:"5,000+ candidates placed across manufacturing, IT, healthcare, retail and BPO sectors." }}</p>
+        </div>
+
+        <div class="about-copy">
+          <span class="about-tag">{{ about_settings.welcome_tag|default:'About Us' }}</span>
+          <h2>{{ about_settings.welcome_heading|default:'Welcome to Sky Vision Group Consultancy' }}</h2>
+          <p>{{ about_settings.welcome_p1|default:'Sky Vision Group Consultancy is a leading HR, Recruitment and Business Consultancy organization dedicated to helping companies build strong teams and helping candidates build successful careers.' }}</p>
+          {% if about_settings.welcome_p2 %}
+          <p>{{ about_settings.welcome_p2 }}</p>
+          {% endif %}
+
+          <div class="about-box">
+            <div class="info-box">
+              <div class="icon blue"><i class="fas fa-eye"></i></div>
+              <div class="text">
+                <h3>{{ about_settings.vision_title|default:'Our Vision' }}</h3>
+                <p>{{ about_settings.vision_text|default:"To become India's most trusted consultancy brand." }}</p>
+              </div>
+            </div>
+            <div class="info-box">
+              <div class="icon red"><i class="fas fa-bullseye"></i></div>
+              <div class="text">
+                <h3>{{ about_settings.mission_title|default:'Our Mission' }}</h3>
+                <p>{{ about_settings.mission_text|default:'Empowering businesses and professionals through smart workforce solutions.' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ OUR JOURNEY / STATS ============ -->
+    <section class="stats" id="team">
+      <div class="stats-grid">
+        <div class="stat"><i class="fa-solid fa-award"></i>
+          <div>
+            <h3 data-count="{{ about_settings.stat_1_count|default:'6' }}">{{ about_settings.stat_1_count|default:'6' }}</h3>
+            <p>{{ about_settings.stat_1_label|default:'Years of Experience' }}</p>
+          </div>
+        </div>
+        <div class="stat"><i class="fa-solid fa-briefcase"></i>
+          <div>
+            <h3 data-count="{{ about_settings.stat_2_count|default:'500' }}">{{ about_settings.stat_2_count|default:'500' }}</h3>
+            <p>{{ about_settings.stat_2_label|default:'Successful Placements' }}</p>
+          </div>
+        </div>
+        <div class="stat"><i class="fa-solid fa-users"></i>
+          <div>
+            <h3 data-count="{{ about_settings.stat_3_count|default:'100' }}">{{ about_settings.stat_3_count|default:'100' }}</h3>
+            <p>{{ about_settings.stat_3_label|default:'Happy Clients' }}</p>
+          </div>
+        </div>
+        <div class="stat"><i class="fa-regular fa-clock"></i>
+          <div>
+            <h3>{{ about_settings.stat_4_count|default:'24/7' }}</h3>
+            <p>{{ about_settings.stat_4_label|default:'HR Support' }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WHY CHOOSE US ============ -->
+    {% if about_settings.why_visible and why_cards %}
+    <section class="why-section" id="why">
+      <div class="why-heading">
+        <span class="tag">{{ about_settings.why_tag|default:'Our Advantage' }}</span>
+        <h2>{{ about_settings.why_heading|default:'Why choose us?' }}</h2>
+        <p>{{ about_settings.why_subtext|default:'We provide reliable recruitment solutions with speed, quality and transparency.' }}</p>
+      </div>
+
+      <div class="why-container">
+        {% for card in why_cards %}
+        <div class="why-card">
+          <div class="why-icon"><i class="{{ card.icon_class }}"></i></div>
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ INDUSTRIES WE SERVE ============ -->
+    {% if about_settings.industries_visible %}
+    <section class="industry-section">
+      <div class="industry-container">
+        <div class="section-title">
+          <span class="tag">{{ about_settings.industries_tag|default:'Where We Work' }}</span>
+          <h2>{{ about_settings.industries_heading|default:'Industries we serve' }}</h2>
+          <p>{{ about_settings.industries_subtext|default:'From factory floors to corporate offices, we staff the sectors that keep India running.' }}</p>
+        </div>
+
+        <div class="industry-grid">
+          {% for ind in industries %}
+          <div class="industry-item"><i class="{{ ind.icon }}"></i><span>{{ ind.name }}</span></div>
+          {% empty %}
+          <div class="industry-item"><i class="fas fa-briefcase"></i><span>Various Industries</span></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ MEET THE EXPERTS / TEAM ============ -->
+    {% if about_settings.team_visible and about_team_members %}
+    <section class="team-section" id="our-team">
+      <div class="team-heading">
+        <span class="tag">{{ about_settings.team_tag|default:'Our Team' }}</span>
+        <h2>{{ about_settings.team_heading_prefix|default:'Meet the' }} <span>{{ about_settings.team_heading_highlight|default:'Experts' }}</span></h2>
+        <p>{{ about_settings.team_subtext|default:"The passionate people behind your brand's success" }}</p>
+      </div>
+
+      <div class="team-marquee-wrapper" id="teamMarqueeWrapper">
+        <div class="team-marquee-track">
+          <!-- Primary Set -->
+          {% for member in about_team_members %}
+          <div class="team-card">
+            <div class="team-card-top">
+              {% if member.photo or member.static_photo_path %}
+              <img src="{{ member.get_photo_url }}" alt="{{ member.name }}" class="team-photo" onerror="this.onerror=null; this.src='/static/images/team/CEO image.png';">
+              {% else %}
+              <div class="team-avatar {% cycle 'avatar-blue' 'avatar-purple' 'avatar-teal' 'avatar-maroon' %}">{{ member.name|slice:":2"|upper }}</div>
+              {% endif %}
+            </div>
+            <div class="team-card-bottom">
+              <h3>{{ member.name }}</h3>
+              <span class="team-role">{{ member.role }}</span>
+              <p>{{ member.experience_text|default:member.bio|default:"Dedicated recruitment & HR professional." }}</p>
+            </div>
+          </div>
+          {% endfor %}
+
+          <!-- Duplicate Set for Seamless Continuous Infinite Marquee Loop -->
+          {% for member in about_team_members %}
+          <div class="team-card" aria-hidden="true">
+            <div class="team-card-top">
+              {% if member.photo or member.static_photo_path %}
+              <img src="{{ member.get_photo_url }}" alt="{{ member.name }}" class="team-photo" onerror="this.onerror=null; this.src='/static/images/team/CEO image.png';">
+              {% else %}
+              <div class="team-avatar {% cycle 'avatar-blue' 'avatar-purple' 'avatar-teal' 'avatar-maroon' %}">{{ member.name|slice:":2"|upper }}</div>
+              {% endif %}
+            </div>
+            <div class="team-card-bottom">
+              <h3>{{ member.name }}</h3>
+              <span class="team-role">{{ member.role }}</span>
+              <p>{{ member.experience_text|default:member.bio|default:"Dedicated recruitment & HR professional." }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ CLIENT TESTIMONIALS & SUCCESS STORIES ============ -->
+    {% if about_settings.testimonials_visible %}
+    <section class="testimonials-section" id="testimonials">
+      <span class="tt-orb tt-orb-1" aria-hidden="true"></span>
+      <span class="tt-orb tt-orb-2" aria-hidden="true"></span>
+
+      <div class="tt-container">
+
+        <!-- Unified Split Showcase: Left Text Content + Right Social Proof Cards -->
+        <div class="tt-showcase-row" data-reveal>
+
+          <!-- Left Column: Story & Trust Copy -->
+          <div class="tt-content-col">
+            <div class="tt-eyebrow-pill">
+              <div class="tt-eyebrow-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <span class="tt-eyebrow-text">{{ about_settings.tt_eyebrow|default:'Client Testimonials' }}</span>
+              <span class="tt-eyebrow-dot"></span>
+              <span class="tt-eyebrow-tag">Proven Impact</span>
+            </div>
+
+            <h2 class="tt-heading">
+              {{ about_settings.tt_heading_prefix|default:'Trusted by' }} <span class="tt-num">{{ about_settings.tt_highlight_1|default:'5,000+' }}</span> {{ about_settings.tt_heading_middle|default:'Professionals &' }}
+              <span class="tt-num">{{ about_settings.tt_highlight_2|default:'250+' }}</span> {{ about_settings.tt_heading_suffix|default:'Hiring Partners' }}
+            </h2>
+
+            <div class="tt-subheading-wrap">
+              <span class="tt-sub-icon"><i class="fa-solid fa-bolt-lightning"></i></span>
+              <span class="tt-subheading">{{ about_settings.tt_subheading|default:'Building Careers. Empowering Businesses. Delivering Results.' }}</span>
+            </div>
+
+            <p class="tt-description">
+              {{ about_settings.tt_description|default:'For over a decade, Sky Vision Group Consultancy has helped thousands of professionals secure rewarding careers while enabling companies to hire exceptional talent through transparent and reliable recruitment services.' }}
+            </p>
+
+            <div class="tt-trust-chips">
+              <div class="tt-chip"><i class="fa-solid fa-circle-check"></i> <span>10+ Years Experience</span></div>
+              <div class="tt-chip"><i class="fa-solid fa-star"></i> <span>4.9★ Google Rating</span></div>
+              <div class="tt-chip"><i class="fa-solid fa-map-location-dot"></i> <span>PAN India</span></div>
+              <div class="tt-chip"><i class="fa-solid fa-shield-halved"></i> <span>100% Transparent</span></div>
+            </div>
+          </div>
+
+          <!-- Right Column: Google Reviews Card + 2x2 Stats Cards -->
+          <div class="tt-cards-col">
+            {% if about_settings.google_visible %}
+            <div class="tt-google-card">
+              <div class="tt-google-brand">
+                <svg viewBox="0 0 48 48">
+                  <path fill="#FFC107"
+                    d="M43.6 20.5H42V20.4H24v7.2h11.3c-1.6 4.7-6 8.1-11.3 8.1-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z" />
+                  <path fill="#FF3D00"
+                    d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.6 8.3 6.3 14.7z" />
+                  <path fill="#4CAF50"
+                    d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35.4 26.9 36.4 24 36.4c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z" />
+                  <path fill="#1976D2"
+                    d="M43.6 20.5H42V20.4H24v7.2h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.6 5.6C39.9 37.1 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z" />
+                </svg>
+                {{ about_settings.google_label|default:'Google Reviews' }}
+              </div>
+              <div class="tt-google-main">
+                <div class="tt-google-rating">{{ about_settings.google_rating|default:'4.9' }}</div>
+                <div class="tt-stars-row">★★★★★</div>
+                <div class="tt-google-count">Based on <span data-count="{{ about_settings.google_review_count|default:'1200' }}" data-suffix="{{ about_settings.google_count_suffix|default:'+' }}">{{ about_settings.google_review_count|default:'1200' }}</span> reviews</div>
+              </div>
+              <span class="tt-verified-tag"><i class="fa-solid fa-circle-check"></i> {{ about_settings.google_verified_text|default:'Verified Reviews' }}</span>
+            </div>
+            {% endif %}
+
+            <div class="tt-stat-grid">
+              {% for stat in testimonial_stats %}
+              <div class="tt-stat-card">
+                <div class="tt-stat-icon {{ stat.color }}"><i class="{{ stat.icon_class }}"></i></div>
+                <div class="tt-stat-info">
+                  <div class="tt-stat-value"><span data-count="{{ stat.count }}" data-suffix="{{ stat.suffix }}">{{ stat.count }}</span></div>
+                  <div class="tt-stat-label">{{ stat.label }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Candidate testimonial slider -->
+        {% if candidate_testimonials %}
+        <div class="tt-slider-block" data-reveal>
+          <div class="tt-slider-head">
+            <div class="tt-slider-title">
+              {{ about_settings.candidate_slider_title|default:'What Our Candidates Say' }}
+              <span>{{ about_settings.candidate_slider_subtitle|default:'Real placements, real career moves' }}</span>
+            </div>
+            <div class="tt-slider-arrows">
+              <button class="tt-arrow-btn prev" aria-label="Scroll left"><i
+                  class="fa-solid fa-chevron-left"></i></button>
+              <button class="tt-arrow-btn next" aria-label="Scroll right"><i
+                  class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+
+          <div class="tt-track-viewport" id="ttCandidateViewport">
+            <div class="tt-track">
+              {% for t in candidate_testimonials %}
+              <article class="tt-card">
+                <span class="tt-card-quote-mark">&rdquo;</span>
+                <div class="tt-card-top">
+                  {% if t.photo %}
+                  <img src="{{ t.photo.url }}" alt="{{ t.name }}" style="width:46px; height:46px; border-radius:50%; object-fit:cover; margin-right:12px;">
+                  {% else %}
+                  <div class="tt-avatar tt-init tt-init-{{ t.avatar_style }}">{{ t.initials }}</div>
+                  {% endif %}
+                  <div>
+                    <div class="tt-card-name">{{ t.name }}</div>
+                    <div class="tt-card-role">{{ t.role }}</div>
+                    {% if t.location %}
+                    <div class="tt-card-loc"><i class="fa-solid fa-location-dot"></i> {{ t.location }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="tt-card-stars">{% for _ in "12345"|slice:t.rating %}★{% endfor %}</div>
+                <p class="tt-card-text">{{ t.quote }}</p>
+                <span class="tt-badge candidate"><i class="fa-solid fa-shield-check"></i> {{ t.badge_text|default:'Verified Candidate' }}</span>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Employer testimonial slider -->
+        {% if employer_testimonials %}
+        <div class="tt-slider-block" data-reveal>
+          <div class="tt-slider-head">
+            <div class="tt-slider-title">
+              {{ about_settings.employer_slider_title|default:'What Our Hiring Partners Say' }}
+              <span>{{ about_settings.employer_slider_subtitle|default:'HR leaders on working with our team' }}</span>
+            </div>
+          </div>
+
+          <div class="tt-track-viewport" id="ttEmployerViewport">
+            <div class="tt-track">
+              {% for t in employer_testimonials %}
+              <article class="tt-card tt-card-employer">
+                <span class="tt-card-quote-mark">&rdquo;</span>
+                <div class="tt-card-top">
+                  {% if t.photo %}
+                  <img src="{{ t.photo.url }}" alt="{{ t.name }}" style="width:46px; height:46px; border-radius:50%; object-fit:cover; margin-right:12px;">
+                  {% else %}
+                  <div class="tt-avatar tt-init tt-init-{{ t.avatar_style }}">{{ t.initials }}</div>
+                  {% endif %}
+                  <div>
+                    <div class="tt-card-name">{{ t.name }}</div>
+                    <div class="tt-card-role">{{ t.role }}</div>
+                    {% if t.company %}
+                    <div class="tt-card-loc"><i class="fa-solid fa-building"></i> {{ t.company }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="tt-card-stars">{% for _ in "12345"|slice:t.rating %}★{% endfor %}</div>
+                <p class="tt-card-text">{{ t.quote }}</p>
+                <span class="tt-badge employer"><i class="fa-solid fa-briefcase"></i> {{ t.badge_text|default:'Verified Employer' }}</span>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Trusted companies -->
+        {% if about_settings.logos_visible and partner_logos %}
+        <div class="tt-companies" data-reveal>
+          <div class="tt-companies-heading">{{ about_settings.logos_title|default:'Trusted by Leading Companies' }}</div>
+          <div class="tt-logo-viewport">
+            <div class="tt-logo-track" id="logoTrack">
+              {% for logo in partner_logos %}
+              <span class="tt-logo-item">
+                {% if logo.logo_image %}
+                <img src="{{ logo.logo_image.url }}" alt="{{ logo.name }}" style="max-height:24px; max-width:80px; object-fit:contain; margin-right:6px;">
+                {% elif logo.icon_class %}
+                <i class="{{ logo.icon_class }}"></i>
+                {% endif %}
+                {{ logo.name }}
+              </span>
+              {% endfor %}
+              <!-- duplicated for seamless marquee loop -->
+              {% for logo in partner_logos %}
+              <span class="tt-logo-item" aria-hidden="true">
+                {% if logo.logo_image %}
+                <img src="{{ logo.logo_image.url }}" alt="{{ logo.name }}" style="max-height:24px; max-width:80px; object-fit:contain; margin-right:6px;">
+                {% elif logo.icon_class %}
+                <i class="{{ logo.icon_class }}"></i>
+                {% endif %}
+                {{ logo.name }}
+              </span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Why choose us / Trust points -->
+        {% if trust_points %}
+        <div class="tt-why-grid" data-reveal>
+          {% for pt in trust_points %}
+          <div class="tt-why-card">
+            <div class="tt-why-icon"><i class="{{ pt.icon_class }}"></i></div>
+            <div class="tt-why-title">{{ pt.title }}</div>
+            <p class="tt-why-text">{{ pt.text }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Bottom CTA -->
+        {% if about_settings.cta_visible %}
+        <div class="tt-cta" data-reveal>
+          <div class="cta-copy">
+            <h3 class="tt-cta-heading">{{ about_settings.cta_heading|default:'Start Your Success Story Today!' }}</h3>
+            <p class="tt-cta-text">{{ about_settings.cta_text|default:"Whether you're looking for your first job or your next hire, Sky Vision Group Consultancy is here to help." }}</p>
+            <a href="{{ about_settings.cta_primary_url|default:'/jobs/' }}" class="tt-cta-btn">{{ about_settings.cta_primary_label|default:'Explore Job Opportunities' }} <i class="fa-solid fa-arrow-right"></i></a>
+            {% if about_settings.cta_franchise_visible %}
+            <a href="#" class="apply-franchise-btn"><i class="fa-solid fa-handshake"></i> {{ about_settings.cta_franchise_label|default:'Apply Franchise' }}</a>
+            {% endif %}
+          </div>
+          {% if about_settings.cta_trophy_visible %}
+          <div class="tt-cta-trophy" aria-hidden="true">
+            <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="ttTrophyGold" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#FFE1A8" />
+                  <stop offset="50%" stop-color="#F0B457" />
+                  <stop offset="100%" stop-color="#C98A2C" />
+                </linearGradient>
+              </defs>
+              <ellipse cx="100" cy="205" rx="55" ry="9" fill="#000" opacity=".25" />
+              <rect x="70" y="176" width="60" height="14" rx="3" fill="url(#ttTrophyGold)" />
+              <rect x="55" y="190" width="90" height="12" rx="3" fill="url(#ttTrophyGold)" />
+              <rect x="94" y="140" width="12" height="40" fill="url(#ttTrophyGold)" />
+              <path d="M60 60h80v40a40 40 0 0 1-80 0V60z" fill="url(#ttTrophyGold)" />
+              <path d="M60 68c-16 0-26 12-26 26s12 24 26 24" fill="none" stroke="url(#ttTrophyGold)" stroke-width="8"
+                stroke-linecap="round" />
+              <path d="M140 68c16 0 26 12 26 26s-12 24-26 24" fill="none" stroke="url(#ttTrophyGold)" stroke-width="8"
+                stroke-linecap="round" />
+              <circle cx="100" cy="82" r="26" fill="#fff8ea" opacity=".9" />
+              <path d="M100 66l6.5 13 14.5 2-10.5 10 2.5 14-12.5-7-12.5 7 2.5-14L79.5 81l14.5-2z"
+                fill="url(#ttTrophyGold)" />
+            </svg>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Footnote strip -->
+        <div class="tt-footnote">
+          <span class="tt-footnote-item"><i class="fa-solid fa-check"></i> 10+ Years of Experience</span>
+          <span class="tt-footnote-item"><i class="fa-solid fa-map-location-dot"></i> PAN India Presence</span>
+          <span class="tt-footnote-item"><i class="fa-solid fa-clock"></i> 24x7 Candidate Support</span>
+          <span class="tt-footnote-item"><i class="fa-solid fa-people-group"></i> Thousands of Success Stories</span>
+        </div>
+
+      </div>
+    </section>
+    {% endif %}
+    <!-- ============ END TESTIMONIALS & SUCCESS STORIES ============ -->
+
+    <!-- ============ FOOTER ============ -->
+{% endblock %}

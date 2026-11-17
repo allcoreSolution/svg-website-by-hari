@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ job_settings.meta_title|default:'Explore Job Opportunities — Sky Vision Group Consultancy' }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/job.css' %}?v=4.0">
+{% endblock %}
+
+{% block content %}
+  {% if job_settings.hero_visible %}
+  <!-- ============ 1. JOB HERO ============ -->
+  <section class="job-hero">
+    <div class="job-hero-inner">
+
+      <div class="job-hero-copy">
+        <span class="job-chip"><i class="fa-solid fa-bolt"></i> {{ job_settings.hero_chip|default:'Thousands of opportunities. One destination.' }}</span>
+        <h1>{{ job_settings.get_rendered_hero_title|safe }}</h1>
+        <p>{{ job_settings.hero_subtitle|default:'Explore thousands of verified job opportunities across top companies and start your career today.' }}</p>
+
+        <div class="job-hero-features">
+          <div class="job-hero-feature">
+            <i class="fa-solid fa-shield-halved"></i>
+            <div><b>{{ job_settings.feature_1_title|default:'100% Verified Jobs' }}</b><span>{{ job_settings.feature_1_desc|default:'Genuine & trusted job openings' }}</span></div>
+          </div>
+          <div class="job-hero-feature">
+            <i class="fa-solid fa-user-group"></i>
+            <div><b>{{ job_settings.feature_2_title|default:'For Everyone' }}</b><span>{{ job_settings.feature_2_desc|default:'Freshers, experienced & professionals' }}</span></div>
+          </div>
+          <div class="job-hero-feature">
+            <i class="fa-solid fa-rocket"></i>
+            <div><b>{{ job_settings.feature_3_title|default:'Faster Career Growth' }}</b><span>{{ job_settings.feature_3_desc|default:'The right job can take you places' }}</span></div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a href="{{ job_settings.hero_btn1_url|default:'#' }}" class="btn btn-primary apply-btn" data-job-title="Job Opening">
+            <i class="fa-solid fa-briefcase"></i>
+            {{ job_settings.hero_btn1_text|default:'Apply Now' }}
+          </a>
+          <a href="{{ job_settings.hero_btn2_url|default:'/employer/hire-talent/' }}" class="btn btn-outline">
+            <i class="fa-solid fa-users"></i>
+            {{ job_settings.hero_btn2_text|default:'Hire Talent' }}
+          </a>
+          <a href="{{ job_settings.hero_btn3_url|default:'#' }}" class="btn btn-ghost js-internship-popup" data-internship-domain="General Internship">
+            <i class="fa-solid fa-graduation-cap"></i>
+            {{ job_settings.hero_btn3_text|default:'Apply Internship' }}
+          </a>
+        </div>
+      </div>
+
+      <div class="job-hero-visual">
+        {% if job_settings.hero_image %}
+        <img src="{{ job_settings.hero_image.url }}" alt="{{ job_settings.clean_hero_title }}">
+        {% else %}
+        <img src="{% static 'images/hero/hero image.png' %}" alt="Team discussing job opportunities">
+        {% endif %}
+        <div class="job-hero-stat-card">
+          <div class="jhs-item"><i class="fa-solid fa-briefcase"></i>
+            <h4>{{ job_settings.stat_1_num|default:'50K+' }}</h4><span>{{ job_settings.stat_1_label|default:'Active Jobs' }}</span>
+          </div>
+          <div class="jhs-item"><i class="fa-solid fa-building"></i>
+            <h4>{{ job_settings.stat_2_num|default:'25K+' }}</h4><span>{{ job_settings.stat_2_label|default:'Companies' }}</span>
+          </div>
+          <div class="jhs-item"><i class="fa-solid fa-user-group"></i>
+            <h4>{{ job_settings.stat_3_num|default:'10L+' }}</h4><span>{{ job_settings.stat_3_label|default:'Happy Candidates' }}</span>
+          </div>
+          <div class="jhs-item"><i class="fa-regular fa-clock"></i>
+            <h4>{{ job_settings.stat_4_num|default:'24/7' }}</h4><span>{{ job_settings.stat_4_label|default:'Support' }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {% if job_settings.search_visible %}
+    <!-- SEARCH BAR -->
+    <div class="job-search-wrap">
+      <form class="job-search-box" action="{% url 'core:jobs' %}" method="GET">
+        <div class="job-search-field">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="{{ job_settings.search_keyword_placeholder|default:'Enter Skills / designations / companies' }}">
+        </div>
+        <div class="job-search-field">
+          <i class="fa-solid fa-location-dot"></i>
+          <select name="location" style="border:none; outline:none; width:100%; font-size:14px; background:transparent; color:#1e293b; cursor:pointer;">
+            <option value="">Location (All)</option>
+            {% for loc in available_locations %}
+            <option value="{{ loc }}" {% if search_location == loc %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="job-search-field">
+          <i class="fa-solid fa-table-cells-large"></i>
+          <select name="category" style="border:none; outline:none; width:100%; font-size:14px; background:transparent; color:#1e293b; cursor:pointer;">
+            <option value="">All Categories</option>
+            {% for cat in job_categories %}
+            <option value="{{ cat.name }}" {% if search_category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+            {% for extra_cat in extra_categories %}
+            <option value="{{ extra_cat }}" {% if search_category == extra_cat %}selected{% endif %}>{{ extra_cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> {{ job_settings.search_btn_text|default:'Search Jobs' }}</button>
+      </form>
+    </div>
+    {% endif %}
+  </section>
+  {% elif job_settings.search_visible %}
+  <!-- SEARCH BAR ONLY IF HERO HIDDEN -->
+  <div class="job-search-wrap" style="padding-top: 30px;">
+    <form class="job-search-box" action="{% url 'core:jobs' %}" method="GET">
+        <div class="job-search-field">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="{{ job_settings.search_keyword_placeholder|default:'Enter Skills / designations / companies' }}">
+        </div>
+        <div class="job-search-field">
+          <i class="fa-solid fa-location-dot"></i>
+          <select name="location" style="border:none; outline:none; width:100%; font-size:14px; background:transparent; color:#1e293b; cursor:pointer;">
+            <option value="">Location (All)</option>
+            {% for loc in available_locations %}
+            <option value="{{ loc }}" {% if search_location == loc %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="job-search-field">
+          <i class="fa-solid fa-table-cells-large"></i>
+          <select name="category" style="border:none; outline:none; width:100%; font-size:14px; background:transparent; color:#1e293b; cursor:pointer;">
+            <option value="">All Categories</option>
+            {% for cat in job_categories %}
+            <option value="{{ cat.name }}" {% if search_category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+            {% for extra_cat in extra_categories %}
+            <option value="{{ extra_cat }}" {% if search_category == extra_cat %}selected{% endif %}>{{ extra_cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> {{ job_settings.search_btn_text|default:'Search Jobs' }}</button>
+      </form>
+  </div>
+  {% endif %}
+
+  {% if job_settings.job_types_visible %}
+  <!-- ============ 2. JOB TYPE ============ -->
+  <section class="job-block">
+    <div class="job-block-head">
+      <h2>{{ job_settings.types_title|default:'Job Type' }}</h2>
+      <a href="{{ job_settings.types_view_all_url|default:'/jobs/' }}" class="view-all">{{ job_settings.types_view_all_text|default:'View All' }} <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="job-type-grid">
+      {% for jt in job_types %}
+      <a href="#ljFilterPills" class="job-type-tile" data-filter="{{ jt.field_slug|default:'all' }}">
+        <i class="{{ jt.icon|default:'fa-solid fa-briefcase' }} {{ jt.badge_color|default:'t-indigo' }}"></i>
+        <b>{{ jt.name }}</b><span>{{ jt.count_label|default:jt.description|default:'View jobs' }}</span>
+      </a>
+      {% empty %}
+      <a href="#ljFilterPills" class="job-type-tile" data-filter="fulltime">
+        <i class="fa-solid fa-briefcase t-indigo"></i>
+        <b>Full Time</b><span>Work in office</span>
+      </a>
+      <a href="#ljFilterPills" class="job-type-tile" data-filter="parttime">
+        <i class="fa-regular fa-clock t-amber"></i>
+        <b>Part Time</b><span>Flexible hours</span>
+      </a>
+      <a href="#ljFilterPills" class="job-type-tile" data-filter="wfh">
+        <i class="fa-solid fa-house-laptop t-teal"></i>
+        <b>Work From Home</b><span>Remote work</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if job_settings.categories_visible %}
+  <!-- ============ 3. JOB CATEGORIES ============ -->
+  <section class="job-block alt">
+    <div class="job-block-head">
+      <h2>{{ job_settings.categories_title|default:'Job Categories' }}</h2>
+      <a href="{{ job_settings.categories_view_all_url|default:'/jobs/' }}" class="view-all">{{ job_settings.categories_view_all_text|default:'View All Categories' }} <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="job-cat-grid" id="jobCatGrid">
+      {% for cat in job_categories %}
+      <a href="{{ cat.get_link }}" class="job-cat-tile" data-field="{{ cat.field_slug }}" id="{{ cat.field_slug }}">
+        <i class="{{ cat.icon }} {{ cat.badge_color }}"></i>
+        <b>{{ cat.name }}</b>
+        <span>{{ cat.get_count_display }}</span>
+      </a>
+      {% empty %}
+      <p style="grid-column: 1 / -1; text-align: center; color: #64748B;">No job categories available right now.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Category jobs — shown after a category tile is clicked, hidden by default -->
+    <div class="category-jobs-view" id="categoryJobsView" style="display:none;">
+      <button type="button" class="cat-back-btn" id="categoryBackBtn">
+        <i class="fa-solid fa-arrow-left"></i> Back to Categories
+      </button>
+      <h3 class="category-jobs-heading" id="categoryJobsTitle">Jobs</h3>
+      <div class="latest-job-grid icon-style" id="categoryJobsGrid"></div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if job_settings.latest_jobs_visible %}
+  <!-- ============ 4. LATEST JOBS ============ -->
+  <section class="job-block" id="jobs-list">
+    <div class="job-section-head-center">
+      <span class="job-eyebrow">{{ job_settings.latest_eyebrow|default:'Fresh Openings' }}</span>
+      <h2>{{ job_settings.latest_title|default:'Latest Jobs' }}</h2>
+      <p>{{ job_settings.latest_subtitle|default:'Find your dream job from the latest vacancies.' }}</p>
+    </div>
+
+    <!-- Active Search Filter Summary Banner -->
+    {% if search_location or search_category or search_query or search_job_type %}
+    <div class="search-filter-banner" style="background:#EFF6FF; border:1.5px solid #BFDBFE; border-radius:14px; padding:16px 20px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:40px; height:40px; border-radius:10px; background:#2563EB; color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px;">
+          <i class="fa-solid fa-magnifying-glass-location"></i>
+        </div>
+        <div>
+          <div style="font-size:16px; font-weight:700; color:#1E3A8A;">
+            Showing {{ active_jobs|length }} Job{{ active_jobs|length|pluralize }} Found
+            {% if search_location %} in <span style="color:#2563EB; text-decoration:underline;">"{{ search_location }}"</span>{% endif %}
+            {% if search_category %} under <span style="color:#2563EB; text-decoration:underline;">"{{ search_category }}"</span>{% endif %}
+            {% if search_query %} matching <span style="color:#2563EB; text-decoration:underline;">"{{ search_query }}"</span>{% endif %}
+          </div>
+          <div style="font-size:13px; color:#64748B; margin-top:2px;">
+            Verified active openings matching your criteria.
+          </div>
+        </div>
+      </div>
+      <a href="{% url 'core:jobs' %}#jobs-list" style="background:#fff; color:#2563EB; border:1px solid #BFDBFE; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+        <i class="fa-solid fa-rotate-left"></i> Clear Filter / Show All Jobs
+      </a>
+    </div>
+    {% endif %}
+
+    <div class="job-filter-pills" id="ljFilterPills">
+      <button class="lj-filter-btn active" data-filter="all">All Jobs</button>
+      <button class="lj-filter-btn" data-filter="fulltime">Full Time</button>
+      <button class="lj-filter-btn" data-filter="parttime">Part Time</button>
+      <button class="lj-filter-btn" data-filter="wfh">Work From Home</button>
+      <button class="lj-filter-btn" data-filter="other">Other</button>
+    </div>
+
+    <div class="latest-job-grid jobCatGrid icon-style" id="ljGrid">
+      {% if active_jobs %}
+        {% for j in active_jobs %}
+        {% with et=j.employment_type|default:'Full Time'|lower %}
+        <div class="jc-icon-card jc-detail-card" 
+             data-category="{% if 'part' in et %}parttime{% elif 'home' in et or 'remote' in et or 'wfh' in et %}wfh{% elif 'full' in et %}fulltime{% else %}other{% endif %}" 
+             data-field="{{ j.category|default:j.department|default:'general'|lower }}"
+             data-job-id="{{ j.id }}"
+             style="--ribbon-color:{% if 'part' in et %}#F59E0B{% elif 'home' in et or 'remote' in et or 'wfh' in et %}#10B981{% elif 'full' in et %}#3654FF{% else %}#7C3AED{% endif %};">
+          <div class="jc-detail-ribbon"></div>
+          <div class="jc-detail-header">
+            <div class="jc-detail-icon" style="background:{% if 'part' in et %}#FEF3C7;color:#D97706;{% elif 'home' in et or 'remote' in et or 'wfh' in et %}#D1FAE5;color:#059669;{% elif 'full' in et %}#E7ECFF;color:#3654FF;{% else %}#F3E8FF;color:#7C3AED;{% endif %}">
+              <i class="fa-solid {% if 'part' in et %}fa-clock{% elif 'home' in et or 'remote' in et or 'wfh' in et %}fa-house-laptop{% elif 'full' in et %}fa-briefcase{% else %}fa-user-gear{% endif %}"></i>
+            </div>
+            <h4>{{ j.title }}</h4>
+          </div>
+          <ul class="jc-detail-info">
+            <li><i class="fa-solid fa-building"></i> {% if j.company %}{{ j.company.name }}{% elif j.employer %}{{ j.employer.company_name }}{% else %}SVG Consultancy{% endif %}</li>
+            <li><i class="fa-solid fa-location-dot"></i> {{ j.location|default:'Lucknow, UP' }}</li>
+            <li><i class="fa-solid fa-indian-rupee-sign"></i> {{ j.salary|default:'Best in Industry' }}</li>
+            <li><i class="fa-solid fa-briefcase"></i> Job Type: {{ j.employment_type|default:'Full Time' }}</li>
+            <li><i class="fa-solid fa-graduation-cap"></i> Qualification: {{ j.qualification|default:'Graduate / Any Stream' }}</li>
+            <li><i class="fa-solid fa-user-clock"></i> Experience: {{ j.experience|default:'Freshers / Experienced' }}</li>
+          </ul>
+          {% if j.requirements or j.description %}
+          <div class="jc-detail-skills">
+            <span class="jc-detail-skills-label">Key Skills &amp; Info</span>
+            <div class="jc-detail-skills-tags">
+              <span>{{ j.category|default:j.department|default:'General Requirement' }}</span>
+              {% if j.requirements %}
+                <span>{{ j.requirements|truncatechars:35 }}</span>
+              {% elif j.description %}
+                <span>{{ j.description|truncatechars:35 }}</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+          <div class="jc-detail-footer">
+            <span><i class="far fa-clock"></i> {{ j.created_at|timesince }} ago</span>
+            <div class="job-actions-btns">
+              <button type="button" class="job-action-btn js-share-job-btn" data-job-id="{{ j.id }}" data-job-title="{{ j.title|escapejs }}" title="Share Job">
+                <i class="fa-solid fa-share-nodes"></i>
+              </button>
+              <button type="button" class="job-action-btn js-save-job-btn" data-job-id="{{ j.id }}" data-job-title="{{ j.title|escapejs }}" title="Save Job">
+                <i class="fa-regular fa-bookmark"></i>
+              </button>
+            </div>
+            <a href="#" class="apply-btn open-job-modal-btn" data-job-id="{{ j.id }}" data-job-title="{{ j.title|escapejs }}">Apply Now</a>
+            <span class="jc-detail-caption"><i class="fa-solid fa-check-circle"></i> Verified Vacancy</span>
+          </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+      {% else %}
+        <div class="no-jobs-found" style="grid-column: 1 / -1; text-align: center; padding: 45px 20px; background: #fff; border-radius: 14px; border: 1px dashed #CBD5E1;">
+          <i class="fa-solid fa-briefcase" style="font-size: 2.5rem; margin-bottom: 12px; color: #94A3B8; display: block;"></i>
+          <h4 style="color: #1E293B; font-size: 1.15rem; margin-bottom: 6px;">No Vacancies Available Right Now</h4>
+          <p style="color: #64748B; font-size: 0.92rem;">Please check back soon or register with us to receive job alerts.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="job-view-more"><button type="button" class="lj-viewall-btn" id="ljViewAllBtn">{{ job_settings.latest_view_all_text|default:'View All Jobs' }} <i
+          class="fa-solid fa-chevron-down"></i></button></div>
+  </section>
+  {% endif %}
+
+  {% if job_settings.industries_visible or job_settings.locations_visible or job_settings.why_choose_visible %}
+  <!-- ============ 5, 6, 7. INDUSTRIES / LOCATIONS / WHY CHOOSE ============ -->
+  <section class="job-block alt">
+    <div class="job-triple">
+
+      {% if job_settings.industries_visible %}
+      <div class="job-panel">
+        <div class="job-panel-head">
+          <h3>{{ job_settings.industries_title|default:'Popular Industries' }}</h3><a href="{{ job_settings.industries_view_all_url|default:'/jobs/' }}">{{ job_settings.industries_view_all_text|default:'View All' }}</a>
+        </div>
+        <div class="popular-industry-grid">
+          {% for pi in job_settings.get_popular_industries %}
+          <div class="pi-item">
+            {% if pi.link %}<a href="{{ pi.link }}" style="display:contents; color:inherit; text-decoration:none;">{% endif %}
+            <i class="{{ pi.icon|default:'fa-solid fa-briefcase' }}"></i><span>{{ pi.name }}</span>
+            {% if pi.link %}</a>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if job_settings.locations_visible %}
+      <div class="job-panel">
+        <div class="job-panel-head">
+          <h3>{{ job_settings.locations_title|default:'Jobs by Location' }}</h3><a href="{{ job_settings.locations_view_all_url|default:'/jobs/' }}">{{ job_settings.locations_view_all_text|default:'View All' }}</a>
+        </div>
+        <div class="location-grid">
+          {% for loc in job_settings.get_jobs_by_location %}
+          <div class="loc-item"><span><i class="{{ loc.icon|default:'fa-solid fa-location-dot' }}"></i> {{ loc.city }}</span><b>{{ loc.count }}</b></div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if job_settings.why_choose_visible %}
+      <div class="job-panel">
+        <div class="job-panel-head">
+          <h3>{{ job_settings.why_choose_title|default:'Why Choose Sky Vision?' }}</h3>
+        </div>
+        <ul class="why-list">
+          {% for wc in job_settings.get_why_choose %}
+          <li><i class="{{ wc.icon|default:'fa-solid fa-check-circle' }}"></i>
+            <div><b>{{ wc.title }}</b><span>{{ wc.desc }}</span></div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if job_settings.commit_visible %}
+  <!-- ============ 8. COMMITMENT STATS BANNER ============ -->
+  <section class="commit-banner">
+    <div class="commit-inner">
+      <div class="commit-copy">
+        <h2>{{ job_settings.commit_title|default:'We are Committed to<br>Your Success'|safe|linebreaksbr }}</h2>
+      </div>
+      <div class="commit-stats">
+        {% for cs in job_settings.get_commit_stats %}
+        <div class="cstat">
+          <h3>{{ cs.num }}</h3><span>{{ cs.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% if job_settings.commit_image %}
+      <img class="commit-illustration" src="{{ job_settings.commit_image.url }}" alt="{{ job_settings.commit_title }}">
+      {% else %}
+      <img class="commit-illustration" src="{% static 'images/general/team activities.png' %}" alt="Team celebrating success">
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if job_settings.cta_visible %}
+  <!-- ============ 9. READY TO TAKE NEXT STEP ============ -->
+  <section class="next-step">
+    <div class="next-step-inner">
+      {% if job_settings.cta_image %}
+      <img class="next-step-visual" src="{{ job_settings.cta_image.url }}" alt="{{ job_settings.cta_title }}">
+      {% else %}
+      <img class="next-step-visual" src="{% static 'images/general/workshop.png' %}" alt="Resume and job search">
+      {% endif %}
+
+      <div class="next-step-copy">
+        <h2>{{ job_settings.cta_title|default:'Ready to Take the Next Step?' }}</h2>
+        <p>{{ job_settings.cta_subtitle|default:'Create your profile, apply to jobs and kickstart your career journey today!' }}</p>
+      </div>
+
+      <div class="next-step-items">
+        {% for step in job_settings.get_cta_steps %}
+        <div class="ns-item"><i class="{{ step.icon|default:'fa-solid fa-check' }}"></i><b>{{ step.title }}</b><span>{{ step.desc }}</span></div>
+        {% endfor %}
+      </div>
+
+      <a href="{{ job_settings.cta_btn_url|default:'/contact/' }}" class="btn btn-primary next-step-btn">{{ job_settings.cta_btn_text|default:'Create Your Profile Now' }} <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ FOOTER ============ -->
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('location') || params.get('category') || params.get('q') || params.get('field')) {
+      const target = document.getElementById('jobs-list');
+      if (target) {
+        setTimeout(function() {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      }
+    }
+  });
+</script>
+{% endblock %}

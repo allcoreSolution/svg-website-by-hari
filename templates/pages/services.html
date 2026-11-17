@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Our Services — Sky Vision Group Consultancy{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/services.css' %}?v=3.5">
+{% endblock %}
+
+{% block content %}
+<!-- =========================
+      OUR PROFESSIONAL SERVICES
+========================= -->
+    <!-- ============ PAGE HEADER ============ -->
+    <section class="page-header">
+      <div class="page-header-bg" aria-hidden="true"></div>
+      <div class="page-header-inner">
+        <span class="eyebrow">Get To Know Us</span>
+        <h1>Services of Sky Vision Group of Consultancy</h1>
+        <div class="breadcrumb">
+          <a href="{% url 'core:home' %}">Home</a>
+          <i class="fa-solid fa-chevron-right"></i>
+          <span>About Us</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="services-section">
+
+      <div class="section-heading">
+
+        <h2>
+          OUR PROFESSIONAL <span>SERVICES</span>
+        </h2>
+
+        <p>
+          End-to-End Workforce & Business Solutions Tailored To Your Needs
+        </p>
+
+      </div>
+
+      <div class="services-container">
+
+        <!-- Card 01 -->
+
+        <div class="service-card">
+
+          <div class="card-header">
+
+            <div class="card-left">
+
+              <i class="fas fa-users service-icon blue"></i>
+
+              <span class="number blue">01</span>
+
+            </div>
+
+            <h3>MANPOWER<br>SUPPLY SERVICES</h3>
+
+          </div>
+
+          <ul>
+
+            <li>Skilled Manpower</li>
+            <li>Unskilled Manpower</li>
+            <li>Industrial Workforce</li>
+            <li>Factory Staff</li>
+            <li>Office Staff</li>
+
+          </ul>
+
+          <a href="{% url 'core:manpower_supply' %}">Read More <i class="fas fa-arrow-right"></i></a>
+
+        </div>
+
+        <!-- Card 02 -->
+
+        <div class="service-card">
+
+          <div class="card-header">
+
+            <div class="card-left">
+
+              <i class="fas fa-search service-icon red"></i>
+
+              <span class="number red">02</span>
+
+            </div>
+
+            <h3>RECRUITMENT &<br>PLACEMENT SERVICES</h3>
+
+          </div>
+
+          <ul>
+
+            <li>Permanent Hiring</li>
+            <li>Executive Hiring</li>
+            <li>Bulk Hiring</li>
+            <li>Campus Recruitment</li>
+            <li>Overseas Recruitment</li>
+
+          </ul>
+
+          <a href="{% url 'core:recruitment_placement' %}">Read More <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <!-- Card 03 -->
+
+        <div class="service-card">
+
+          <div class="card-header">
+
+            <div class="card-left">
+
+              <i class="fas fa-user-friends service-icon blue"></i>
+
+              <span class="number blue">03</span>
+
+            </div>
+
+            <h3>CONTRACT STAFFING<br>SERVICES</h3>
+
+          </div>
+
+          <ul>
+
+            <li>Temporary Staffing</li>
+            <li>Project Staffing</li>
+            <li>Seasonal Workforce</li>
+            <li>Third Party Payroll</li>
+
+          </ul>
+
+          <a href="{% url 'core:contract_staffing' %}">Read More <i class="fas fa-arrow-right"></i></a>
+
+        </div>
+
+        <!-- Card 04 -->
+
+        <div class="service-card">
+
+          <div class="card-header">
+
+            <div class="card-left">
+
+              <i class="fas fa-graduation-cap service-icon red"></i>
+
+              <span class="number red">04</span>
+
+            </div>
+
+            <h3>EDUCATIONAL<br>CONSULTANCY SERVICES</h3>
+
+          </div>
+
+          <ul>
+
+            <li>Admission Guidance</li>
+            <li>College Selection</li>
+            <li>Career Planning</li>
+            <li>Skill Development</li>
+
+          </ul>
+
+          <a href="{% url 'core:educational_consultancy' %}">Read More <i class="fas fa-arrow-right"></i></a>
+
+        </div>
+
+        <!-- Card 05 -->
+
+        <div class="service-card">
+
+          <div class="card-header">
+
+            <div class="card-left">
+
+              <i class="fas fa-file-invoice service-icon blue"></i>
+
+              <span class="number blue">05</span>
+
+            </div>
+
+            <h3>PAYROLL & OUTSOURCING<br>SERVICES</h3>
+
+          </div>
+
+          <ul>
+
+            <li>Salary Processing</li>
+            <li>Attendance Management</li>
+            <li>PF & ESI Management</li>
+            <li>Compliance Management</li>
+
+          </ul>
+
+          <a href="{% url 'core:payroll_outsourcing' %}">Read More <i class="fas fa-arrow-right"></i></a>
+
+        </div>
+
+        <!-- Card 06 -->
+
+        <div class="service-card">
+
+          <div class="card-header">
+
+            <div class="card-left">
+
+              <i class="fas fa-headset service-icon red"></i>
+
+              <span class="number red">06</span>
+
+            </div>
+
+            <h3>HR SUPPORT<br>SERVICES</h3>
+
+          </div>
+
+          <ul>
+
+            <li>HR Policies</li>
+            <li>Employee Engagement</li>
+            <li>Performance Management</li>
+            <li>HR Documentation</li>
+
+          </ul>
+
+          <a href="{% url 'core:hr_support' %}">Read More <i class="fas fa-arrow-right"></i></a>
+
+        </div>
+
+        <!-- Card 07 -->
+
+        <div class="service-card">
+
+          <div class="card-header">
+
+            <div class="card-left">
+
+              <i class="fas fa-briefcase service-icon blue"></i>
+
+              <span class="number blue">07</span>
+
+            </div>
+
+            <h3>INTERNSHIP<br>PROGRAMME</h3>
+
+          </div>
+
+          <ul>
+
+            <li>HR Internship</li>
+            <li>Finance Internship</li>
+            <li>Marketing Internship</li>
+            <li>IT Internship</li>
+            <li>Digital Marketing Internship</li>
+
+          </ul>
+
+          <a href="{% url 'core:internship' %}">Read More <i class="fas fa-arrow-right"></i></a>
+
+        </div>
+
+        <!-- Card 08 -->
+
+        <div class="service-card">
+
+          <div class="card-header">
+
+            <div class="card-left">
+
+              <i class="fas fa-people-arrows service-icon red"></i>
+
+              <span class="number red">08</span>
+
+            </div>
+
+            <h3>CAREER COUNSELLING<br>SERVICES</h3>
+
+          </div>
+
+          <ul>
+
+            <li>Career Assessment</li>
+            <li>Resume Building</li>
+            <li>Interview Preparation</li>
+            <li>Job Guidance</li>
+
+          </ul>
+
+          <a href="{% url 'core:careers' %}">Read More <i class="fas fa-arrow-right"></i></a>
+
+        </div>
+
+      </div>
+
+    </section>
+    <!-- ============ FOOTER ============ -->
+{% endblock %}

@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ journey_settings.meta_title|default:"Our Journey — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_head %}
+  {% if journey_settings.meta_description %}
+  <meta name="description" content="{{ journey_settings.meta_description }}">
+  {% endif %}
+  {% if journey_settings.og_image %}
+  <meta property="og:image" content="{{ journey_settings.get_og_image_url }}">
+  {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/ourjourney.css' %}?v=3.6">
+  <style>
+    .oj-hero-copy h1 span,
+    .oj-hero-copy h1 .highlight {
+      color: var(--amber-500) !important;
+    }
+    .oj-story-copy h2 span,
+    .oj-story-copy h2 .highlight,
+    .section-title h2 span,
+    .section-title h2 .highlight,
+    .oj-impact-copy h2 span,
+    .oj-impact-copy h2 .highlight {
+      color: var(--indigo-600) !important;
+    }
+    .section-title.light h2 span,
+    .section-title.light h2 .highlight,
+    .oj-la-copy h2 span,
+    .oj-la-copy h2 .highlight {
+      color: var(--amber-500) !important;
+    }
+    .oj-story-lead {
+      font-size: 17px !important;
+      font-weight: 600;
+      color: var(--navy-900) !important;
+      line-height: 1.8 !important;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+    <!-- ============ OJ HERO ============ -->
+    {% if journey_settings.hero_visible %}
+    <section class="oj-hero">
+      <div class="oj-hero-bg" aria-hidden="true"></div>
+
+      <div class="oj-hero-inner">
+
+        <div class="oj-hero-copy">
+          <span class="eyebrow">{{ journey_settings.hero_eyebrow|default:"Our Journey" }}</span>
+          <h1>{{ journey_settings.hero_title|safe }}</h1>
+          <p>{{ journey_settings.hero_description|default:"Since our founding, Sky Vision Group Consultancy has been on a mission to connect talent with opportunity. Every placement, every partnership and every milestone reflects our commitment to businesses and professionals across India — a journey built on trust, consistency and genuine care for the people we serve."|linebreaksbr }}</p>
+
+          <div class="oj-hero-stats">
+            <div class="oj-hero-stat">
+              <span class="oj-hero-stat-num">{{ journey_settings.stat1_num|default:"2022" }}</span>
+              <span class="oj-hero-stat-label">{{ journey_settings.stat1_label|default:"Founded" }}</span>
+            </div>
+            <div class="oj-hero-stat-div" aria-hidden="true"></div>
+            <div class="oj-hero-stat">
+              <span class="oj-hero-stat-num">{{ journey_settings.stat2_num|default:"5000+" }}</span>
+              <span class="oj-hero-stat-label">{{ journey_settings.stat2_label|default:"Placed" }}</span>
+            </div>
+            <div class="oj-hero-stat-div" aria-hidden="true"></div>
+            <div class="oj-hero-stat">
+              <span class="oj-hero-stat-num">{{ journey_settings.stat3_num|default:"300+" }}</span>
+              <span class="oj-hero-stat-label">{{ journey_settings.stat3_label|default:"Partners" }}</span>
+            </div>
+          </div>
+
+          <div class="oj-hero-actions">
+            {% if journey_settings.hero_btn1_text %}
+            <a href="{{ journey_settings.hero_btn1_url|default:'#oj-story' }}" class="btn btn-primary"><i class="fa-solid fa-book-open"></i> {{ journey_settings.hero_btn1_text }}</a>
+            {% endif %}
+            {% if journey_settings.hero_btn2_text %}
+            <a href="{{ journey_settings.hero_btn2_url|default:'/contact/' }}" class="btn btn-outline"><i class="fa-solid fa-envelope"></i> {{ journey_settings.hero_btn2_text }}</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="oj-hero-visual">
+          <img src="{{ journey_settings.get_hero_image }}"
+            alt="{{ journey_settings.hero_clean_title|default:'Sky Vision Group Consultancy team collaborating' }}">
+          <div class="oj-hero-badge">
+            <span class="oj-hero-badge-num">{{ journey_settings.badge_num|default:"6+" }}</span>
+            <span class="oj-hero-badge-text">{{ journey_settings.badge_text|default:"Years of Excellence"|linebreaksbr }}</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ OUR STORY ============ -->
+    {% if journey_settings.story_visible %}
+    <section class="oj-story" id="oj-story">
+      <div class="oj-story-container">
+
+        <div class="oj-story-visual">
+          <div class="oj-story-shape oj-shape-1" aria-hidden="true"></div>
+          <div class="oj-story-shape oj-shape-2" aria-hidden="true"></div>
+          <img src="{{ journey_settings.get_story_image }}"
+            alt="Sky Vision Group Consultancy office and recruitment team">
+        </div>
+
+        <div class="oj-story-copy">
+          <span class="about-tag">{{ journey_settings.story_tag|default:"Our Story" }}</span>
+          <h2>{{ journey_settings.story_title|safe }}</h2>
+          {% if story_paragraphs %}
+            {% for p in story_paragraphs %}
+            <p {% if p.is_highlight %}class="oj-story-lead"{% endif %}>{{ p.paragraph_text|linebreaksbr }}</p>
+            {% endfor %}
+          {% elif not has_story_paragraphs %}
+            {% if journey_settings.story_p1 %}
+            <p class="oj-story-lead">{{ journey_settings.story_p1|linebreaksbr }}</p>
+            {% endif %}
+            {% if journey_settings.story_p2 %}
+            <p>{{ journey_settings.story_p2|linebreaksbr }}</p>
+            {% endif %}
+            {% if journey_settings.story_p3 %}
+            <p>{{ journey_settings.story_p3|linebreaksbr }}</p>
+            {% endif %}
+          {% endif %}
+
+          {% if story_cards %}
+          <div class="oj-feature-cards">
+            {% for sc in story_cards %}
+            <div class="oj-feature-card">
+              <div class="icon {{ sc.color|default:'blue' }}"><i class="{{ sc.icon|default:'fa-solid fa-shield-halved' }}"></i></div>
+              <div class="text">
+                <h3>{{ sc.title }}</h3>
+                <p>{{ sc.description }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ GROWTH TIMELINE ============ -->
+    {% if journey_settings.timeline_visible and timeline_items %}
+    <section class="oj-timeline-section">
+      <div class="section-title">
+        <span class="tag">{{ journey_settings.timeline_tag|default:"How Far We've Come" }}</span>
+        <h2>{{ journey_settings.timeline_title|safe }}</h2>
+        <p>{{ journey_settings.timeline_subtitle|default:"From a small vision to becoming a trusted recruitment consultancy." }}</p>
+      </div>
+
+      <div class="oj-timeline">
+        <div class="oj-timeline-line" aria-hidden="true"></div>
+
+        {% for ms in timeline_items %}
+        <div class="oj-tl-row">
+          {% if forloop.counter|divisibleby:2 %}
+          <div class="oj-tl-col oj-tl-left">
+            <div class="oj-tl-highlight alt">
+              <span class="oj-tl-hl-num">{{ ms.badge_label|default:ms.year }}</span>
+              <span class="oj-tl-hl-label">{{ ms.title }}</span>
+            </div>
+          </div>
+          <div class="oj-tl-node"><i class="{{ ms.icon_class|default:'fa-solid fa-flag' }}"></i></div>
+          <div class="oj-tl-col oj-tl-right">
+            <div class="oj-tl-card" data-year="{{ ms.year }}">
+              <div class="oj-tl-icon"><i class="{{ ms.icon_class|default:'fa-solid fa-flag' }}"></i></div>
+              <span class="oj-tl-year">{{ ms.year }}</span>
+              <h3>{{ ms.title }}</h3>
+              <p>{{ ms.description }}</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="oj-tl-col oj-tl-left">
+            <div class="oj-tl-card" data-year="{{ ms.year }}">
+              <div class="oj-tl-icon"><i class="{{ ms.icon_class|default:'fa-solid fa-flag' }}"></i></div>
+              <span class="oj-tl-year">{{ ms.year }}</span>
+              <h3>{{ ms.title }}</h3>
+              <p>{{ ms.description }}</p>
+            </div>
+          </div>
+          <div class="oj-tl-node"><i class="{{ ms.icon_class|default:'fa-solid fa-flag' }}"></i></div>
+          <div class="oj-tl-col oj-tl-right">
+            <div class="oj-tl-highlight">
+              <span class="oj-tl-hl-num">{{ ms.badge_label|default:ms.year }}</span>
+              <span class="oj-tl-hl-label">{{ ms.title }}</span>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ OUR MILESTONES ============ -->
+    {% if journey_settings.milestones_visible and milestone_cards %}
+    <section class="oj-milestones">
+      <div class="section-title">
+        <span class="tag">{{ journey_settings.milestones_tag|default:"What We've Achieved" }}</span>
+        <h2>{{ journey_settings.milestones_title|safe }}</h2>
+        <p>{{ journey_settings.milestones_subtitle|default:"Key moments that shaped our growth as a consultancy." }}</p>
+      </div>
+
+      <div class="oj-milestones-grid">
+        {% for mc in milestone_cards %}
+        <div class="oj-milestone-card">
+          <div class="oj-milestone-icon"><i class="{{ mc.icon_class|default:'fa-solid fa-trophy' }}"></i></div>
+          <h3>{% if mc.year %}{{ mc.year }} — {% endif %}{{ mc.title }}</h3>
+          <p>{{ mc.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ OUR IMPACT ============ -->
+    {% if journey_settings.impact_visible %}
+    <section class="oj-impact">
+      <div class="oj-impact-container">
+
+        <div class="oj-impact-visual">
+          <img src="{{ journey_settings.get_impact_image }}"
+            alt="Sky Vision Group Consultancy helping businesses grow">
+        </div>
+
+        <div class="oj-impact-copy">
+          <span class="about-tag">{{ journey_settings.impact_tag|default:"Our Impact" }}</span>
+          <h2>{{ journey_settings.impact_title|safe }}</h2>
+          <p>{{ journey_settings.impact_description|default:"Our journey isn't just measured in years — it's measured in the businesses we've helped grow and the careers we've helped build. Every service we offer is designed around one goal: reliable, lasting impact."|linebreaksbr }}</p>
+
+          {% if impact_items %}
+          <div class="oj-impact-list">
+            {% for item in impact_items %}
+            <div class="oj-impact-item">
+              <span class="oj-check"><i class="{{ item.icon|default:'fa-solid fa-check' }}"></i></span>
+              <div>
+                <h4>{{ item.title }}</h4>
+                <p>{{ item.description }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ OUR JOURNEY IN NUMBERS ============ -->
+    {% if journey_settings.numbers_visible and stats %}
+    <section class="oj-numbers">
+      <div class="section-title light">
+        <span class="tag">{{ journey_settings.numbers_tag|default:"By The Numbers" }}</span>
+        <h2>{{ journey_settings.numbers_title|safe }}</h2>
+        <p>{{ journey_settings.numbers_subtitle|default:"A snapshot of the trust we've built since 2022." }}</p>
+      </div>
+
+      <div class="oj-numbers-grid">
+        {% for stat in stats %}
+        <div class="oj-number-card">
+          <div class="oj-number-icon"><i class="{{ stat.icon|default:'fa-solid fa-chart-line' }}"></i></div>
+          <h3 class="oj-count" data-count="{{ stat.count }}" data-suffix="{{ stat.suffix|default:'' }}">0</h3>
+          <p>{{ stat.label }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ LOOKING AHEAD ============ -->
+    {% if journey_settings.ahead_visible %}
+    <section class="oj-looking-ahead">
+      <div class="oj-la-shape oj-la-shape-1" aria-hidden="true"></div>
+      <div class="oj-la-shape oj-la-shape-2" aria-hidden="true"></div>
+
+      <div class="oj-la-container">
+        <div class="oj-la-copy">
+          <span class="about-tag">{{ journey_settings.ahead_tag|default:"Looking Ahead" }}</span>
+          <h2>{{ journey_settings.ahead_title|safe }}</h2>
+          <p>{{ journey_settings.ahead_description|default:"Our story is far from over. As we look to the future, we remain committed to the same values that got us here — trust, quality and genuine care for the people we work with. Here's what's next for Sky Vision Group Consultancy."|linebreaksbr }}</p>
+
+          {% if future_goals %}
+          <ul class="oj-la-list">
+            {% for goal in future_goals %}
+            <li><i class="{{ goal.icon|default:'fa-solid fa-circle-check' }}"></i> {{ goal.text }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+
+          <div class="oj-la-actions">
+            {% if journey_settings.cta_btn1_text %}
+            <a href="{{ journey_settings.cta_btn1_url|default:'/contact/' }}" class="btn btn-primary"><i class="fa-solid fa-handshake"></i> {{ journey_settings.cta_btn1_text }}</a>
+            {% endif %}
+            {% if journey_settings.cta_btn2_text %}
+            <a href="{{ journey_settings.cta_btn2_url|default:'/contact/' }}" class="btn btn-outline-light"><i class="fa-solid fa-users"></i> {{ journey_settings.cta_btn2_text }}</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/pages/ourjourney.js' %}"></script>
+{% endblock %}

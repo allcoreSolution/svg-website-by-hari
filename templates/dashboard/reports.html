@@ -1,0 +1,413 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ sec_title }} — Super Admin Panel{% endblock %}
+{% block page_title %}{{ sec_title }}{% endblock %}
+{% block breadcrumb_title %}Reports &amp; Analytics / {{ sec_title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Report Type Switcher Header */
+  .report-type-switcher {
+    display: flex;
+    align-items: center;
+    background: #E2E8F0;
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid #CBD5E1;
+    gap: 4px;
+    margin: 0 16px;
+  }
+  .btn-report-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13.5px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .btn-report-type.active {
+    background: #2563EB;
+    color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(37,99,235,0.25);
+  }
+  .btn-report-type.inactive {
+    color: #475569;
+    background: transparent;
+  }
+  .btn-report-type.inactive:hover {
+    background: #CBD5E1;
+    color: #0F172A;
+  }
+
+  /* Timeframe Filter Bar */
+  .timeframe-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #FFFFFF;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .timeframe-pills {
+    display: flex;
+    gap: 6px;
+    background: #F1F5F9;
+    padding: 4px;
+    border-radius: 8px;
+  }
+  .timeframe-pill {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #475569;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .timeframe-pill.active {
+    background: #FFFFFF;
+    color: #2563EB;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  /* Stat Cards Grid */
+  .report-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .report-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .report-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .report-card-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #64748B;
+    letter-spacing: 0.4px;
+  }
+  .report-card-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+  }
+  .report-card-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0F172A;
+  }
+  .report-card-sub {
+    font-size: 11.5px;
+    color: #64748B;
+  }
+  .btn-admin-primary {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    border: 1px solid #2563EB !important;
+    box-shadow: 0 2px 4px rgba(37,99,235,0.25) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    border-radius: 8px !important;
+    text-decoration: none !important;
+  }
+  .btn-admin-primary:hover {
+    background: #1D4ED8 !important;
+    border-color: #1D4ED8 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Reports Table Compact Styling */
+  .data-table-card .table-responsive-wrap {
+    overflow-x: auto;
+    width: 100%;
+  }
+  #reportDataTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 11.5px;
+  }
+  #reportDataTable th {
+    background: #F8FAFC;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 8px 6px;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+  #reportDataTable td {
+    padding: 7px 6px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #334155;
+    vertical-align: middle;
+    font-size: 11.5px;
+    line-height: 1.25;
+    box-sizing: border-box;
+  }
+  #reportDataTable tr:hover {
+    background: #F8FAFC;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Header Card -->
+<div class="module-header-card">
+  <div class="module-title-group">
+    <div class="module-icon-box" style="background:#EFF6FF; color:#2563EB;">
+      <i class="ti ti-chart-dots"></i>
+    </div>
+    <div>
+      <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">{{ sec_title }}</h3>
+      <span style="font-size:12px; color:#64748B;">Live recruitment metrics &amp; period growth analysis</span>
+    </div>
+  </div>
+
+  <!-- Report Type Switcher (Candidate Reports vs Employer Reports) -->
+  <div class="report-type-switcher">
+    <a href="/admin-panel/reports/candidate/?period={{ period }}" class="btn-report-type {% if report_type == 'candidate' %}active{% else %}inactive{% endif %}">
+      <i class="ti ti-user-search"></i> Candidate Reports
+    </a>
+    <a href="/admin-panel/reports/company/?period={{ period }}" class="btn-report-type {% if report_type == 'company' %}active{% else %}inactive{% endif %}">
+      <i class="ti ti-building"></i> Employer Reports
+    </a>
+  </div>
+
+  <div class="module-actions-group">
+    <button type="button" class="btn-admin btn-admin-secondary" onclick="window.location.reload();">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
+    <button type="button" class="btn-admin btn-admin-secondary" onclick="window.print();">
+      <i class="ti ti-printer"></i> Print / Export PDF
+    </button>
+  </div>
+</div>
+
+<!-- 2. Timeframe Filter Bar (Weekly / Monthly / Yearly / All Time) -->
+<div class="timeframe-bar">
+  <div style="display:flex; align-items:center; gap:8px;">
+    <span style="font-size:13px; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px;">
+      <i class="ti ti-calendar-time" style="color:#2563EB;"></i> Timeframe:
+    </span>
+    <div class="timeframe-pills">
+      <a href="?period=weekly" class="timeframe-pill {% if period == 'weekly' and not from_param %}active{% endif %}">Weekly (7 Days)</a>
+      <a href="?period=monthly" class="timeframe-pill {% if period == 'monthly' and not from_param %}active{% endif %}">Monthly (30 Days)</a>
+      <a href="?period=yearly" class="timeframe-pill {% if period == 'yearly' and not from_param %}active{% endif %}">Yearly (365 Days)</a>
+      <a href="?period=all" class="timeframe-pill {% if period == 'all' and not from_param %}active{% endif %}">All Time</a>
+    </div>
+  </div>
+
+  <!-- Custom Date Range Form -->
+  <form method="GET" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+    <input type="hidden" name="period" value="{{ period }}">
+    <label style="font-size:12px; color:#64748B; font-weight:600;">From:</label>
+    <input type="date" name="from" value="{{ from_param }}" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 10px; background:#FFFFFF; color:#0F172A; border:1px solid #CBD5E1; border-radius:8px;">
+    <label style="font-size:12px; color:#64748B; font-weight:600;">To:</label>
+    <input type="date" name="to" value="{{ to_param }}" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 10px; background:#FFFFFF; color:#0F172A; border:1px solid #CBD5E1; border-radius:8px;">
+    <button type="submit" class="btn-admin btn-admin-primary" style="background:#2563EB !important; color:#FFFFFF !important; border:1px solid #2563EB !important; padding:6px 14px; font-size:12.5px; font-weight:600; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 2px 4px rgba(37,99,235,0.25);">
+      <i class="ti ti-filter" style="font-size:13px; color:#FFFFFF !important;"></i> Apply Filter
+    </button>
+    {% if from_param or to_param %}
+      <a href="?period={{ period }}" class="btn-admin btn-admin-secondary" style="background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; padding:6px 12px; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+        <i class="ti ti-x"></i> Reset
+      </a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- 3. Top 4 Metric Stat Cards -->
+<div class="report-metrics-grid">
+  <!-- Card 1 -->
+  <div class="report-card">
+    <div class="report-card-head">
+      <span class="report-card-title">{{ metrics.card1_title }}</span>
+      <div class="report-card-icon" style="background:#E0F2FE; color:#0284C7;"><i class="ti ti-user-plus"></i></div>
+    </div>
+    <div class="report-card-value">{{ metrics.card1_num }}</div>
+    <div class="report-card-sub"><i class="ti ti-clock"></i> {{ metrics.card1_sub }}</div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="report-card">
+    <div class="report-card-head">
+      <span class="report-card-title">{{ metrics.card2_title }}</span>
+      <div class="report-card-icon" style="background:#DCFCE7; color:#16A34A;"><i class="ti ti-file-text"></i></div>
+    </div>
+    <div class="report-card-value" style="color:#16A34A;">{{ metrics.card2_num }}</div>
+    <div class="report-card-sub"><i class="ti ti-check"></i> {{ metrics.card2_sub }}</div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="report-card">
+    <div class="report-card-head">
+      <span class="report-card-title">{{ metrics.card3_title }}</span>
+      <div class="report-card-icon" style="background:#FEF3C7; color:#D97706;"><i class="ti ti-star"></i></div>
+    </div>
+    <div class="report-card-value" style="color:#D97706;">{{ metrics.card3_num }}</div>
+    <div class="report-card-sub"><i class="ti ti-alert-circle"></i> {{ metrics.card3_sub }}</div>
+  </div>
+
+  <!-- Card 4 -->
+  <div class="report-card">
+    <div class="report-card-head">
+      <span class="report-card-title">{{ metrics.card4_title }}</span>
+      <div class="report-card-icon" style="background:#F1F5F9; color:#475569;"><i class="ti ti-award"></i></div>
+    </div>
+    <div class="report-card-value" style="color:#2563EB;">{{ metrics.card4_num }}</div>
+    <div class="report-card-sub"><i class="ti ti-trending-up"></i> {{ metrics.card4_sub }}</div>
+  </div>
+</div>
+
+<!-- PRINT ONLY HEADER (Visible only during printing / PDF export) -->
+<div class="print-report-header" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #0F172A; padding-bottom:8px; margin-bottom:14px;">
+    <div>
+      <h2 style="margin:0; font-size:17px; font-weight:800; color:#0F172A;">{{ sec_title }}</h2>
+      <span style="font-size:11.5px; color:#475569;">Period: <strong>{{ period_label }}</strong> &bull; Printed: {% now "Y-m-d H:i" %}</span>
+    </div>
+    <div style="text-align:right;">
+      <strong style="font-size:13.5px; color:#2563EB;">SVG CONSULTANCY</strong><br>
+      <span style="font-size:11px; color:#64748B;">Total Records: {{ total_count }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Data Table Card -->
+<div class="data-table-card">
+  <div class="table-toolbar">
+    <div class="table-search-box">
+      <i class="ti ti-search"></i>
+      <input type="text" id="reportSearchInput" placeholder="Filter {{ report_type|title }} Records in {{ period_label }}...">
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span style="font-size:12.5px; color:#64748B; font-weight:600;">Showing <strong>{{ total_count }}</strong> records for <em>{{ period_label }}</em></span>
+      <select id="reportStatusFilter" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 500;">
+        <option value="">All Statuses</option>
+        <option value="Approved">Approved</option>
+        <option value="Pending">Pending</option>
+        <option value="Shortlisted">Shortlisted</option>
+        <option value="Selected">Selected / Placed</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-responsive-wrap">
+    <table class="admin-table" id="reportDataTable">
+      <thead>
+        <tr>
+          <th style="width: 9%; min-width: 70px;">ID / Reference</th>
+          <th style="width: 13%; min-width: 105px;">Type</th>
+          <th style="width: 18%;">Name / Company</th>
+          <th style="width: 20%;">Contact Info</th>
+          <th style="width: 17%;">Location / Detail</th>
+          <th style="width: 13%; min-width: 110px;">Date Added</th>
+          <th style="width: 10%; min-width: 80px; text-align: center;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if records %}
+          {% for item in records %}
+          <tr>
+            <td><strong style="font-size: 11px; color: #475569; white-space: nowrap;">#{{ item.id }}</strong></td>
+            <td><span class="badge" style="background:#F1F5F9; color:#334155; font-size:9.5px; font-weight:600; border:1px solid #CBD5E1; padding:2px 6px; border-radius:4px; white-space:nowrap;">{{ item.type }}</span></td>
+            <td>
+              <div class="text-truncate" style="font-weight: 700; color: #0f172a; font-size: 11.5px; max-width: 100%;" title="{{ item.name }}">{{ item.name }}</div>
+              {% if item.contact_person %}
+                <div class="text-truncate" style="font-size: 10px; color: #64748b; max-width: 100%;" title="Sub: {{ item.contact_person }}">Sub: {{ item.contact_person }}</div>
+              {% endif %}
+            </td>
+            <td>
+              <div class="text-truncate" style="font-size: 11px; color: #334155; font-weight: 500; max-width: 100%;" title="{{ item.email }}">{{ item.email }}</div>
+              <div style="font-size: 10.5px; color: #64748b; white-space: nowrap;">{{ item.phone }}</div>
+            </td>
+            <td>
+              <div class="text-truncate" style="font-size: 11px; color: #475569; max-width: 100%;" title="{{ item.city_industry }}">{{ item.city_industry }}</div>
+            </td>
+            <td style="font-size: 11px; color: #475569; white-space: nowrap;">{{ item.date }}</td>
+            <td style="text-align: center;">
+              <span class="status-badge status-badge-{{ item.status_class|default:'active' }}" style="font-size: 9.5px; padding: 2px 7px; white-space: nowrap;">
+                {{ item.status }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 40px 20px;">
+              <div style="font-size: 36px; color: #cbd5e1; margin-bottom: 8px;"><i class="ti ti-folder-off"></i></div>
+              <div style="font-weight: 700; color: #0f172a; font-size: 14px;">No records found for {{ period_label }}.</div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Try selecting a different timeframe (e.g., Monthly, Yearly, or All Time).</div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Live Search & Status Filter for Report Table
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('reportSearchInput');
+    const statusSelect = document.getElementById('reportStatusFilter');
+    const tableRows = document.querySelectorAll('#reportDataTable tbody tr');
+
+    function filterReportTable() {
+      const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const st = statusSelect ? statusSelect.value.toLowerCase().trim() : '';
+
+      tableRows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return;
+        const text = row.textContent.toLowerCase();
+        const badgeText = row.querySelector('.status-badge') ? row.querySelector('.status-badge').textContent.toLowerCase() : '';
+
+        const matchQuery = !q || text.includes(q);
+        const matchStatus = !st || badgeText.includes(st);
+
+        if (matchQuery && matchStatus) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterReportTable);
+    if (statusSelect) statusSelect.addEventListener('change', filterReportTable);
+  });
+</script>
+
+{% endblock %}

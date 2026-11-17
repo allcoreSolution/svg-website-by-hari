@@ -1,0 +1,1023 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+{% load ledger_tags %}
+
+{% block title %}Ledger & Commission Management — Sky Vision Admin{% endblock %}
+{% block page_title %}Ledger & Commission Tracker{% endblock %}
+{% block breadcrumb_title %}Billing & Finance / Ledger{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS for grid, forms & modals -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  /* Page Header */
+  .ledger-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .ledger-title-group h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ledger-title-group p {
+    font-size: 13px;
+    color: #64748B;
+    margin: 0;
+  }
+
+  /* Stat KPI Grid */
+  .ledger-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 1200px) {
+    .ledger-stat-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .ledger-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 576px) {
+    .ledger-stat-grid { grid-template-columns: repeat(1, 1fr); }
+  }
+
+  .ledger-stat-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .ledger-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .ledger-stat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ledger-stat-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .ledger-stat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .ledger-stat-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0F172A;
+    line-height: 1.2;
+  }
+  .ledger-stat-sub {
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+  }
+
+  /* Controls Bar / Filters */
+  .ledger-controls-wrap {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+
+  /* Table Card & Responsive Styling */
+  .ledger-table-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: visible;
+    margin-bottom: 24px;
+  }
+  .ledger-table-responsive {
+    overflow-x: auto;
+    min-height: 280px;
+  }
+  .ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+    table-layout: fixed;
+  }
+  .ledger-table thead th {
+    background: #F8FAFC;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 8px 6px;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+  .ledger-table tbody td {
+    padding: 7px 6px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #1E293B;
+    vertical-align: middle;
+    font-size: 11.5px;
+    line-height: 1.25;
+    box-sizing: border-box;
+  }
+  .ledger-table tbody tr:hover {
+    background: #F8FAFC;
+  }
+  .ledger-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Status Badges */
+  .badge-ledger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2.5px 7px;
+    border-radius: 12px;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .badge-ledger-pending { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+  .badge-ledger-partial { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+  .badge-ledger-paid { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+  .badge-ledger-waived { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+  .badge-ledger-cancelled { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
+  .badge-ledger-missing { background: #FFEDD5; color: #C2410C; border: 1px solid #FDBA74; }
+
+  /* Dropdown menu styling in table */
+  .dropdown {
+    position: relative;
+  }
+  .dropdown-menu {
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    z-index: 1050 !important;
+  }
+  .dropdown-item {
+    font-size: 12.5px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Modal scrolling & sticky footer styling */
+  .modal-dialog {
+    max-width: 540px;
+  }
+  .modal-content {
+    max-height: calc(100vh - 40px) !important;
+  }
+  .modal-body {
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+  }
+  .modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: #ffffff;
+    z-index: 10;
+    border-top: 1px solid #F1F5F9 !important;
+  }
+  .btn-success {
+    background-color: #10B981 !important;
+    border-color: #10B981 !important;
+    color: #FFFFFF !important;
+  }
+  .btn-success:hover {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+  }
+  .btn-primary {
+    background-color: #2563EB !important;
+    border-color: #2563EB !important;
+    color: #FFFFFF !important;
+  }
+  .btn-primary:hover {
+    background-color: #1D4ED8 !important;
+    border-color: #1D4ED8 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="ledger-header-bar">
+  <div class="ledger-title-group">
+    <h3><i class="ti ti-notebook text-primary"></i> Ledger &amp; Commission Tracker</h3>
+    <p>Manage candidate first-month commission receivables (50%), payments, balances, and waivers.</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <button type="button" id="btnSyncLedger" class="btn btn-outline-primary rounded-pill btn-sm px-3 shadow-sm fw-semibold">
+      <i class="ti ti-refresh me-1"></i> Sync Joined Candidates
+    </button>
+    <a href="/api/admin/ledger/export/?{{ request.GET.urlencode }}" class="btn btn-success rounded-pill btn-sm px-3 shadow-sm text-white fw-semibold">
+      <i class="ti ti-file-spreadsheet me-1"></i> Export CSV
+    </a>
+  </div>
+</div>
+
+<!-- Summary Cards Grid -->
+<div class="ledger-stat-grid">
+  <!-- Card 1 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Total Receivable</span>
+      <div class="ledger-stat-icon bg-primary-subtle text-primary"><i class="ti ti-receipt-2"></i></div>
+    </div>
+    <div class="ledger-stat-num">{{ total_receivable|indian_currency }}</div>
+    <div class="ledger-stat-sub bg-primary-subtle text-primary">Total Due (50%)</div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Total Received</span>
+      <div class="ledger-stat-icon bg-success-subtle text-success"><i class="ti ti-cash"></i></div>
+    </div>
+    <div class="ledger-stat-num text-success">{{ total_received|indian_currency }}</div>
+    <div class="ledger-stat-sub bg-success-subtle text-success">Collected</div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Outstanding Balance</span>
+      <div class="ledger-stat-icon bg-danger-subtle text-danger"><i class="ti ti-alert-circle"></i></div>
+    </div>
+    <div class="ledger-stat-num text-danger">{{ outstanding_balance|indian_currency }}</div>
+    <div class="ledger-stat-sub bg-danger-subtle text-danger">Pending Collection</div>
+  </div>
+
+  <!-- Card 4 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Pending Candidates</span>
+      <div class="ledger-stat-icon bg-warning-subtle text-warning-emphasis"><i class="ti ti-user-exclamation"></i></div>
+    </div>
+    <div class="ledger-stat-num">{{ pending_candidates_count }}</div>
+    <div class="ledger-stat-sub bg-warning-subtle text-warning-emphasis">Unpaid / Partial</div>
+  </div>
+
+  <!-- Card 5 -->
+  <div class="ledger-stat-card">
+    <div class="ledger-stat-head">
+      <span class="ledger-stat-title">Joinings This Month</span>
+      <div class="ledger-stat-icon bg-info-subtle text-info"><i class="ti ti-calendar-event"></i></div>
+    </div>
+    <div class="ledger-stat-num">{{ joinings_this_month_count }}</div>
+    {% if salary_missing_count > 0 %}
+      <a href="?salary_missing=1" class="ledger-stat-sub bg-warning text-dark text-decoration-none fw-bold">
+        <i class="ti ti-alert-triangle me-1"></i> {{ salary_missing_count }} Missing Salary
+      </a>
+    {% else %}
+      <div class="ledger-stat-sub bg-info-subtle text-info">All Salaries Set</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="ledger-controls-wrap">
+  <form method="GET" action="/admin-panel/ledger/" class="row g-2 align-items-center">
+    <div class="col-md-3">
+      <input type="text" name="q" value="{{ filters.q }}" class="form-control form-control-sm rounded-pill px-3" placeholder="Search candidate, company, position...">
+    </div>
+    <div class="col-md-2">
+      <select name="status" class="form-select form-select-sm rounded-pill px-3">
+        <option value="">All Statuses</option>
+        <option value="PENDING" {% if filters.status == 'PENDING' %}selected{% endif %}>Pending</option>
+        <option value="PARTIAL" {% if filters.status == 'PARTIAL' %}selected{% endif %}>Partial</option>
+        <option value="PAID" {% if filters.status == 'PAID' %}selected{% endif %}>Paid</option>
+        <option value="WAIVED" {% if filters.status == 'WAIVED' %}selected{% endif %}>Waived</option>
+        <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+        <option value="SALARY_MISSING" {% if filters.status == 'SALARY_MISSING' %}selected{% endif %}>Salary Missing</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="company" class="form-select form-select-sm rounded-pill px-3">
+        <option value="">All Companies</option>
+        {% for comp in companies_list %}
+          <option value="{{ comp }}" {% if filters.company == comp %}selected{% endif %}>{{ comp }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="payer_type" class="form-select form-select-sm rounded-pill px-3">
+        <option value="">All Payers</option>
+        <option value="Candidate" {% if filters.payer_type == 'Candidate' %}selected{% endif %}>Candidate</option>
+        <option value="Company" {% if filters.payer_type == 'Company' %}selected{% endif %}>Company</option>
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-fill fw-semibold"><i class="ti ti-filter me-1"></i> Filter</button>
+      <a href="/admin-panel/ledger/" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold"><i class="ti ti-rotate me-1"></i> Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Ledger Commissions Table Card -->
+<div class="ledger-table-card">
+  <div class="ledger-table-responsive">
+    <table class="ledger-table">
+      <thead>
+        <tr>
+          <th style="width:3.5%; min-width:30px;" class="ps-2">#</th>
+          <th style="width:13.5%;">Candidate</th>
+          <th style="width:14.5%;">Company &amp; Role</th>
+          <th style="width:8%; min-width:75px;">Joining Date</th>
+          <th style="width:11%; min-width:90px;">First-Month Salary</th>
+          <th style="width:6%; min-width:55px;">Comm %</th>
+          <th style="width:9%; min-width:85px;">Commission Due</th>
+          <th style="width:9%; min-width:85px;">Received</th>
+          <th style="width:9%; min-width:85px;">Balance</th>
+          <th style="width:9.5%; min-width:85px; text-align:center;">Status</th>
+          <th style="width:7%; min-width:50px; text-align:center;" class="pe-2">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if commissions %}
+          {% for c in commissions %}
+            <tr>
+              <td class="ps-2 text-muted" style="font-size:10.5px;">#{{ c.id }}</td>
+              <td>
+                <div class="fw-bold text-dark text-truncate" style="font-size:11.5px; max-width:100%;" title="{{ c.candidate_name }}">{{ c.candidate_name }}</div>
+                <span class="badge bg-light text-secondary border px-1.5 py-0" style="font-size:9px;">Payer: {{ c.payer_type }}</span>
+              </td>
+              <td>
+                <div class="fw-semibold text-dark text-truncate" style="font-size:11.5px; max-width:100%;" title="{{ c.company_name }}">{{ c.company_name }}</div>
+                <div class="text-muted text-truncate" style="font-size:10px; max-width:100%;" title="{{ c.position|default:'Staff' }}">{{ c.position|default:"Staff" }}</div>
+              </td>
+              <td class="text-muted" style="white-space:nowrap; font-size:11px;">{{ c.joining_date|date:"d M Y"|default:"N/A" }}</td>
+              <td>
+                {% if c.status == 'SALARY_MISSING' or c.first_month_salary == 0 %}
+                  <button type="button" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fw-bold" style="font-size:9.5px;" onclick="openSalaryModal({{ c.id }}, '{{ c.candidate_name|escapejs }}', {{ c.first_month_salary }})">
+                    Set Salary
+                  </button>
+                {% else %}
+                  <div class="fw-semibold text-dark" style="font-size:11.5px; white-space:nowrap;">{{ c.first_month_salary|indian_currency }}</div>
+                  <div class="text-muted text-truncate" style="max-width:100%; font-size:9px;" title="{{ c.salary_source }}">{{ c.salary_source }}</div>
+                {% endif %}
+              </td>
+              <td class="fw-semibold" style="font-size:11px; white-space:nowrap;">{{ c.commission_percent }}%</td>
+              <td class="fw-bold text-dark" style="font-size:11.5px; white-space:nowrap;">{{ c.commission_amount|indian_currency }}</td>
+              <td class="fw-bold text-success" style="font-size:11.5px; white-space:nowrap;">{{ c.total_received|indian_currency }}</td>
+              <td class="fw-bold {% if c.balance > 0 %}text-danger{% else %}text-muted{% endif %}" style="font-size:11.5px; white-space:nowrap;">
+                {{ c.balance|indian_currency }}
+              </td>
+              <td style="text-align:center;">
+                {% if c.status == 'PAID' %}
+                  <span class="badge-ledger badge-ledger-paid">PAID</span>
+                {% elif c.status == 'PARTIAL' %}
+                  <span class="badge-ledger badge-ledger-partial">PARTIAL</span>
+                {% elif c.status == 'WAIVED' %}
+                  <span class="badge-ledger badge-ledger-waived">WAIVED</span>
+                {% elif c.status == 'CANCELLED' %}
+                  <span class="badge-ledger badge-ledger-cancelled">CANCELLED</span>
+                {% elif c.status == 'SALARY_MISSING' %}
+                  <span class="badge-ledger badge-ledger-missing">MISSING</span>
+                {% else %}
+                  <span class="badge-ledger badge-ledger-pending">PENDING</span>
+                {% endif %}
+              </td>
+              <td class="pe-2 text-center">
+                <div class="dropdown">
+                  <button class="btn btn-light btn-sm rounded-circle p-1 shadow-sm" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" style="width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center;">
+                    <i class="ti ti-dots-vertical" style="font-size:13px;"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width:180px;">
+                    <li>
+                      <a class="dropdown-item py-2" href="/admin-panel/ledger/{{ c.id }}/">
+                        <i class="ti ti-notebook text-primary"></i> View Statement
+                      </a>
+                    </li>
+                    {% if c.balance > 0 and c.status != 'CANCELLED' and c.status != 'WAIVED' %}
+                      <li>
+                        <button class="dropdown-item py-2 text-success fw-semibold" onclick="openPaymentModal({{ c.id }}, '{{ c.candidate_name|escapejs }}', '{{ c.company_name|escapejs }}', {{ c.balance }})">
+                          <i class="ti ti-cash"></i> Receive Payment
+                        </button>
+                      </li>
+                    {% endif %}
+                    <li>
+                      <button class="dropdown-item py-2 text-dark" onclick="openSalaryModal({{ c.id }}, '{{ c.candidate_name|escapejs }}', {{ c.first_month_salary }})">
+                        <i class="ti ti-edit"></i> Edit Salary
+                      </button>
+                    </li>
+                    {% if c.balance > 0 and c.status != 'CANCELLED' and c.status != 'WAIVED' %}
+                      <li>
+                        <button class="dropdown-item py-2 text-warning" onclick="openWaiveModal({{ c.id }}, '{{ c.candidate_name|escapejs }}', 'waive')">
+                          <i class="ti ti-circle-off"></i> Waive Balance
+                        </button>
+                      </li>
+                      <li>
+                        <button class="dropdown-item py-2 text-danger" onclick="openWaiveModal({{ c.id }}, '{{ c.candidate_name|escapejs }}', 'cancel')">
+                          <i class="ti ti-x"></i> Cancel Commission
+                        </button>
+                      </li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <button class="dropdown-item py-2 text-secondary" onclick="openPayerModal({{ c.id }}, '{{ c.candidate_name|escapejs }}', '{{ c.payer_type }}')">
+                        <i class="ti ti-user-check"></i> Change Payer ({{ c.payer_type }})
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="11" class="text-center py-5 text-muted">
+              <i class="ti ti-notebook-off fs-1 text-muted d-block mb-2"></i>
+              <h6 class="fw-bold">No ledger commissions found</h6>
+              <p class="small mb-3">No joined candidate records match your filter criteria.</p>
+              <button type="button" onclick="document.getElementById('btnSyncLedger').click()" class="btn btn-primary rounded-pill btn-sm px-4">
+                <i class="ti ti-refresh me-1"></i> Sync Joined Candidates
+              </button>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Footer -->
+  {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white py-3 border-0 d-flex align-items-center justify-content-between">
+      <span class="small text-muted">Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} entries</span>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link rounded-pill px-3" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link rounded-pill px-3">{{ page_obj.number }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link rounded-pill px-3" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+
+<!-- MODALS -->
+
+<!-- 1. Receive Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="ti ti-cash text-success me-2"></i>Record Payment Received</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="paymentForm">
+        <div class="modal-body p-4">
+          <input type="hidden" id="payCommId" name="commission_id">
+          
+          <div class="alert alert-light border rounded-3 p-3 mb-3">
+            <div class="small text-muted mb-1">Candidate: <strong class="text-dark" id="payCandidateName"></strong></div>
+            <div class="small text-muted">Company: <strong class="text-dark" id="payCompanyName"></strong></div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">Amount Received (₹) <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" min="0.01" id="payAmount" name="amount" class="form-control form-control-lg rounded-3 fw-bold text-success" required>
+            <div class="form-text small" id="payBalanceNote"></div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Payment Date</label>
+              <input type="date" id="payDate" name="entry_date" class="form-control rounded-3" value="{% now 'Y-m-d' %}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Payment Mode</label>
+              <select id="payMode" name="payment_mode" class="form-select rounded-3">
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="UPI">UPI / GPay / PhonePe</option>
+                <option value="Cash">Cash</option>
+                <option value="Cheque">Cheque</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">Transaction / Reference No.</label>
+            <input type="text" id="payRef" name="reference_no" class="form-control rounded-3" placeholder="e.g. UTR12345678, CHQ-9988">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">Remarks / Notes</label>
+            <textarea id="payRemarks" name="remarks" class="form-control rounded-3" rows="2" placeholder="Optional payment remarks..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0 p-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="btnSubmitPayment" class="btn btn-success rounded-pill px-4 text-white fw-semibold">
+            <i class="ti ti-check me-1"></i> Confirm &amp; Generate Receipt
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Edit Salary Modal -->
+<div class="modal fade" id="salaryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="ti ti-edit text-primary me-2"></i>Update Candidate Salary</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="salaryForm">
+        <div class="modal-body p-4">
+          <input type="hidden" id="salCommId" name="commission_id">
+          
+          <p class="text-muted small">Update first-month monthly salary for <strong class="text-dark" id="salCandidateName"></strong>. Commission (50%) will be recalculated and an adjustment ledger entry created.</p>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">First-Month Gross Salary (₹) <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" min="0" id="salAmount" name="first_month_salary" class="form-control form-control-lg rounded-3 fw-bold" required>
+            <div class="form-text small text-muted">Example: If 6 LPA package, monthly salary is 50,000.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">Reason for Change</label>
+            <textarea id="salReason" name="reason" class="form-control rounded-3" rows="2" placeholder="e.g. Verified offer letter salary annexure"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0 p-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="btnSubmitSalary" class="btn btn-primary rounded-pill px-4 fw-semibold">
+            <i class="ti ti-device-floppy me-1"></i> Save Salary Adjustment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Waive / Cancel Modal -->
+<div class="modal fade" id="waiveModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark" id="waiveModalTitle"><i class="ti ti-circle-off text-warning me-2"></i>Waive Commission Balance</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="waiveForm">
+        <div class="modal-body p-4">
+          <input type="hidden" id="waiveCommId" name="commission_id">
+          <input type="hidden" id="waiveAction" name="action" value="waive">
+          
+          <p class="text-muted small" id="waiveModalDesc">Waiving remaining commission balance for <strong class="text-dark" id="waiveCandidateName"></strong>. This will set balance to ₹0.00.</p>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">Mandatory Reason <span class="text-danger">*</span></label>
+            <textarea id="waiveReason" name="reason" class="form-control rounded-3" rows="3" required placeholder="State reason (e.g. Candidate left company before 30 days, special discount approved by management)..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0 p-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="btnSubmitWaive" class="btn btn-warning rounded-pill px-4 text-dark fw-semibold">
+            <i class="ti ti-check me-1"></i> Confirm Waiver
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Change Payer Modal -->
+<div class="modal fade" id="payerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="ti ti-user-check text-secondary me-2"></i>Change Commission Payer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="payerForm">
+        <div class="modal-body p-4">
+          <input type="hidden" id="payerCommId" name="commission_id">
+          
+          <p class="text-muted small">Select who is responsible for paying this commission for <strong class="text-dark" id="payerCandidateName"></strong>.</p>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">Responsible Payer</label>
+            <select id="payerTypeSelect" name="payer_type" class="form-select rounded-3">
+              <option value="Candidate">Candidate (Deducted / Payable by Candidate)</option>
+              <option value="Company">Company (Billed / Payable by Employer)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0 p-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="btnSubmitPayer" class="btn btn-secondary rounded-pill px-4 fw-semibold">Save Payer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  let paymentModal, salaryModal, waiveModal, payerModal;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+    salaryModal = new bootstrap.Modal(document.getElementById('salaryModal'));
+    waiveModal = new bootstrap.Modal(document.getElementById('waiveModal'));
+    payerModal = new bootstrap.Modal(document.getElementById('payerModal'));
+
+    // Sync button handler
+    document.getElementById('btnSyncLedger')?.addEventListener('click', async function() {
+      this.disabled = true;
+      const origHtml = this.innerHTML;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Syncing...';
+
+      try {
+        const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+        const res = await fetch('/api/admin/ledger/sync/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(data.message, 'success');
+          setTimeout(() => window.location.reload(), 600);
+        } else {
+          showToast(data.message || 'Sync failed', 'error');
+          this.disabled = false;
+          this.innerHTML = origHtml;
+        }
+      } catch (e) {
+        showToast('Network error during sync', 'error');
+        this.disabled = false;
+        this.innerHTML = origHtml;
+      }
+    });
+
+    // Submit Payment Form
+    document.getElementById('paymentForm')?.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitPayment');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+
+      const commId = document.getElementById('payCommId').value;
+      const formData = new FormData(this);
+
+      try {
+        const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+        const res = await fetch(`/api/admin/ledger/${commId}/payment/`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          btn.type = 'button';
+          btn.innerHTML = '<i class="ti ti-check me-1"></i> Done!';
+          btn.classList.remove('btn-success');
+          btn.classList.add('btn-dark');
+          btn.disabled = false;
+          btn.onclick = () => window.location.reload();
+          showToast(data.message || 'Payment recorded successfully!', 'success');
+
+          if (data.entry_id) {
+            try {
+              window.open(`/admin-panel/ledger/receipt/${data.entry_id}/`, '_blank');
+            } catch(err) {
+              console.warn('Receipt window popup blocked', err);
+            }
+          }
+
+          setTimeout(() => {
+            try {
+              if (paymentModal) paymentModal.hide();
+              const el = document.getElementById('paymentModal');
+              const inst = bootstrap.Modal.getInstance(el);
+              if (inst) inst.hide();
+              document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            } catch(e) {}
+            window.location.reload();
+          }, 800);
+        } else {
+          showToast(data.message || 'Payment recording failed', 'error');
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      } catch (err) {
+        showToast('Network error processing payment', 'error');
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    });
+
+    // Submit Salary Form
+    document.getElementById('salaryForm')?.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitSalary');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+      const commId = document.getElementById('salCommId').value;
+      const formData = new FormData(this);
+
+      try {
+        const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+        const res = await fetch(`/api/admin/ledger/${commId}/salary/`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          btn.type = 'button';
+          btn.innerHTML = '<i class="ti ti-check me-1"></i> Done!';
+          btn.classList.remove('btn-primary');
+          btn.classList.add('btn-dark');
+          btn.disabled = false;
+          btn.onclick = () => window.location.reload();
+          showToast(data.message || 'Salary updated successfully!', 'success');
+          setTimeout(() => {
+            try {
+              if (salaryModal) salaryModal.hide();
+              const el = document.getElementById('salaryModal');
+              const inst = bootstrap.Modal.getInstance(el);
+              if (inst) inst.hide();
+              document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            } catch(e) {}
+            window.location.reload();
+          }, 600);
+        } else {
+          showToast(data.message || 'Salary update failed', 'error');
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      } catch (err) {
+        showToast('Network error updating salary', 'error');
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    });
+
+    // Submit Waive Form
+    document.getElementById('waiveForm')?.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitWaive');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+
+      const commId = document.getElementById('waiveCommId').value;
+      const formData = new FormData(this);
+
+      try {
+        const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+        const res = await fetch(`/api/admin/ledger/${commId}/waive/`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          btn.type = 'button';
+          btn.innerHTML = '<i class="ti ti-check me-1"></i> Done!';
+          btn.classList.remove('btn-warning', 'btn-danger');
+          btn.classList.add('btn-dark');
+          btn.disabled = false;
+          btn.onclick = () => window.location.reload();
+          showToast(data.message || 'Action completed successfully!', 'success');
+          setTimeout(() => {
+            try {
+              if (waiveModal) waiveModal.hide();
+              const el = document.getElementById('waiveModal');
+              const inst = bootstrap.Modal.getInstance(el);
+              if (inst) inst.hide();
+              document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            } catch(e) {}
+            window.location.reload();
+          }, 600);
+        } else {
+          showToast(data.message || 'Action failed', 'error');
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      } catch (err) {
+        showToast('Network error performing waiver', 'error');
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    });
+
+    // Submit Payer Form
+    document.getElementById('payerForm')?.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitPayer');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+      const commId = document.getElementById('payerCommId').value;
+      const formData = new FormData(this);
+
+      try {
+        const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+        const res = await fetch(`/api/admin/ledger/${commId}/payer/`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          btn.type = 'button';
+          btn.innerHTML = '<i class="ti ti-check me-1"></i> Done!';
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-dark');
+          btn.disabled = false;
+          btn.onclick = () => window.location.reload();
+          showToast(data.message || 'Payer updated successfully!', 'success');
+          setTimeout(() => {
+            try {
+              if (payerModal) payerModal.hide();
+              const el = document.getElementById('payerModal');
+              const inst = bootstrap.Modal.getInstance(el);
+              if (inst) inst.hide();
+              document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            } catch(e) {}
+            window.location.reload();
+          }, 600);
+        } else {
+          showToast(data.message || 'Payer update failed', 'error');
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      } catch (err) {
+        showToast('Network error updating payer', 'error');
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    });
+  });
+
+  function openPaymentModal(id, candidateName, companyName, balance) {
+    const btn = document.getElementById('btnSubmitPayment');
+    if (btn) {
+      btn.type = 'submit';
+      btn.disabled = false;
+      btn.onclick = null;
+      btn.className = 'btn btn-success rounded-pill px-4 text-white fw-semibold';
+      btn.innerHTML = '<i class="ti ti-check me-1"></i> Confirm &amp; Generate Receipt';
+    }
+    document.getElementById('payCommId').value = id;
+    document.getElementById('payCandidateName').innerText = candidateName;
+    document.getElementById('payCompanyName').innerText = companyName;
+    document.getElementById('payAmount').value = balance;
+    document.getElementById('payAmount').max = balance;
+    document.getElementById('payBalanceNote').innerText = `Max payable balance: ₹${balance.toLocaleString('en-IN')}`;
+    paymentModal.show();
+  }
+
+  function openSalaryModal(id, candidateName, currentSalary) {
+    const btn = document.getElementById('btnSubmitSalary');
+    if (btn) {
+      btn.type = 'submit';
+      btn.disabled = false;
+      btn.onclick = null;
+      btn.className = 'btn btn-primary rounded-pill px-4 fw-semibold';
+      btn.innerHTML = '<i class="ti ti-device-floppy me-1"></i> Save Salary Adjustment';
+    }
+    document.getElementById('salCommId').value = id;
+    document.getElementById('salCandidateName').innerText = candidateName;
+    document.getElementById('salAmount').value = currentSalary > 0 ? currentSalary : '';
+    salaryModal.show();
+  }
+
+  function openWaiveModal(id, candidateName, action) {
+    document.getElementById('waiveCommId').value = id;
+    document.getElementById('waiveAction').value = action;
+    document.getElementById('waiveCandidateName').innerText = candidateName;
+
+    const title = document.getElementById('waiveModalTitle');
+    const desc = document.getElementById('waiveModalDesc');
+    const btn = document.getElementById('btnSubmitWaive');
+    if (btn) {
+      btn.type = 'submit';
+      btn.disabled = false;
+      btn.onclick = null;
+    }
+
+    if (action === 'cancel') {
+      title.innerHTML = '<i class="ti ti-x text-danger me-2"></i>Cancel Commission';
+      desc.innerHTML = `Cancelling commission for <strong class="text-dark">${candidateName}</strong> (e.g. candidate left or offer withdrawn). Remaining balance will be reversed.`;
+      btn.className = 'btn btn-danger rounded-pill px-4 text-white fw-semibold';
+      btn.innerHTML = '<i class="ti ti-x me-1"></i> Confirm Cancellation';
+    } else {
+      title.innerHTML = '<i class="ti ti-circle-off text-warning me-2"></i>Waive Commission Balance';
+      desc.innerHTML = `Waiving remaining commission balance for <strong class="text-dark">${candidateName}</strong>. This will set balance to ₹0.00.`;
+      btn.className = 'btn btn-warning rounded-pill px-4 text-dark fw-semibold';
+      btn.innerHTML = '<i class="ti ti-check me-1"></i> Confirm Waiver';
+    }
+    waiveModal.show();
+  }
+
+  function openPayerModal(id, candidateName, currentPayer) {
+    const btn = document.getElementById('btnSubmitPayer');
+    if (btn) {
+      btn.type = 'submit';
+      btn.disabled = false;
+      btn.onclick = null;
+      btn.className = 'btn btn-secondary rounded-pill px-4 fw-semibold';
+      btn.innerHTML = 'Save Payer';
+    }
+    document.getElementById('payerCommId').value = id;
+    document.getElementById('payerCandidateName').innerText = candidateName;
+    document.getElementById('payerTypeSelect').value = currentPayer;
+    payerModal.show();
+  }
+
+  function showToast(msg, type = 'success') {
+    const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+    let container = document.getElementById('ledgerToastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'ledgerToastContainer';
+      container.style.cssText = 'position:fixed; top:24px; right:24px; z-index:99999; max-width:380px; pointer-events:none;';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `p-3 rounded-3 shadow-lg ${bgClass} mb-2 d-flex align-items-center justify-content-between gap-2 border-0`;
+    toast.style.cssText = 'font-size:13px; font-weight:600; box-shadow:0 10px 25px rgba(0,0,0,0.18); pointer-events:auto;';
+    toast.innerHTML = `
+      <div>${String(msg || '').replace(/\n/g, '<br>')}</div>
+      <button type="button" class="btn-close btn-close-white ms-2" onclick="this.parentElement.remove()"></button>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentElement) toast.remove();
+    }, 4000);
+  }
+</script>
+{% endblock %}

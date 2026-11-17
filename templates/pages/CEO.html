@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ ceo_settings.meta_title|default:'CEO & Founder Message — Sky Vision Group Consultancy' }}{% endblock %}
+
+{% block extra_css %}
+  {% if ceo_settings.meta_description %}
+    <meta name="description" content="{{ ceo_settings.meta_description }}">
+  {% endif %}
+  {% if ceo_settings.get_og_image_url %}
+    <meta property="og:image" content="{{ ceo_settings.get_og_image_url }}">
+  {% endif %}
+  <link rel="stylesheet" href="{% static 'css/pages/CEO.css' %}?v=4.1">
+{% endblock %}
+
+{% block content %}
+<!-- ============ PAGE HEADER ============ -->
+{% if ceo_settings.hero_visible %}
+    <section class="page-header" {% if ceo_settings.get_hero_bg_url %}style="background: linear-gradient(115deg, rgba(11,23,56,0.92) 0%, rgba(18,34,78,0.88) 55%, rgba(58,63,107,0.85) 100%), url('{{ ceo_settings.get_hero_bg_url }}') center/cover no-repeat;"{% endif %}>
+        <div class="page-header-bg" aria-hidden="true"></div>
+        <div class="page-header-inner">
+            <span class="eyebrow">{{ ceo_settings.page_eyebrow|default:'Get To Know Us' }}</span>
+            <h1>{{ ceo_settings.page_title|default:'CEO &amp; Founder Message' }}</h1>
+            {% if ceo_settings.hero_subtitle %}
+            <p class="page-header-desc">{{ ceo_settings.hero_subtitle }}</p>
+            {% endif %}
+            <div class="breadcrumb">
+                <a href="{% url 'core:home' %}">Home</a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <a href="{% url 'core:about' %}">About Us</a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span>{{ ceo_settings.breadcrumb_title|default:'CEO &amp; Founder' }}</span>
+            </div>
+        </div>
+    </section>
+{% endif %}
+
+  <!-- ============ CEO MESSAGE SECTION ============ -->
+  <main class="ceo-page">
+    {% if ceo_settings.profile_visible or ceo_settings.message_visible %}
+    <section class="ceo-hero">
+
+      <div class="ceo-hero__inner" style="{% if not ceo_settings.profile_visible %}grid-template-columns: 1fr;{% elif not ceo_settings.message_visible %}grid-template-columns: 1fr;{% endif %}">
+
+        <!-- LEFT: PHOTO & BADGES -->
+        {% if ceo_settings.profile_visible %}
+        <div class="ceo-photo-wrap">
+          <div class="ceo-photo">
+            <img src="{{ ceo_settings.get_ceo_photo_url }}" alt="{{ ceo_settings.ceo_photo_alt|default:ceo_settings.ceo_name|default:'Ashvani Dubey, CEO & Founder' }}">
+            <div class="ceo-photo__tag">
+              <span class="ceo-photo__name">{{ ceo_settings.ceo_name|default:'ASHVANI DUBEY' }}</span>
+              <span class="ceo-photo__role">{{ ceo_settings.ceo_role|default:'CEO &amp; FOUNDER' }}</span>
+              <span class="ceo-photo__org">{{ ceo_settings.ceo_org|default:'Sky Vision Group of Consultancy' }}</span>
+              {% if ceo_settings.ceo_tagline %}
+              <span class="ceo-photo__tagline">{{ ceo_settings.ceo_tagline }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- OPTIONAL STAT BADGES -->
+          {% if stat_badges %}
+          <div class="ceo-photo__badges">
+            {% for badge in stat_badges %}
+            {% if badge.is_visible %}
+            <div class="ceo-photo__badge-item">
+              <div class="ceo-photo__badge-icon"><i class="{{ badge.icon_class|default:'fa-solid fa-award' }}"></i></div>
+              <div class="ceo-photo__badge-content">
+                <span class="ceo-photo__badge-val">{{ badge.value }}</span>
+                <span class="ceo-photo__badge-lbl">{{ badge.label }}</span>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- RIGHT: MESSAGE -->
+        {% if ceo_settings.message_visible %}
+        <div class="ceo-copy">
+          <p class="ceo-copy__eyebrow">{{ ceo_settings.title_eyebrow|default:'MESSAGE FROM THE' }}</p>
+          <h1 class="ceo-copy__title">{{ ceo_settings.title_main|default:'CEO &amp; FOUNDER'|safe }}</h1>
+
+          {% if ceo_settings.message_p1 %}
+          <p>{{ ceo_settings.message_p1|linebreaksbr }}</p>
+          {% endif %}
+
+          {% if ceo_settings.message_p2 %}
+          <p>{{ ceo_settings.message_p2|linebreaksbr }}</p>
+          {% endif %}
+
+          {% if ceo_settings.message_p3 %}
+          <p>{{ ceo_settings.message_p3|linebreaksbr }}</p>
+          {% endif %}
+
+          {% if ceo_settings.message_p4 %}
+          <p>{{ ceo_settings.message_p4|linebreaksbr }}</p>
+          {% endif %}
+
+          {% if ceo_settings.quote_text %}
+          <blockquote class="ceo-quote">
+            <span class="ceo-quote__mark">&ldquo;</span>
+            <p>{{ ceo_settings.quote_text|linebreaksbr }}</p>
+          </blockquote>
+          {% endif %}
+
+          {% if ceo_settings.closing_text %}
+          <p class="ceo-copy__closing">{{ ceo_settings.closing_text|linebreaksbr }}</p>
+          {% endif %}
+
+          {% if ceo_settings.signoff_text %}
+          <p class="ceo-copy__signoff"><strong>{{ ceo_settings.signoff_text|linebreaksbr }}</strong></p>
+          {% endif %}
+        </div>
+        {% endif %}
+
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ LEADERSHIP PRINCIPLES ============ -->
+    {% if ceo_settings.principles_visible %}
+    <section class="principles">
+      <div class="principles__inner">
+
+        <div class="principles__label">
+          <span>{{ ceo_settings.principles_tag|default:'OUR LEADERSHIP' }}</span>
+          <strong>{{ ceo_settings.principles_title|default:'PRINCIPLES' }}</strong>
+        </div>
+
+        {% if ceo_settings.principles_subtitle %}
+        <p class="principles__subtitle">{{ ceo_settings.principles_subtitle }}</p>
+        {% endif %}
+
+        <div class="principles__grid">
+          {% for p in principles %}
+          {% if p.is_visible %}
+          <div class="principle">
+            <div class="principle__icon"><i class="{{ p.icon_class|default:'fa-solid fa-shield-halved' }}"></i></div>
+            <h4>{{ p.title }}</h4>
+            <p>{{ p.description }}</p>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ VISION / MISSION + SIGNATURE ============ -->
+    {% if ceo_settings.vm_visible %}
+    <section class="vm">
+      <div class="vm__inner">
+
+        <div class="vm__card">
+          <div class="vm__icon"><i class="{{ ceo_settings.vision_icon|default:'fa-solid fa-eye' }}"></i></div>
+          <div>
+            <h4>{{ ceo_settings.vision_title|default:'OUR VISION' }}</h4>
+            <p>{{ ceo_settings.vision_text|default:'To become one of India’s most trusted recruitment and HR consulting organizations by delivering innovative workforce solutions that empower businesses and transform careers.' }}</p>
+          </div>
+        </div>
+
+        <div class="vm__card">
+          <div class="vm__icon"><i class="{{ ceo_settings.mission_icon|default:'fa-solid fa-bullseye' }}"></i></div>
+          <div>
+            <h4>{{ ceo_settings.mission_title|default:'OUR MISSION' }}</h4>
+            <p>{{ ceo_settings.mission_text|default:'To connect the right talent with the right opportunities through ethical recruitment, professional excellence, and customer‑centric services while creating sustainable value for employers and job seekers.' }}</p>
+          </div>
+        </div>
+
+        <div class="vm__signature">
+          {% if ceo_settings.get_signature_image_url %}
+            <img src="{{ ceo_settings.get_signature_image_url }}" alt="Signature of {{ ceo_settings.signature_name|default:'Ashvani Dubey' }}" class="vm__signature-img">
+          {% else %}
+            <p class="vm__signature-script">{{ ceo_settings.signature_name|default:'Ashvani Dubey' }}</p>
+          {% endif %}
+          <p class="vm__signature-name">{{ ceo_settings.signature_name|default:'Ashvani Dubey' }}</p>
+          <p class="vm__signature-role">{{ ceo_settings.ceo_role|default:'CEO &amp; FOUNDER' }}</p>
+          <p class="vm__signature-org">{{ ceo_settings.ceo_org|default:'Sky Vision Group of Consultancy' }}</p>
+          <div class="vm__socials">
+            {% if ceo_settings.linkedin_url %}<a href="{{ ceo_settings.linkedin_url }}" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>{% endif %}
+            {% if ceo_settings.facebook_url %}<a href="{{ ceo_settings.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>{% endif %}
+            {% if ceo_settings.twitter_url %}<a href="{{ ceo_settings.twitter_url }}" target="_blank" rel="noopener" aria-label="Twitter / X"><i class="fa-brands fa-x-twitter"></i></a>{% endif %}
+            {% if ceo_settings.instagram_url %}<a href="{{ ceo_settings.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>{% endif %}
+            {% if ceo_settings.email_address %}<a href="mailto:{{ ceo_settings.email_address }}" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>{% endif %}
+          </div>
+        </div>
+
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ BOTTOM CTA ============ -->
+    {% if ceo_settings.cta_visible and ceo_settings.cta_heading %}
+    <section class="ceo-cta">
+      <div class="ceo-cta__inner">
+        <div class="ceo-cta__content">
+          <h2>{{ ceo_settings.cta_heading }}</h2>
+          {% if ceo_settings.cta_text %}<p>{{ ceo_settings.cta_text }}</p>{% endif %}
+        </div>
+        <div class="ceo-cta__actions">
+          {% if ceo_settings.cta_btn_label %}
+          <a href="{{ ceo_settings.cta_btn_url|default:'/contact/' }}" class="ceo-cta__btn ceo-cta__btn--primary">{{ ceo_settings.cta_btn_label }}</a>
+          {% endif %}
+          {% if ceo_settings.cta_btn2_label %}
+          <a href="{{ ceo_settings.cta_btn2_url|default:'/services/' }}" class="ceo-cta__btn ceo-cta__btn--secondary">{{ ceo_settings.cta_btn2_label }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+{% endblock %}

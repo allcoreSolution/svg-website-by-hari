@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ ec_settings.meta_title|default:"Educational Consultancy — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/educational-consultancy.css' %}?v=4.0">
+{% endblock %}
+
+{% block content %}
+  {% if ec_settings.hero_visible %}
+  <!-- ============ HERO ============ -->
+  <section class="ec-hero" style="background-image: url('{{ ec_settings.get_hero_image }}');">
+    <div class="ec-hero-overlay"></div>
+    <div class="wrap ec-hero-grid">
+      <div class="ec-hero-copy">
+        <span class="sv-eyebrow ec-eyebrow">{{ ec_settings.hero_eyebrow|default:'Guiding Futures, One Student at a Time' }}</span>
+        <h1 class="ec-h1">{{ ec_settings.formatted_hero_title|safe }}</h1>
+        <h2 class="ec-subhead">{{ ec_settings.hero_subhead|default:'Build Your Future with Expert Educational Guidance' }}</h2>
+        <p class="lead ec-lead">{{ ec_settings.hero_subtitle|default:'We help students achieve their academic and career goals with the right guidance, admission support, and skill development programs.' }}</p>
+
+        <div class="sv-hero-actions">
+          <a href="{{ ec_settings.hero_counsel_btn_url|default:'#contact' }}" class="btn btn-navy"><i class="fa-solid fa-graduation-cap"></i> {{ ec_settings.hero_counsel_btn_text|default:'Get Free Counselling' }}</a>
+          <a href="{{ ec_settings.hero_contact_btn_url|default:'/contact/' }}" class="btn btn-outline-navy"><i class="fa-solid fa-phone"></i> {{ ec_settings.hero_contact_btn_text|default:'Contact Us' }}</a>
+        </div>
+      </div>
+      <div class="ec-hero-spacer" aria-hidden="true"></div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if ec_settings.services_visible %}
+  <!-- ============ SERVICES ============ -->
+  <section class="ms-services">
+    <div class="wrap">
+      <div class="sv-section-head">
+        <h2>{{ ec_settings.formatted_services_title|safe }}</h2>
+      </div>
+
+      <div class="ec-services-grid">
+        {% for service in ec_services %}
+        <div class="sv-service-card ec-card">
+          <div class="ec-service-icon {{ service.badge_theme|default:'navy' }}"><i class="{{ service.icon_class|default:'fa-solid fa-graduation-cap' }}"></i></div>
+          <h3>{{ service.title }}</h3>
+          <p>{{ service.description }}</p>
+        </div>
+{% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if ec_settings.why_choose_visible %}
+  <!-- ============ WHY CHOOSE ============ -->
+  <section class="ec-why">
+    <div class="wrap ec-why-grid">
+
+      <div class="ec-why-intro">
+        <h2>{{ ec_settings.formatted_why_choose_title|safe }}</h2>
+        <div class="ec-why-photo">
+          <img src="{{ ec_settings.get_why_image }}" alt="Student counselling session">
+        </div>
+      </div>
+
+      <div class="ec-why-list">
+        {% for item in ec_why_choose %}
+        <div class="ec-why-item">
+          <i class="{{ item.icon_class|default:'fa-solid fa-user-graduate' }}"></i>
+          <div>
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.description }}</p>
+          </div>
+        </div>
+{% endfor %}
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if ec_settings.process_visible %}
+  <!-- ============ PROCESS ============ -->
+  <section class="ms-services ec-process">
+    <div class="wrap">
+      <div class="sv-section-head">
+        <h2>{{ ec_settings.formatted_process_title|safe }}</h2>
+      </div>
+
+      <div class="sv-process-line ec-process-line">
+        <div class="sv-process-track ec-track-6">
+          {% for step in ec_process_steps %}
+          <div class="sv-step ec-step">
+            <span class="num">{{ step.step_number|default:forloop.counter }}</span>
+            <div class="sv-step-dot navy"><i class="{{ step.icon_class|default:'fa-solid fa-comment-dots' }}"></i></div>
+            <p>{{ step.title }}</p>
+            <span class="cs-step-desc">{{ step.description }}</span>
+          </div>
+{% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if ec_settings.stats_visible %}
+  <!-- ============ STATS BAR ============ -->
+  <section class="ms-stats ec-stats">
+    <div class="wrap ms-stats-grid">
+      <div class="ms-stat"><i class="{{ ec_settings.stat1_icon|default:'fa-solid fa-graduation-cap' }}"></i>
+        <div>
+          <h4>{{ ec_settings.stat1_value|default:'5000+' }}</h4><span>{{ ec_settings.stat1_label|default:'Students Guided' }}</span>
+        </div>
+      </div>
+      <div class="ms-stat"><i class="{{ ec_settings.stat2_icon|default:'fa-solid fa-building-columns' }}"></i>
+        <div>
+          <h4>{{ ec_settings.stat2_value|default:'200+' }}</h4><span>{{ ec_settings.stat2_label|default:'Colleges & Universities' }}</span>
+        </div>
+      </div>
+      <div class="ms-stat"><i class="{{ ec_settings.stat3_icon|default:'fa-solid fa-globe' }}"></i>
+        <div>
+          <h4>{{ ec_settings.stat3_value|default:'15+' }}</h4><span>{{ ec_settings.stat3_label|default:'Countries Partners' }}</span>
+        </div>
+      </div>
+      <div class="ms-stat"><i class="{{ ec_settings.stat4_icon|default:'fa-solid fa-shield-halved' }}"></i>
+        <div>
+          <h4>{{ ec_settings.stat4_value|default:'98%' }}</h4><span>{{ ec_settings.stat4_label|default:'Student Satisfaction' }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if ec_settings.cta_visible %}
+  <!-- ============ CTA BANNER ============ -->
+  <section class="ec-cta" id="contact">
+    <div class="wrap ec-cta-grid">
+      <div>
+        <h2>{{ ec_settings.cta_title|default:'Start Your Educational Journey Today!' }}</h2>
+        <p>{{ ec_settings.cta_subtitle|default:'Let our experts help you achieve your academic and career dreams.' }}</p>
+        <div class="ec-cta-actions">
+          <a href="{{ ec_settings.cta_btn_url|default:'/contact/' }}" class="btn btn-primary"><i class="fa-regular fa-calendar-check"></i> {{ ec_settings.cta_btn_text|default:'Book Free Consultation' }}</a>
+          <a href="{{ ec_settings.cta_btn2_url|default:'/contact/' }}" class="btn btn-outline">{{ ec_settings.cta_btn2_text|default:'Apply Now' }} <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ FOOTER ============ -->
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/pages/educational-consultancy.js' %}"></script>
+{% endblock %}

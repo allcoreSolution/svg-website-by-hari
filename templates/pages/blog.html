@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ blog_settings.meta_title|default:"Latest Insights & Blog — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_head %}
+  <meta name="description" content="{{ blog_settings.meta_description }}">
+  {% if blog_settings.meta_keywords %}
+    <meta name="keywords" content="{{ blog_settings.meta_keywords }}">
+  {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/blog.css' %}?v=4.0">
+{% endblock %}
+
+{% block content %}
+    {% if blog_settings.hero_visible %}
+    <!-- ============ BLOG HERO ============ -->
+    <section class="blog-hero">
+        <div class="blog-hero-inner">
+            <div class="blog-hero-copy">
+                <span class="blog-chip"><i class="fa-solid fa-newspaper"></i> {{ blog_settings.hero_chip|default:"Insights · Career Tips · Recruitment Trends" }}</span>
+                <h1>{{ blog_settings.get_rendered_hero_title|safe }}</h1>
+                <p>{{ blog_settings.hero_subtitle }}</p>
+                <div class="blog-hero-actions">
+                    {% if blog_settings.hero_btn1_text %}
+                      <a href="{{ blog_settings.hero_btn1_url|default:'#latestPosts' }}" class="btn btn-navy">{{ blog_settings.hero_btn1_text }} <i class="fa-solid fa-arrow-right"></i></a>
+                    {% endif %}
+                    {% if blog_settings.hero_btn2_text %}
+                      <a href="{{ blog_settings.hero_btn2_url|default:'/jobs/' }}" class="btn btn-outline-navy"><i class="fa-solid fa-briefcase"></i> {{ blog_settings.hero_btn2_text }}</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="blog-hero-visual">
+                {% if blog_settings.hero_image %}
+                  <img src="{{ blog_settings.hero_image.url }}" alt="Sky Vision Blog">
+                {% else %}
+                  <img src="{% static 'images/blog/blog image.png' %}" alt="Laptop showing the Sky Vision blog on a desk">
+                {% endif %}
+                {% if blog_settings.hero_badge_num or blog_settings.hero_badge_label %}
+                <div class="blog-hero-badge" style="background:#ffffff !important; border:1px solid #e2e8f0; box-shadow:0 16px 36px rgba(11,35,80,0.16); border-radius:14px; padding:12px 18px; display:flex; align-items:center; gap:12px;">
+                    <i class="{{ blog_settings.hero_badge_icon|default:'fa-solid fa-pen-nib' }}" style="width:42px; height:42px; border-radius:50%; background:#eff6ff !important; color:#2563eb !important; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;"></i>
+                    <div>
+                        <h4 style="font-family:'Sora',sans-serif; font-size:19px; font-weight:800; color:#0f172a !important; line-height:1.2; margin:0;">{{ blog_settings.hero_badge_num }}</h4>
+                        <span style="font-size:12px; font-weight:600; color:#475569 !important; display:block; margin-top:2px;">{{ blog_settings.hero_badge_label }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ MAIN BLOG LAYOUT ============ -->
+    <section class="blog-main">
+        <div class="blog-main-grid">
+
+            <!-- ===== LEFT: articles ===== -->
+            <div class="blog-content">
+
+                {% if blog_settings.featured_article_visible %}
+                <h2 class="blog-section-title">{{ blog_settings.featured_section_title|default:"Featured Article" }}</h2>
+
+                <a href="{{ blog_settings.featured_link_url|default:'#' }}" class="featured-article">
+                    <div class="featured-article-img">
+                        {% if blog_settings.featured_image %}
+                          <img src="{{ blog_settings.featured_image.url }}" alt="{{ blog_settings.featured_title }}">
+                        {% else %}
+                          <img src="{% static 'images/blog/blog image 2.png' %}" alt="{{ blog_settings.featured_title }}">
+                        {% endif %}
+                    </div>
+                    <div class="featured-article-body">
+                        {% if blog_settings.featured_tag %}<span class="post-tag">{{ blog_settings.featured_tag }}</span>{% endif %}
+                        <h3>{{ blog_settings.featured_title }}</h3>
+                        <p>{{ blog_settings.featured_desc }}</p>
+                        <div class="post-meta">
+                            {% if blog_settings.featured_date %}<span><i class="fa-regular fa-calendar"></i> {{ blog_settings.featured_date }}</span>{% endif %}
+                            {% if blog_settings.featured_read_time %}<span><i class="fa-regular fa-clock"></i> {{ blog_settings.featured_read_time }}</span>{% endif %}
+                        </div>
+                        <span class="read-more">{{ blog_settings.featured_btn_text|default:"Read More" }} <i class="fa-solid fa-arrow-right"></i></span>
+                    </div>
+                </a>
+                {% endif %}
+
+                {% if blog_settings.latest_posts_visible %}
+                <h2 class="blog-section-title" id="latestPosts">{{ blog_settings.latest_posts_title|default:"Latest Blog Posts" }}</h2>
+
+                <div class="blog-grid">
+                    {% for post in blog_settings.get_latest_posts %}
+                    <a href="{{ post.link|default:'#' }}" class="blog-card">
+                        <div class="blog-card-img">
+                            {% if post.image %}
+                              {% if 'http' in post.image or '/' in post.image and not post.image|slice:":7" == "images/" %}
+                                <img src="{{ post.image }}" alt="{{ post.title }}">
+                              {% else %}
+                                <img src="{% static post.image %}" alt="{{ post.title }}">
+                              {% endif %}
+                            {% else %}
+                              <img src="{% static 'images/blog/blog image 2.png' %}" alt="{{ post.title }}">
+                            {% endif %}
+                        </div>
+                        <div class="blog-card-body">
+                            <span class="post-icon"><i class="{{ post.icon|default:'fa-solid fa-comments' }}"></i></span>
+                            <span class="post-tag-inline">{{ post.tag }}</span>
+                            <h4>{{ post.title }}</h4>
+                            <div class="post-meta">
+                                <span><i class="fa-regular fa-calendar"></i> {{ post.date }}</span>
+                                <span>&middot; {{ post.read_time }}</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                {% if blog_settings.latest_view_more_text %}
+                <div class="view-more">
+                  <a href="{{ blog_settings.latest_view_more_url|default:'#' }}">{{ blog_settings.latest_view_more_text }} <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+                {% endif %}
+                {% endif %}
+
+            </div>
+
+            <!-- ===== RIGHT: sidebar ===== -->
+            <aside class="blog-sidebar">
+
+                <form class="sidebar-search" onsubmit="event.preventDefault();">
+                    <input type="text" placeholder="Search articles...">
+                    <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </form>
+
+                {% if blog_settings.categories_visible %}
+                <div class="sidebar-box">
+                    <h3>{{ blog_settings.categories_title|default:"Popular Categories" }}</h3>
+                    <ul class="category-list">
+                        {% for cat in blog_settings.get_popular_categories %}
+                        <li>
+                            <a href="{{ cat.link|default:'#' }}"><i class="{{ cat.icon|default:'fa-solid fa-compass' }}"></i> {{ cat.name }}</a>
+                            <span>{{ cat.count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if blog_settings.newsletter_visible %}
+                <div class="sidebar-box newsletter-box">
+                    <h3>{{ blog_settings.newsletter_title|default:"Stay Updated with the Latest Career Opportunities" }}</h3>
+                    <p>{{ blog_settings.newsletter_desc }}</p>
+                    <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+                        <input type="email" placeholder="{{ blog_settings.newsletter_placeholder|default:'Enter your email' }}" required>
+                        <button type="submit">{{ blog_settings.newsletter_btn_text|default:'Subscribe Now' }} <i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% if blog_settings.recent_posts_visible %}
+                <div class="sidebar-box">
+                    <h3>{{ blog_settings.recent_posts_title|default:"Recent Posts" }}</h3>
+                    <ul class="recent-list">
+                        {% for rp in blog_settings.get_recent_posts %}
+                        <li>
+                            <a href="{{ rp.link|default:'#' }}">
+                                {% if rp.image %}
+                                  {% if 'http' in rp.image or '/' in rp.image and not rp.image|slice:":7" == "images/" %}
+                                    <img src="{{ rp.image }}" alt="{{ rp.title }}">
+                                  {% else %}
+                                    <img src="{% static rp.image %}" alt="{{ rp.title }}">
+                                  {% endif %}
+                                {% else %}
+                                  <img src="{% static 'images/blog/blog image 6.png' %}" alt="{{ rp.title }}">
+                                {% endif %}
+                                <div>
+                                    <span>{{ rp.title }}</span>
+                                    <small>{{ rp.date }}</small>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+            </aside>
+
+        </div>
+    </section>
+
+    {% if blog_settings.dream_cta_visible %}
+    <!-- ============ DREAM JOB CTA ============ -->
+    <section class="dream-cta">
+        <div class="dream-cta-inner">
+
+            <div class="dream-cta-visual">
+                {% if blog_settings.dream_image %}
+                  <img src="{{ blog_settings.dream_image.url }}" alt="Looking for Your Dream Job?">
+                {% else %}
+                  <img src="{% static 'images/blog/blog image 5.png' %}" alt="Illustration of a person climbing stairs towards success">
+                {% endif %}
+            </div>
+
+            <div class="dream-cta-copy">
+                <h2>{{ blog_settings.dream_cta_title }}</h2>
+                <p>{{ blog_settings.dream_cta_desc }}</p>
+                <div class="dream-cta-actions">
+                    {% if blog_settings.dream_btn1_text %}
+                      <a href="{{ blog_settings.dream_btn1_url|default:'/jobs/' }}" class="btn btn-navy">{{ blog_settings.dream_btn1_text }}</a>
+                    {% endif %}
+                    {% if blog_settings.dream_btn2_text %}
+                      <a href="{{ blog_settings.dream_btn2_url|default:'/contact/' }}" class="btn btn-outline-navy">{{ blog_settings.dream_btn2_text }}</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="dream-cta-features">
+                <div class="dream-feature">
+                    <i class="{{ blog_settings.dream_feat_1_icon|default:'fa-solid fa-building-shield' }}"></i>
+                    <b>{{ blog_settings.dream_feat_1_title }}</b>
+                    <span>{{ blog_settings.dream_feat_1_desc }}</span>
+                </div>
+                <div class="dream-feature">
+                    <i class="{{ blog_settings.dream_feat_2_icon|default:'fa-solid fa-shield-halved' }}"></i>
+                    <b>{{ blog_settings.dream_feat_2_title }}</b>
+                    <span>{{ blog_settings.dream_feat_2_desc }}</span>
+                </div>
+                <div class="dream-feature">
+                    <i class="{{ blog_settings.dream_feat_3_icon|default:'fa-solid fa-people-arrows' }}"></i>
+                    <b>{{ blog_settings.dream_feat_3_title }}</b>
+                    <span>{{ blog_settings.dream_feat_3_desc }}</span>
+                </div>
+                <div class="dream-feature">
+                    <i class="{{ blog_settings.dream_feat_4_icon|default:'fa-solid fa-diagram-project' }}"></i>
+                    <b>{{ blog_settings.dream_feat_4_title }}</b>
+                    <span>{{ blog_settings.dream_feat_4_desc }}</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    {% endif %}
+
+    {% if blog_settings.stats_visible %}
+    <!-- ============ STATS ============ -->
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat"><i class="{{ blog_settings.stat_1_icon|default:'fa-solid fa-user-group' }}"></i>
+                <div>
+                    <h3 data-count="{{ blog_settings.stat_1_num|default:'1000' }}">0</h3>
+                    <p>{{ blog_settings.stat_1_label|default:'Job Seekers Placed' }}</p>
+                </div>
+            </div>
+            <div class="stat"><i class="{{ blog_settings.stat_2_icon|default:'fa-solid fa-handshake' }}"></i>
+                <div>
+                    <h3 data-count="{{ blog_settings.stat_2_num|default:'500' }}">0</h3>
+                    <p>{{ blog_settings.stat_2_label|default:'Hiring Partners' }}</p>
+                </div>
+            </div>
+            <div class="stat"><i class="{{ blog_settings.stat_3_icon|default:'fa-solid fa-industry' }}"></i>
+                <div>
+                    <h3 data-count="{{ blog_settings.stat_3_num|default:'20' }}">0</h3>
+                    <p>{{ blog_settings.stat_3_label|default:'Industries Covered' }}</p>
+                </div>
+            </div>
+            <div class="stat"><i class="{{ blog_settings.stat_4_icon|default:'fa-solid fa-award' }}"></i>
+                <div>
+                    <h3 data-count="{{ blog_settings.stat_4_num|default:'15' }}">0</h3>
+                    <p>{{ blog_settings.stat_4_label|default:'Years of Experience' }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+{% endblock %}

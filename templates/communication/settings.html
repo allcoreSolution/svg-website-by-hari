@@ -1,0 +1,359 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Delivery Settings — SVG Admin{% endblock %}
+{% block page_title %}Bulk Messaging &amp; Communication{% endblock %}
+{% block breadcrumb_title %}Communication / Delivery Settings{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin/communication-admin.css' %}?v=1.1">
+<style>
+  .settings-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .stat-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+  }
+  .config-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .config-item:last-child {
+    border-bottom: none;
+  }
+  .config-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+  .config-value {
+    font-family: var(--bs-font-monospace);
+    font-size: 0.875rem;
+    color: #1e293b;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0 mb-5">
+
+  <!-- Header Banner -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold text-dark mb-1">
+        <i class="ti ti-settings-cog text-primary me-2"></i>Email Delivery &amp; SMTP Settings
+      </h3>
+      <p class="text-muted mb-0 small">
+        Overview of outbound mail configuration, daily quota tracking, and instant delivery testing.
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="/admin-panel/communication/compose/" class="btn btn-primary rounded-pill px-4 btn-sm fw-semibold shadow-sm">
+        <i class="ti ti-send me-1"></i> Compose Message
+      </a>
+      <a href="/admin-panel/communication/history/" class="btn btn-outline-secondary rounded-pill px-3 btn-sm fw-semibold">
+        <i class="ti ti-history me-1"></i> Sent History
+      </a>
+    </div>
+  </div>
+
+  <!-- Top Metric Cards -->
+  <div class="row g-3 mb-4">
+    <!-- Status Card -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="settings-card p-3 h-100 d-flex flex-column justify-content-between">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small fw-semibold text-uppercase tracking-wider">Engine Status</span>
+          <div class="stat-badge {% if is_gmail_configured %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}">
+            <i class="ti ti-server fs-4"></i>
+          </div>
+        </div>
+        <div>
+          {% if is_gmail_configured %}
+            <div class="d-flex align-items-center gap-2">
+              <span class="comm-status-dot comm-status-dot-green"></span>
+              <h5 class="fw-bold text-success mb-0">SMTP Active</h5>
+            </div>
+            <small class="text-muted">Gmail SMTP authenticated</small>
+          {% else %}
+            <div class="d-flex align-items-center gap-2">
+              <span class="comm-status-dot comm-status-dot-amber"></span>
+              <h5 class="fw-bold text-warning mb-0">Test / Console Mode</h5>
+            </div>
+            <small class="text-muted">Emails logged or console-only</small>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Sent Card -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="settings-card p-3 h-100 d-flex flex-column justify-content-between">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small fw-semibold text-uppercase tracking-wider">Sent Today</span>
+          <div class="stat-badge bg-primary-subtle text-primary">
+            <i class="ti ti-mail-forward fs-4"></i>
+          </div>
+        </div>
+        <div>
+          <h4 class="fw-bold text-dark mb-0">{{ daily_sent }} <span class="fs-6 text-muted fw-normal">/ {{ daily_limit }}</span></h4>
+          <div class="progress mt-2" style="height: 6px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: {% widthratio daily_sent daily_limit 100 %}%;" aria-valuenow="{{ daily_sent }}" aria-valuemin="0" aria-valuemax="{{ daily_limit }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remaining Quota Card -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="settings-card p-3 h-100 d-flex flex-column justify-content-between">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small fw-semibold text-uppercase tracking-wider">Daily Quota Left</span>
+          <div class="stat-badge bg-info-subtle text-info">
+            <i class="ti ti-gauge fs-4"></i>
+          </div>
+        </div>
+        <div>
+          <h4 class="fw-bold {% if daily_remaining < 50 %}text-danger{% else %}text-info{% endif %} mb-0">{{ daily_remaining }}</h4>
+          <small class="text-muted">Resets automatically at midnight</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch Pace Card -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="settings-card p-3 h-100 d-flex flex-column justify-content-between">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small fw-semibold text-uppercase tracking-wider">Throttling &amp; Pacing</span>
+          <div class="stat-badge bg-secondary-subtle text-secondary">
+            <i class="ti ti-clock-play fs-4"></i>
+          </div>
+        </div>
+        <div>
+          <h5 class="fw-bold text-dark mb-0">{{ batch_size }} <span class="fs-6 text-muted fw-normal">batch / {{ delay_seconds }}s delay</span></h5>
+          <small class="text-muted">Protects against spam provider flags</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Active Configuration -->
+    <div class="col-lg-7">
+      <div class="settings-card p-4 mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+          <h5 class="fw-bold text-dark mb-0">
+            <i class="ti ti-adjustments-alt text-primary me-2"></i>Active SMTP Parameters
+          </h5>
+          <span class="badge bg-light text-muted border px-2 py-1 small">Read-Only (.env)</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">Email Backend</span>
+          <span class="config-value text-break text-end">{{ backend_in_use|default:"django.core.mail.backends.smtp.EmailBackend" }}</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">SMTP Host</span>
+          <span class="config-value">{{ email_host|default:"smtp.gmail.com" }}</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">SMTP Port</span>
+          <span class="config-value">{{ email_port|default:"587" }}</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">Use TLS</span>
+          <span class="config-value">
+            {% if email_use_tls %}
+              <span class="text-success"><i class="ti ti-check me-1"></i>True (STARTTLS)</span>
+            {% else %}
+              <span class="text-danger"><i class="ti ti-x me-1"></i>False</span>
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">SMTP Username / Account</span>
+          <span class="config-value text-break text-end">{{ email_host_user|default:"Not Configured" }}</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">App Password</span>
+          <span class="config-value text-muted">{{ email_password_masked }}</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">Default From Email</span>
+          <span class="config-value text-break text-end">{{ default_from_email|default:"Not Configured" }}</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">Reply-To Address</span>
+          <span class="config-value text-break text-end">{{ reply_to|default:"Same as From Email" }}</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">Max Attachment Size</span>
+          <span class="config-value">{{ max_attachment_mb }} MB</span>
+        </div>
+
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <span class="config-label">Socket Timeout</span>
+          <span class="config-value">{{ timeout_seconds }} seconds</span>
+        </div>
+
+        <div class="alert alert-light border rounded-3 p-3 mt-4 mb-0 small text-muted">
+          <i class="ti ti-info-circle text-primary me-1"></i>
+          These values are loaded securely from your environment file (<code>.env</code>). To modify credentials, ports, or daily limits, update the environment variables and reload the web server.
+        </div>
+      </div>
+
+      <!-- Gmail Setup Guide Box -->
+      <div class="settings-card p-4">
+        <h5 class="fw-bold text-dark mb-3">
+          <i class="ti ti-help-circle text-info me-2"></i>How to Configure Gmail App Password
+        </h5>
+        <p class="text-muted small mb-3">
+          Gmail requires a dedicated 16-character <strong>App Password</strong> instead of your regular Google account password.
+        </p>
+        <ol class="small text-muted ps-3 mb-3">
+          <li class="mb-2">Open your <a href="https://myaccount.google.com/security" target="_blank" class="fw-semibold text-primary">Google Account Security Settings</a>.</li>
+          <li class="mb-2">Ensure <strong>2-Step Verification</strong> is enabled.</li>
+          <li class="mb-2">Search for <strong>"App Passwords"</strong> in the security search bar.</li>
+          <li class="mb-2">Enter an app name (e.g. <code>Sky Vision ERP</code>) and generate a 16-character token.</li>
+          <li class="mb-2">Copy the 16 characters into your <code>.env</code> file under <code>EMAIL_HOST_PASSWORD=xxxx xxxx xxxx xxxx</code> (spaces are ignored).</li>
+        </ol>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-info-subtle text-info border">Documentation</span>
+          <span class="small text-muted">See <code class="fw-bold">SETUP_GMAIL.md</code> in project root for full troubleshooting details.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Test Email Form -->
+    <div class="col-lg-5">
+      <div class="settings-card p-4">
+        <h5 class="fw-bold text-dark mb-2">
+          <i class="ti ti-send text-primary me-2"></i>Send Test Email
+        </h5>
+        <p class="text-muted small mb-4">
+          Verify outbound connectivity and credential validity by sending an instant test message.
+        </p>
+
+        <form id="testEmailForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark">Destination Email Address <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="ti ti-at"></i></span>
+              <input type="email" id="testEmailTo" name="to_email" class="form-control border-start-0 ps-0" placeholder="your-email@gmail.com" required value="{{ email_host_user }}">
+            </div>
+            <small class="text-muted" style="font-size: 0.78rem;">Defaults to SMTP configured user if available.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark">Subject Line</label>
+            <input type="text" id="testEmailSubject" name="subject" class="form-control" value="Sky Vision SMTP Test Message">
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-semibold text-dark">Message Body</label>
+            <textarea id="testEmailBody" name="body" class="form-control" rows="4">This is an automated delivery test verifying that SMTP connection and Gmail App Password are operational.</textarea>
+          </div>
+
+          <!-- Result Alert Box -->
+          <div id="testResultBox" class="alert d-none mb-4 rounded-3 p-3 small" role="alert"></div>
+
+          <button type="button" id="btnSendTest" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm" onclick="sendTestEmail()">
+            <i class="ti ti-mail-fast me-1"></i> Send Test Email Now
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+async function sendTestEmail() {
+  const toEmail = document.getElementById('testEmailTo').value.trim();
+  const subject = document.getElementById('testEmailSubject').value.trim();
+  const body = document.getElementById('testEmailBody').value.trim();
+  const btn = document.getElementById('btnSendTest');
+  const resultBox = document.getElementById('testResultBox');
+
+  if (!toEmail) {
+    alert('Please enter a destination email address.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Sending...';
+  resultBox.className = 'alert d-none mb-4 rounded-3 p-3 small';
+
+  try {
+    const csrftoken = getCookie('csrftoken');
+    const response = await fetch('/admin-panel/communication/send-test/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({
+        to_email: toEmail,
+        subject: subject,
+        body: body
+      })
+    });
+
+    const data = await response.json();
+    resultBox.classList.remove('d-none');
+
+    if (response.ok && data.status === 'success') {
+      resultBox.className = 'alert alert-success border-success-subtle mb-4 rounded-3 p-3 small d-flex align-items-start gap-2';
+      resultBox.innerHTML = '<i class="ti ti-circle-check fs-5 text-success"></i><div><strong>Email Sent Successfully!</strong><br>' + (data.message || 'The test email was dispatched and accepted by the SMTP server.') + '</div>';
+    } else {
+      resultBox.className = 'alert alert-danger border-danger-subtle mb-4 rounded-3 p-3 small d-flex align-items-start gap-2';
+      resultBox.innerHTML = '<i class="ti ti-alert-triangle fs-5 text-danger"></i><div><strong>Delivery Failed</strong><br>' + (data.message || 'An error occurred while sending the test email.') + '</div>';
+    }
+  } catch (err) {
+    resultBox.classList.remove('d-none');
+    resultBox.className = 'alert alert-danger border-danger-subtle mb-4 rounded-3 p-3 small d-flex align-items-start gap-2';
+    resultBox.innerHTML = '<i class="ti ti-alert-triangle fs-5 text-danger"></i><div><strong>Network / Server Error</strong><br>' + err.message + '</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-mail-fast me-1"></i> Send Test Email Now';
+  }
+}
+</script>
+{% endblock %}

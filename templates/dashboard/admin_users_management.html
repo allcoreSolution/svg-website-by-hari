@@ -1,0 +1,454 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Admin Users &amp; Roles — SVG Consultancy{% endblock %}
+{% block page_title %}Admin Users{% endblock %}
+{% block breadcrumb_title %}Users &amp; Roles / Admin Users{% endblock %}
+
+{% block extra_head %}
+<style>
+  .user-header-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color, #E2E8F0);
+    border-radius: 12px;
+    padding: 16px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    flex-wrap: wrap;
+  }
+  .user-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 992px) { .user-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 576px) { .user-kpi-grid { grid-template-columns: 1fr; } }
+
+  .user-kpi-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .user-kpi-card.card-blue { border-left: 4px solid #2563EB; }
+  .user-kpi-card.card-green { border-left: 4px solid #10B981; }
+  .user-kpi-card.card-red { border-left: 4px solid #EF4444; }
+  .user-kpi-card.card-purple { border-left: 4px solid #8B5CF6; }
+
+  .user-kpi-val { font-size: 24px; font-weight: 800; color: #0F172A; line-height: 1.1; }
+  .user-kpi-label { font-size: 12.5px; font-weight: 700; color: #475569; margin: 4px 0 3px 0; }
+  .user-kpi-sub { font-size: 11px; color: #64748B; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(3px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal-dialog-box {
+    background: #FFFFFF;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #F8FAFC;
+  }
+  .modal-body { padding: 18px 22px; }
+  .modal-foot {
+    padding: 12px 20px;
+    border-top: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #F8FAFC;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-header-card">
+  <div style="display: flex; align-items: center; gap: 14px;">
+    <div style="width: 44px; height: 44px; border-radius: 10px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 1px solid #DBEAFE;">
+      <i class="ti ti-users"></i>
+    </div>
+    <div>
+      <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #0F172A;">Admin Users Management</h3>
+      <p style="margin: 3px 0 0 0; font-size: 12px; color: #64748B;">Overview &amp; Management Hub — Credentials, Roles &amp; Access Controls</p>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <button type="button" class="btn btn-sky btn-sky-outline" onclick="window.location.reload();">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
+    <a href="/admin-panel/users/roles/" class="btn btn-sky btn-sky-outline">
+      <i class="ti ti-id-badge-2"></i> Roles &amp; Permissions
+    </a>
+    {% if admin_user.role.is_super or 'admin_users.add' in perms %}
+    <button type="button" class="btn btn-sky btn-sky-primary" onclick="openAddUserModal();">
+      <i class="ti ti-plus"></i> + Add Admin User
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+<!-- 4 KPI Cards -->
+<div class="user-kpi-grid">
+  <div class="user-kpi-card card-blue">
+    <div>
+      <div class="user-kpi-val">{{ kpi.total_admins }}</div>
+      <div class="user-kpi-label">Total Admin Users</div>
+      <div class="user-kpi-sub">System Login Accounts</div>
+    </div>
+    <div style="color: #2563EB; font-size: 24px;"><i class="ti ti-users"></i></div>
+  </div>
+  <div class="user-kpi-card card-green">
+    <div>
+      <div class="user-kpi-val">{{ kpi.active_admins }}</div>
+      <div class="user-kpi-label">Active Users</div>
+      <div class="user-kpi-sub" style="color: #059669;"><i class="ti ti-check"></i> Enabled Logins</div>
+    </div>
+    <div style="color: #10B981; font-size: 24px;"><i class="ti ti-user-check"></i></div>
+  </div>
+  <div class="user-kpi-card card-red">
+    <div>
+      <div class="user-kpi-val">{{ kpi.inactive_admins }}</div>
+      <div class="user-kpi-label">Inactive Users</div>
+      <div class="user-kpi-sub" style="color: #DC2626;"><i class="ti ti-ban"></i> Suspended</div>
+    </div>
+    <div style="color: #EF4444; font-size: 24px;"><i class="ti ti-user-x"></i></div>
+  </div>
+  <div class="user-kpi-card card-purple">
+    <div>
+      <div class="user-kpi-val">{{ kpi.roles_in_use }}</div>
+      <div class="user-kpi-label">Assigned Roles</div>
+      <div class="user-kpi-sub">Roles with Users</div>
+    </div>
+    <div style="color: #8B5CF6; font-size: 24px;"><i class="ti ti-shield-check"></i></div>
+  </div>
+</div>
+
+<!-- Table Card -->
+<div class="roles-table-card">
+  <form method="GET" action="/admin-panel/users/admin/" id="userFilterForm" class="roles-toolbar">
+    <div class="roles-search-wrap">
+      <i class="ti ti-search"></i>
+      <input type="text" name="q" class="roles-search-input" placeholder="Search by name, email, phone..." value="{{ search_q }}">
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <select name="role" class="roles-filter-select" onchange="document.getElementById('userFilterForm').submit();">
+        <option value="">All Roles</option>
+        {% for r in available_roles %}
+        <option value="{{ r.id }}" {% if role_filter == r.id|stringformat:'s' %}selected{% endif %}>{{ r.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="status" class="roles-filter-select" onchange="document.getElementById('userFilterForm').submit();">
+        <option value="">All Statuses</option>
+        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+      </select>
+    </div>
+  </form>
+
+  <div style="overflow-x: auto;">
+    <table class="roles-data-table">
+      <thead>
+        <tr>
+          <th style="width: 45px; text-align: center;">#</th>
+          <th>Admin User</th>
+          <th>Contact</th>
+          <th style="text-align: center;">Assigned Role</th>
+          <th style="text-align: center;">Status</th>
+          <th>Last Login</th>
+          <th style="text-align: center; width: 140px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users_list %}
+        <tr>
+          <td style="text-align: center; color: #64748B;">{{ forloop.counter }}</td>
+          <td>
+            <div style="font-weight: 800; color: #0F172A; font-size: 13px;">{{ u.full_name|default:u.email }}</div>
+            <div style="color: #64748B; font-size: 11px;">{{ u.email }}</div>
+          </td>
+          <td>{{ u.phone|default:"—" }}</td>
+          <td style="text-align: center;">
+            {% if u.role %}
+              {% if u.role.is_super %}
+              <span class="badge bg-warning text-dark" style="padding: 3px 8px; border-radius: 12px; font-weight: 700;"><i class="ti ti-crown"></i> Super Admin</span>
+              {% else %}
+              <span class="badge bg-primary text-white" style="padding: 3px 8px; border-radius: 12px; font-weight: 700;">{{ u.role.name }}</span>
+              {% endif %}
+            {% else %}
+            <span class="badge bg-secondary text-white" style="padding: 3px 8px; border-radius: 12px;">Unassigned</span>
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if u.is_active %}
+            <span class="status-badge active"><i class="ti ti-check"></i> Active</span>
+            {% else %}
+            <span class="status-badge inactive"><i class="ti ti-ban"></i> Suspended</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="font-size: 11.5px; color: #334155;">{{ u.last_login_at|date:"d M Y, h:i A"|default:"Never logged in" }}</div>
+            {% if u.last_login_ip %}<div style="font-size: 10px; color: #94A3B8; font-family: monospace;">IP: {{ u.last_login_ip }}</div>{% endif %}
+          </td>
+          <td style="text-align: center;">
+            <div style="display: inline-flex; align-items: center; gap: 4px;">
+              <!-- Change Role -->
+              <button type="button" class="btn btn-sky btn-sky-outline" style="padding: 3px 7px !important; font-size: 11px !important;" onclick="openChangeRoleModal({{ u.id }}, '{{ u.email|escapejs }}', {{ u.role.id|default:'null' }});" title="Change Role">
+                <i class="ti ti-shield"></i> Role
+              </button>
+              <!-- Reset Password -->
+              <button type="button" class="btn btn-sky btn-sky-outline" style="padding: 3px 7px !important; font-size: 11px !important;" onclick="openResetPasswordModal({{ u.id }}, '{{ u.email|escapejs }}');" title="Reset Password">
+                <i class="ti ti-key"></i>
+              </button>
+              <!-- Toggle Active -->
+              {% if u.id != admin_user.id %}
+              <button type="button" class="btn btn-sky {% if u.is_active %}btn-sky-danger{% else %}btn-sky-success{% endif %}" style="padding: 3px 7px !important; font-size: 11px !important;" onclick="toggleUserStatus({{ u.id }}, '{{ u.email|escapejs }}', {{ u.is_active|yesno:'true,false' }});" title="{% if u.is_active %}Deactivate User{% else %}Activate User{% endif %}">
+                <i class="ti {% if u.is_active %}ti-ban{% else %}ti-check{% endif %}"></i>
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 36px 16px; color: #64748B;">No admin users found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: Change Role -->
+<div class="modal-overlay" id="changeRoleModal">
+  <div class="modal-dialog-box" style="max-width: 440px;">
+    <div class="modal-head">
+      <div style="font-size: 14px; font-weight: 800; color: #0F172A;"><i class="ti ti-shield"></i> Change Admin Role</div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('changeRoleModal');">&times;</button>
+    </div>
+    <form onsubmit="submitChangeRole(event);">
+      {% csrf_token %}
+      <input type="hidden" id="changeRoleUserId">
+      <div class="modal-body">
+        <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">Update role and privileges for <strong id="changeRoleUserEmail" style="color: #0F172A;"></strong></p>
+        <div class="form-group">
+          <label class="form-group-label">Select New Role <span style="color:#DC2626;">*</span></label>
+          <select id="changeRoleSelect" class="form-control-input" required>
+            {% for r in available_roles %}
+            <option value="{{ r.id }}">{{ r.name }} {% if r.is_super %}(Super Admin){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('changeRoleModal');">Cancel</button>
+        <button type="submit" class="btn btn-sky btn-sky-primary">Save Role</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Reset Password -->
+<div class="modal-overlay" id="resetPassModal">
+  <div class="modal-dialog-box" style="max-width: 440px;">
+    <div class="modal-head">
+      <div style="font-size: 14px; font-weight: 800; color: #0F172A;"><i class="ti ti-key"></i> Reset User Password</div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('resetPassModal');">&times;</button>
+    </div>
+    <form onsubmit="submitResetPass(event);">
+      {% csrf_token %}
+      <input type="hidden" id="resetPassUserId">
+      <div class="modal-body">
+        <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">Enter a new password for <strong id="resetPassUserEmail" style="color: #0F172A;"></strong></p>
+        <div class="form-group">
+          <label class="form-group-label">New Password (min 8 characters) <span style="color:#DC2626;">*</span></label>
+          <input type="text" id="resetPassNewInput" class="form-control-input" required minlength="8" placeholder="Enter new strong password">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('resetPassModal');">Cancel</button>
+        <button type="submit" class="btn btn-sky btn-sky-primary">Update Password</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Add Admin User -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal-dialog-box" style="max-width: 480px;">
+    <div class="modal-head">
+      <div style="font-size: 14px; font-weight: 800; color: #0F172A;"><i class="ti ti-user-plus"></i> Add New Admin User</div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('addUserModal');">&times;</button>
+    </div>
+    <form onsubmit="submitAddUser(event);">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-group-label">Full Name <span style="color:#DC2626;">*</span></label>
+          <input type="text" name="full_name" class="form-control-input" required placeholder="e.g. Alok Verma">
+        </div>
+        <div class="form-group">
+          <label class="form-group-label">Email Address <span style="color:#DC2626;">*</span></label>
+          <input type="email" name="email" class="form-control-input" required placeholder="alok@skyvisiongroup.in">
+        </div>
+        <div class="form-group">
+          <label class="form-group-label">Mobile Number</label>
+          <input type="text" name="phone" class="form-control-input" placeholder="+91 9876543210">
+        </div>
+        <div class="form-group">
+          <label class="form-group-label">Assign Role <span style="color:#DC2626;">*</span></label>
+          <select name="role_id" class="form-control-input" required>
+            {% for r in available_roles %}
+            <option value="{{ r.id }}" {% if r.name == 'Recruiter' %}selected{% endif %}>{{ r.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-group-label">Password <span style="color:#DC2626;">*</span></label>
+          <input type="text" name="password" id="newAdminPassInput" class="form-control-input" required minlength="8" placeholder="Minimum 8 characters">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('addUserModal');">Cancel</button>
+        <button type="submit" class="btn btn-sky btn-sky-primary">Create User</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openModal(id) { const el = document.getElementById(id); if (el) el.classList.add('open'); }
+  function closeModal(id) { const el = document.getElementById(id); if (el) el.classList.remove('open'); }
+
+  function openAddUserModal() {
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
+    let pass = '';
+    for (let i = 0; i < 10; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    document.getElementById('newAdminPassInput').value = pass;
+    openModal('addUserModal');
+  }
+
+  function submitAddUser(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    fetch('/api/admin/users/', {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'success') {
+        alert(d.message);
+        window.location.reload();
+      } else {
+        alert(d.message || 'Failed to create user.');
+      }
+    });
+  }
+
+  function openChangeRoleModal(userId, email, currentRoleId) {
+    document.getElementById('changeRoleUserId').value = userId;
+    document.getElementById('changeRoleUserEmail').innerText = email;
+    if (currentRoleId) document.getElementById('changeRoleSelect').value = currentRoleId;
+    openModal('changeRoleModal');
+  }
+
+  function submitChangeRole(e) {
+    e.preventDefault();
+    const userId = document.getElementById('changeRoleUserId').value;
+    const roleId = document.getElementById('changeRoleSelect').value;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(`/api/admin/users/${userId}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ action: 'change_role', role_id: roleId })
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'success') { window.location.reload(); }
+      else { alert(d.message || 'Failed to change role.'); }
+    });
+  }
+
+  function openResetPasswordModal(userId, email) {
+    document.getElementById('resetPassUserId').value = userId;
+    document.getElementById('resetPassUserEmail').innerText = email;
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
+    let pass = '';
+    for (let i = 0; i < 10; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    document.getElementById('resetPassNewInput').value = pass;
+    openModal('resetPassModal');
+  }
+
+  function submitResetPass(e) {
+    e.preventDefault();
+    const userId = document.getElementById('resetPassUserId').value;
+    const newPass = document.getElementById('resetPassNewInput').value;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(`/api/admin/users/${userId}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ action: 'reset_password', password: newPass })
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'success') { alert(d.message); closeModal('resetPassModal'); }
+      else { alert(d.message || 'Failed to reset password.'); }
+    });
+  }
+
+  function toggleUserStatus(userId, email, isCurrentlyActive) {
+    const act = isCurrentlyActive ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${act} admin user '${email}'?`)) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(`/api/admin/users/${userId}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ action: 'toggle_status' })
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'success') { window.location.reload(); }
+      else { alert(d.message || 'Failed to update user status.'); }
+    });
+  }
+</script>
+{% endblock %}
+

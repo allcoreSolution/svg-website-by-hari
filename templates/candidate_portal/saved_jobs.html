@@ -1,0 +1,113 @@
+{% extends 'candidate_portal/base_candidate.html' %}
+{% load static %}
+
+{% block title %}Saved Jobs — Candidate Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Saved Jobs</h3>
+    <p class="text-muted mb-0">Jobs you have bookmarked for quick access and applying.</p>
+  </div>
+</div>
+
+<div id="savedJobsContainer">
+  <div class="text-center py-5 text-muted">
+    <span class="spinner-border spinner-border-sm me-2"></span> Loading saved jobs...
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', loadSavedJobs);
+
+  async function loadSavedJobs() {
+    const container = document.getElementById('savedJobsContainer');
+    try {
+      const res = await fetch('/api/candidate/saved-jobs/');
+      const data = await res.json();
+
+      if (res.ok && data.status === 'success') {
+        renderSavedJobs(data.jobs);
+      } else {
+        container.innerHTML = `<div class="alert alert-danger">Failed to load saved jobs.</div>`;
+      }
+    } catch (e) {
+      container.innerHTML = `<div class="alert alert-danger">Network error loading saved jobs.</div>`;
+    }
+  }
+
+  function renderSavedJobs(jobs) {
+    const container = document.getElementById('savedJobsContainer');
+    if (!jobs || jobs.length === 0) {
+      container.innerHTML = `
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+          <div class="card-body">
+            <i class="ti ti-bookmark text-muted display-4 mb-3 d-block"></i>
+            <h5 class="fw-bold">No Saved Jobs</h5>
+            <p class="text-muted">You haven't saved any job postings yet.</p>
+            <a href="/" class="btn btn-primary rounded-pill px-4">Explore Jobs</a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="row g-3">
+        ${jobs.map(j => `
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-sm-4">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold">${j.category || 'General'}</span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="toggleSave(${j.id})"><i class="fa-solid fa-bookmark"></i> Remove</button>
+              </div>
+              <h5 class="fw-bold mb-2 text-dark">${j.title}</h5>
+              <p class="text-muted small mb-3"><i class="ti ti-map-pin me-1"></i>${j.location || 'Lucknow'} | Experience: ${j.experience || 'Fresher'}</p>
+              <div class="mt-auto d-flex align-items-center justify-content-between pt-3 border-top">
+                <span class="fw-bold text-success">${j.salary || 'Negotiable'}</span>
+                <a href="/jobs/" class="btn btn-primary btn-sm rounded-pill px-3">Apply Now</a>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  async function toggleSave(jobId) {
+    try {
+      const res = await fetch('/api/candidate/saved-jobs/toggle/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        },
+        body: JSON.stringify({ job_id: jobId })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        loadSavedJobs();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+{% endblock %}

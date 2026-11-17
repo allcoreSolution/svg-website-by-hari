@@ -1,0 +1,266 @@
+{% extends 'candidate_portal/base_candidate.html' %}
+{% load static %}
+
+{% block title %}My Applied Internships & Status — Candidate Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">My Applied Internships</h3>
+    <p class="text-muted mb-0">Track your internship applications, review stages, and selection results.</p>
+  </div>
+  <div>
+    <a href="/internship/" class="btn btn-primary rounded-pill px-4">
+      <i class="ti ti-plus me-1"></i> Apply for New Internship
+    </a>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+        <i class="ti ti-school"></i>
+      </div>
+      <div>
+        <h4 class="fw-bold mb-0">{{ internships_count|default:0 }}</h4>
+        <div class="text-muted small">Total Applied</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+        <i class="ti ti-clock"></i>
+      </div>
+      <div>
+        <h4 class="fw-bold mb-0">{{ pending_count|default:0 }}</h4>
+        <div class="text-muted small">Under Review</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon bg-info bg-opacity-10 text-info">
+        <i class="ti ti-thumb-up"></i>
+      </div>
+      <div>
+        <h4 class="fw-bold mb-0">{{ shortlisted_count|default:0 }}</h4>
+        <div class="text-muted small">Shortlisted</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon bg-success bg-opacity-10 text-success">
+        <i class="ti ti-circle-check"></i>
+      </div>
+      <div>
+        <h4 class="fw-bold mb-0">{{ selected_count|default:0 }}</h4>
+        <div class="text-muted small">Selected</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Internships List -->
+{% if internships %}
+  <div class="d-flex flex-column gap-4">
+    {% for app in internships %}
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <!-- Card Header -->
+        <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary" style="width: 44px; height: 44px; font-size: 1.25rem;">
+              <i class="ti ti-school"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-1 text-dark">
+                {{ app.internship.title|default:"Internship Programme" }}
+              </h5>
+              <div class="d-flex align-items-center flex-wrap gap-2 text-muted small">
+                <span><i class="ti ti-building me-1"></i>{{ app.internship.provider.name|default:"Sky Vision Group of Consultancy" }}</span>
+                <span>•</span>
+                <span><i class="ti ti-calendar me-1"></i>Applied on {{ app.created_at|date:"d M Y, h:i A"|default:"Recently" }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Badge -->
+          <div>
+            {% if app.status == 'Selected' %}
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fs-6 fw-semibold">
+                <i class="ti ti-circle-check me-1"></i> Selected for Internship 🎉
+              </span>
+            {% elif app.status == 'Shortlisted' %}
+              <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill fs-6 fw-semibold">
+                <i class="ti ti-thumb-up me-1"></i> Profile Shortlisted
+              </span>
+            {% elif app.status == 'Rejected' %}
+              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill fs-6 fw-semibold">
+                <i class="ti ti-x me-1"></i> Not Selected
+              </span>
+            {% else %}
+              <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill fs-6 fw-semibold">
+                <i class="ti ti-clock me-1"></i> Application Under Review
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body p-4">
+          <!-- Stepper Progress Tracker -->
+          <div class="mb-4 px-md-3">
+            <div class="step-tracker">
+              <!-- Step 1: Applied -->
+              <div class="step-item completed">
+                <div class="step-icon">
+                  <i class="ti ti-check"></i>
+                </div>
+                <div class="step-label">Application Submitted</div>
+                <div class="text-muted small mt-1" style="font-size: 11px;">{{ app.created_at|date:"d M Y"|default:"Submitted" }}</div>
+              </div>
+
+              <!-- Step 2: Under Review / Shortlisted -->
+              <div class="step-item {% if app.status == 'Shortlisted' or app.status == 'Selected' %}completed{% elif app.status == 'Rejected' %}active{% else %}active{% endif %}">
+                <div class="step-icon">
+                  {% if app.status == 'Shortlisted' or app.status == 'Selected' %}
+                    <i class="ti ti-check"></i>
+                  {% elif app.status == 'Rejected' %}
+                    <i class="ti ti-file-search"></i>
+                  {% else %}
+                    <i class="ti ti-clock"></i>
+                  {% endif %}
+                </div>
+                <div class="step-label">
+                  {% if app.status == 'Shortlisted' %}Shortlisted{% elif app.status == 'Selected' %}Shortlisted{% else %}Under Review{% endif %}
+                </div>
+                <div class="text-muted small mt-1" style="font-size: 11px;">
+                  {% if app.status == 'Shortlisted' or app.status == 'Selected' %}Candidate Shortlisted{% else %}Admin Assessment{% endif %}
+                </div>
+              </div>
+
+              <!-- Step 3: Decision -->
+              <div class="step-item {% if app.status == 'Selected' %}completed{% elif app.status == 'Rejected' %}{% else %}{% endif %}">
+                <div class="step-icon" {% if app.status == 'Rejected' %}style="background:#ef4444; color:#fff;"{% endif %}>
+                  {% if app.status == 'Selected' %}
+                    <i class="ti ti-award"></i>
+                  {% elif app.status == 'Rejected' %}
+                    <i class="ti ti-x"></i>
+                  {% else %}
+                    <i class="ti ti-circle"></i>
+                  {% endif %}
+                </div>
+                <div class="step-label">
+                  {% if app.status == 'Selected' %}
+                    Selected
+                  {% elif app.status == 'Rejected' %}
+                    Rejected
+                  {% else %}
+                    Final Selection
+                  {% endif %}
+                </div>
+                <div class="text-muted small mt-1" style="font-size: 11px;">
+                  {% if app.status == 'Selected' %}Offer Ready{% elif app.status == 'Rejected' %}Closed{% else %}Pending Result{% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submitted Information Grid -->
+          <div class="row g-3 p-3 bg-light bg-opacity-75 rounded-3 mb-3">
+            <div class="col-md-3 col-6">
+              <span class="text-muted small d-block mb-1"><i class="ti ti-map-pin me-1"></i>Location / Mode:</span>
+              <strong class="text-dark small">{{ app.internship.mode|default:"Work From Home / Remote" }}</strong>
+            </div>
+            <div class="col-md-3 col-6">
+              <span class="text-muted small d-block mb-1"><i class="ti ti-clock-hour-4 me-1"></i>Duration:</span>
+              <strong class="text-dark small">{{ app.internship.duration|default:"3 Months" }}</strong>
+            </div>
+            <div class="col-md-3 col-6">
+              <span class="text-muted small d-block mb-1"><i class="ti ti-building-columns me-1"></i>College / University:</span>
+              <strong class="text-dark small">{{ app.college|default:"Not specified" }}</strong>
+            </div>
+            <div class="col-md-3 col-6">
+              <span class="text-muted small d-block mb-1"><i class="ti ti-certificate me-1"></i>Course / Stream:</span>
+              <strong class="text-dark small">{{ app.course_stream|default:"General" }}</strong>
+            </div>
+
+            {% if app.skills %}
+            <div class="col-12 border-top pt-2 mt-2">
+              <span class="text-muted small d-block mb-1"><i class="ti ti-tags me-1"></i>Reported Skills:</span>
+              <div class="d-flex flex-wrap gap-1">
+                <span class="badge bg-white text-dark border px-2 py-1 small">{{ app.skills }}</span>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if app.notes %}
+            <div class="col-12 border-top pt-2 mt-2">
+              <span class="text-muted small d-block mb-1"><i class="ti ti-notes me-1"></i>Application Notes:</span>
+              <span class="text-secondary small">{{ app.notes }}</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Bottom Status Explanation & Actions -->
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 pt-2">
+            <div>
+              {% if app.status == 'Selected' %}
+                <div class="text-success small fw-semibold">
+                  <i class="ti ti-circle-check me-1"></i> Congratulations! Your application has been approved and you have been selected for this internship program.
+                </div>
+              {% elif app.status == 'Shortlisted' %}
+                <div class="text-primary small fw-semibold">
+                  <i class="ti ti-info-circle me-1"></i> Great news! Your profile has been shortlisted. Our coordinator will contact you via email or phone shortly.
+                </div>
+              {% elif app.status == 'Rejected' %}
+                <div class="text-danger small">
+                  <i class="ti ti-alert-circle me-1"></i> Your application for this cycle was not selected. You can apply for other internship tracks.
+                </div>
+              {% else %}
+                <div class="text-muted small">
+                  <i class="ti ti-clock me-1"></i> Your application is currently under review by our team. Check back here anytime for live status updates.
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              {% if app.resume %}
+                <a href="/api/admin/files/download/{{ app.resume }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                  <i class="ti ti-download me-1"></i> Download Submitted Resume
+                </a>
+              {% endif %}
+              <a href="/internship/" class="btn btn-light btn-sm rounded-pill px-3 border">
+                <i class="ti ti-eye me-1"></i> View Internship Details
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <!-- Empty State -->
+  <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
+    <div class="mx-auto mb-3 stat-icon bg-primary bg-opacity-10 text-primary" style="width: 72px; height: 72px; font-size: 2.2rem; border-radius: 50%;">
+      <i class="ti ti-school"></i>
+    </div>
+    <h4 class="fw-bold mb-2 text-dark">No Internship Applications Yet</h4>
+    <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
+      Kickstart your career with our hands-on internship programs across IT, HR, Finance, Digital Marketing, and Business Development.
+    </p>
+    <div>
+      <a href="/internship/" class="btn btn-primary rounded-pill px-4 py-2">
+        <i class="ti ti-plus me-1"></i> Browse &amp; Apply for Internships
+      </a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

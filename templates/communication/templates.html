@@ -1,0 +1,412 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Message Templates Gallery — SVG Admin{% endblock %}
+{% block page_title %}Bulk Messaging &amp; Communication{% endblock %}
+{% block breadcrumb_title %}Communication / Templates{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin/communication-admin.css' %}?v=1.4">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0 mb-5">
+
+  <!-- Header Banner -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold text-dark mb-1"><i class="ti ti-template text-primary me-2"></i>Message Templates Gallery</h3>
+      <p class="text-muted mb-0 small">Manage standardized announcements, invitation templates, and recruitment updates.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-primary rounded-pill px-4 btn-sm fw-semibold shadow-sm" onclick="openCreateTemplateModal()">
+        <i class="ti ti-plus me-1"></i> Create Template
+      </button>
+      <a href="/admin-panel/communication/compose/" class="btn btn-outline-secondary rounded-pill px-3 btn-sm fw-semibold">
+        <i class="ti ti-send me-1"></i> Compose Blank
+      </a>
+    </div>
+  </div>
+
+  <!-- Templates Grid -->
+  <div class="row g-4">
+    {% if templates_list %}
+      {% for tpl in templates_list %}
+        <div class="col-md-6 col-xl-4" id="tplCard_{{ tpl.id }}">
+          <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white d-flex flex-column">
+            
+            <!-- Top Card Badges -->
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              {% if tpl.audience_type == 'candidate' %}
+                <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 fw-bold">
+                  <i class="ti ti-user me-1"></i> Candidate
+                </span>
+              {% elif tpl.audience_type == 'employer' %}
+                <span class="badge bg-info-subtle text-info border rounded-pill px-3 py-1 fw-bold">
+                  <i class="ti ti-building me-1"></i> Employer
+                </span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1 fw-bold">
+                  <i class="ti ti-users me-1"></i> All Audiences
+                </span>
+              {% endif %}
+
+              <div class="dropdown">
+                <button type="button" class="btn btn-sm btn-light border-0 rounded-circle p-1 text-secondary" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="ti ti-dots-vertical fs-5"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                  <li>
+                    <a class="dropdown-item small fw-semibold" href="#" onclick="openEditTemplateModal({{ tpl.id }}); return false;">
+                      <i class="ti ti-edit text-primary me-2"></i> Edit Template
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item small fw-semibold text-danger" href="#" onclick="deleteTemplate({{ tpl.id }}, '{{ tpl.name|escapejs }}'); return false;">
+                      <i class="ti ti-trash me-2"></i> Delete
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Title & Subject -->
+            <h5 class="fw-bold text-dark mb-1">{{ tpl.name }}</h5>
+            <div class="small fw-semibold text-primary mb-2 text-truncate" title="{{ tpl.subject }}">
+              <i class="ti ti-mail me-1"></i> {{ tpl.subject }}
+            </div>
+
+            <!-- Body Snippet -->
+            <div class="small text-muted mb-4 flex-grow-1" style="max-height: 85px; overflow: hidden; line-height: 1.5;">
+              {{ tpl.body|striptags|truncatewords:22 }}
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
+              <a href="/admin-panel/communication/compose/?template={{ tpl.id }}" class="btn btn-primary rounded-pill btn-sm w-100 fw-semibold">
+                Use Template <i class="ti ti-arrow-right ms-1"></i>
+              </a>
+              <button type="button" class="btn btn-light btn-sm rounded-pill px-3 fw-semibold border" onclick="openEditTemplateModal({{ tpl.id }})">
+                Edit
+              </button>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+          <i class="ti ti-template fs-1 d-block mb-3 text-secondary opacity-50"></i>
+          <h5 class="fw-bold text-dark mb-1">No Message Templates Found</h5>
+          <p class="text-muted small mb-3">Create your first standardized message template to speed up announcements.</p>
+          <div>
+            <button type="button" class="btn btn-primary rounded-pill px-4 btn-sm fw-semibold" onclick="openCreateTemplateModal()">
+              <i class="ti ti-plus me-1"></i> Create First Template
+            </button>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Create / Edit Template Modal -->
+<div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark" id="templateModalTitle">
+          <i class="ti ti-template text-primary me-2"></i>Create New Template
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="templateForm" onsubmit="submitSaveTemplate(event)">
+        {% csrf_token %}
+        <input type="hidden" id="tplIdInput" name="id" value="">
+
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label small fw-bold text-dark">Template Name <span class="text-danger">*</span></label>
+              <input type="text" id="tplNameInput" name="name" class="form-control rounded-3" placeholder="e.g. Interview Round 1 Invitation" required>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Target Audience</label>
+              <select id="tplAudienceInput" name="audience_type" class="form-select rounded-3">
+                <option value="candidate">Candidate</option>
+                <option value="employer">Employer</option>
+                <option value="all">All Audiences</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-dark">Default Subject Line <span class="text-danger">*</span></label>
+              <input type="text" id="tplSubjectInput" name="subject" class="form-control rounded-3" placeholder="Subject line (e.g. Announcement &amp; Updates)" required>
+            </div>
+
+            <!-- Placeholders helpers -->
+            <div class="col-12">
+              <span class="small fw-bold text-muted me-2">Insert Personalization Tags:</span>
+              {% verbatim %}
+              <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertTplTag('{{name}}')" title="Insert Name"><i class="ti ti-user text-primary"></i> Full Name</button>
+              <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertTplTag('{{email}}')" title="Insert Email"><i class="ti ti-mail text-info"></i> Email Address</button>
+              <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertTplTag('{{company_name}}')" title="Insert Company Name"><i class="ti ti-building text-success"></i> Company Name</button>
+              <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertTplTag('{{job_title}}')" title="Insert Job Title"><i class="ti ti-briefcase text-warning"></i> Job Title</button>
+              <button type="button" class="comm-placeholder-pill" onmousedown="event.preventDefault()" onclick="insertTplTag('{{status}}')" title="Insert Status"><i class="ti ti-circle-check text-purple"></i> Status</button>
+              {% endverbatim %}
+            </div>
+
+            <!-- Body Toolbar & Rich Editor -->
+            <div class="col-12">
+              <div class="comm-toolbar">
+                <button type="button" id="btnTplBold" class="comm-toolbar-btn" onmousedown="event.preventDefault()" onclick="formatTplText('bold')"><i class="ti ti-bold"></i> Bold</button>
+                <button type="button" id="btnTplItalic" class="comm-toolbar-btn" onmousedown="event.preventDefault()" onclick="formatTplText('italic')"><i class="ti ti-italic"></i> Italic</button>
+                <button type="button" id="btnTplUnderline" class="comm-toolbar-btn" onmousedown="event.preventDefault()" onclick="formatTplText('underline')"><i class="ti ti-underline"></i> Underline</button>
+                <span class="text-muted">|</span>
+                <button type="button" id="btnTplH3" class="comm-toolbar-btn" onmousedown="event.preventDefault()" onclick="formatTplText('h3')"><i class="ti ti-heading"></i> H3</button>
+                <button type="button" id="btnTplUl" class="comm-toolbar-btn" onmousedown="event.preventDefault()" onclick="formatTplText('ul')"><i class="ti ti-list"></i> Bullet List</button>
+                <button type="button" id="btnTplOl" class="comm-toolbar-btn" onmousedown="event.preventDefault()" onclick="formatTplText('ol')"><i class="ti ti-list-numbers"></i> Numbered List</button>
+                <button type="button" class="comm-toolbar-btn" onmousedown="event.preventDefault()" onclick="formatTplText('p')"><i class="ti ti-paragraph"></i> Paragraph</button>
+              </div>
+              <div id="tplBodyEditor" class="comm-textarea" contenteditable="true" data-placeholder="Enter template message body..." style="min-height: 200px; overflow-y: auto;"></div>
+              <textarea id="tplBodyInput" name="body" class="d-none"></textarea>
+            </div>
+
+            <div class="col-12">
+              <div class="form-check form-switch p-2 bg-light rounded-3 border d-flex align-items-center gap-2">
+                <input class="form-check-input ms-1 me-2" type="checkbox" role="switch" id="tplActiveInput" name="is_active" value="true" checked>
+                <label class="form-check-label fw-semibold small text-dark mb-0" for="tplActiveInput">
+                  Active (Available in compose picker)
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 pt-0 p-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="btnSubmitTpl" class="btn btn-primary rounded-pill px-4 fw-bold text-white shadow-sm">
+            <i class="ti ti-check me-1"></i> Save Template
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  let templateModal;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    templateModal = new bootstrap.Modal(document.getElementById('templateModal'));
+    const editor = document.getElementById('tplBodyEditor');
+    if (editor) {
+      editor.addEventListener('input', () => {
+        syncTplEditorToTextarea();
+        updateTplToolbarState();
+      });
+      editor.addEventListener('keyup', updateTplToolbarState);
+      editor.addEventListener('mouseup', updateTplToolbarState);
+    }
+  });
+
+  function syncTplEditorToTextarea() {
+    const editor = document.getElementById('tplBodyEditor');
+    const textarea = document.getElementById('tplBodyInput');
+    if (!editor || !textarea) return;
+    const rawHtml = editor.innerHTML.trim();
+    if (!editor.innerText.trim() && (rawHtml === '' || rawHtml === '<br>' || rawHtml === '<div><br></div>')) {
+      textarea.value = '';
+    } else {
+      textarea.value = rawHtml;
+    }
+  }
+
+  function setTplEditorContent(content) {
+    const editor = document.getElementById('tplBodyEditor');
+    const textarea = document.getElementById('tplBodyInput');
+    const str = content || '';
+    if (editor) {
+      editor.innerHTML = str;
+    }
+    if (textarea) {
+      textarea.value = str;
+    }
+    updateTplToolbarState();
+  }
+
+  function updateTplToolbarState() {
+    const map = [
+      { id: 'btnTplBold', cmd: 'bold' },
+      { id: 'btnTplItalic', cmd: 'italic' },
+      { id: 'btnTplUnderline', cmd: 'underline' },
+      { id: 'btnTplUl', cmd: 'insertUnorderedList' },
+      { id: 'btnTplOl', cmd: 'insertOrderedList' }
+    ];
+    map.forEach(item => {
+      const btn = document.getElementById(item.id);
+      if (btn) {
+        try {
+          if (document.queryCommandState(item.cmd)) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        } catch(e) {}
+      }
+    });
+    const h3Btn = document.getElementById('btnTplH3');
+    if (h3Btn) {
+      try {
+        const block = String(document.queryCommandValue('formatBlock') || '').toLowerCase();
+        if (block === 'h3') {
+          h3Btn.classList.add('active');
+        } else {
+          h3Btn.classList.remove('active');
+        }
+      } catch(e) {}
+    }
+  }
+
+  function openCreateTemplateModal() {
+    document.getElementById('templateForm').reset();
+    document.getElementById('tplIdInput').value = '';
+    setTplEditorContent('');
+    document.getElementById('templateModalTitle').innerHTML = '<i class="ti ti-template text-primary me-2"></i>Create New Template';
+    document.getElementById('tplActiveInput').checked = true;
+    templateModal.show();
+  }
+
+  async function openEditTemplateModal(id) {
+    try {
+      const res = await fetch(`/admin-panel/communication/templates/${id}/json/`);
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        const t = data.template;
+        document.getElementById('tplIdInput').value = t.id;
+        document.getElementById('tplNameInput').value = t.name;
+        document.getElementById('tplAudienceInput').value = t.audience_type;
+        document.getElementById('tplSubjectInput').value = t.subject;
+        setTplEditorContent(t.body);
+        document.getElementById('tplActiveInput').checked = t.is_active;
+
+        document.getElementById('templateModalTitle').innerHTML = `<i class="ti ti-edit text-primary me-2"></i>Edit Template: ${t.name}`;
+        templateModal.show();
+      } else {
+        alert('Failed to load template data.');
+      }
+    } catch(e) {
+      alert('Error fetching template.');
+    }
+  }
+
+  function insertTplTag(tag) {
+    const editor = document.getElementById('tplBodyEditor');
+    if (!editor) return;
+    editor.focus();
+    document.execCommand('insertText', false, tag);
+    syncTplEditorToTextarea();
+  }
+
+  function formatTplText(cmd) {
+    const editor = document.getElementById('tplBodyEditor');
+    if (!editor) return;
+    editor.focus();
+
+    if (cmd === 'bold') {
+      document.execCommand('bold', false, null);
+    } else if (cmd === 'italic') {
+      document.execCommand('italic', false, null);
+    } else if (cmd === 'underline') {
+      document.execCommand('underline', false, null);
+    } else if (cmd === 'h3') {
+      const currentBlock = String(document.queryCommandValue('formatBlock') || '').toLowerCase();
+      if (currentBlock === 'h3') {
+        document.execCommand('formatBlock', false, 'p');
+      } else {
+        document.execCommand('formatBlock', false, 'h3');
+      }
+    } else if (cmd === 'ul') {
+      document.execCommand('insertUnorderedList', false, null);
+    } else if (cmd === 'ol') {
+      document.execCommand('insertOrderedList', false, null);
+    } else if (cmd === 'p') {
+      document.execCommand('formatBlock', false, 'p');
+    }
+
+    syncTplEditorToTextarea();
+    updateTplToolbarState();
+  }
+
+  async function submitSaveTemplate(e) {
+    e.preventDefault();
+    syncTplEditorToTextarea();
+    const bodyVal = document.getElementById('tplBodyInput').value.trim();
+    if (!bodyVal) {
+      alert('Please enter template message body.');
+      return;
+    }
+    const btn = document.getElementById('btnSubmitTpl');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+    const formData = new FormData(document.getElementById('templateForm'));
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+
+    try {
+      const res = await fetch('/admin-panel/communication/templates/save/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        templateModal.hide();
+        location.reload();
+      } else {
+        alert(data.message || 'Failed to save template.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-check me-1"></i> Save Template';
+      }
+    } catch(e) {
+      alert('Network error saving template.');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-check me-1"></i> Save Template';
+    }
+  }
+
+  async function deleteTemplate(id, name) {
+    if (!confirm(`Are you sure you want to permanently delete template '${name}'?`)) return;
+
+    const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || '{{ csrf_token }}';
+    try {
+      const res = await fetch(`/admin-panel/communication/templates/${id}/delete/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        const card = document.getElementById(`tplCard_${id}`);
+        if (card) card.remove();
+      } else {
+        alert(data.message || 'Delete failed.');
+      }
+    } catch(e) {
+      alert('Network error deleting template.');
+    }
+  }
+</script>
+{% endblock %}

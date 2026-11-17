@@ -1,0 +1,550 @@
+{% extends 'candidate_portal/base_candidate.html' %}
+{% load static %}
+
+{% block title %}Applied Jobs & Application Tracker — Candidate Portal{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/components/application-stepper.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start align-items-md-center justify-content-between flex-column flex-md-row gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1 fs-4 fs-md-3">Applied Jobs &amp; Application Tracker</h3>
+    <p class="text-muted mb-0 small">Track your application journey step-by-step from submission to joining.</p>
+  </div>
+  <div class="d-flex align-items-stretch align-items-sm-center flex-column flex-sm-row gap-2 w-100 w-md-auto">
+    <div class="d-flex align-items-center bg-white px-3 py-1.5 border rounded-pill shadow-sm flex-grow-1">
+      <i class="ti ti-filter text-primary me-2"></i>
+      <select id="jobFilterSelect" class="form-select form-select-sm border-0 bg-transparent fw-semibold text-dark shadow-none w-100" style="min-width: 0;" onchange="onJobFilterChange(this.value)">
+        <option value="all">All Applications</option>
+      </select>
+    </div>
+    <a href="/candidate/saved-jobs/" class="btn btn-outline-primary rounded-pill text-nowrap d-flex align-items-center justify-content-center px-3 py-1.5"><i class="ti ti-bookmark me-1"></i> Saved Jobs</a>
+  </div>
+</div>
+
+<!-- Active Filter Banner (Shown when tracking a single job) -->
+<div id="filterBanner" class="alert alert-primary bg-primary-subtle border-primary-subtle shadow-sm rounded-4 d-none align-items-start align-items-sm-center justify-content-between flex-column flex-sm-row gap-3 p-3 mb-4">
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 gap-sm-3 min-w-0">
+    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm bg-white text-nowrap" onclick="onJobFilterChange('all')">
+      <i class="ti ti-arrow-left me-1"></i> All Applications List
+    </button>
+    <div class="text-truncate">
+      <span class="text-muted small">Tracking:</span>
+      <strong class="text-primary fs-6 ms-1" id="filterJobTitleName">Job Opening</strong>
+    </div>
+  </div>
+</div>
+
+<!-- Summary Table Card of All Applications (Shown when viewing all applications list) -->
+<div id="applicationsSummaryCard" class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden d-none">
+  <div class="card-header bg-white py-3 border-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <h5 class="fw-bold mb-0 text-dark fs-6 fs-sm-5"><i class="ti ti-history text-primary me-2"></i>Recent Applications &amp; Applied Jobs</h5>
+    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 fw-bold" id="totalAppsCountBadge">0 Applications</span>
+  </div>
+  <div class="card-body p-0">
+    <!-- Desktop Table View (>= 768px) -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table align-middle mb-0 table-hover">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Job Title</th>
+            <th>Company / Location</th>
+            <th>Applied Date</th>
+            <th>Current Status</th>
+            <th class="pe-4 text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody id="applicationsSummaryTbody">
+          <tr><td colspan="5" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading applications...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card View (< 768px) - 100% responsive, zero cutoff! -->
+    <div class="d-md-none p-2 p-sm-3 d-flex flex-column gap-2" id="applicationsSummaryMobileList">
+      <div class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading applications...</div>
+    </div>
+  </div>
+</div>
+
+<div id="appliedJobsContainer">
+  <div class="text-center py-5 text-muted">
+    <span class="spinner-border spinner-border-sm me-2"></span> Loading your applied jobs...
+  </div>
+</div>
+
+<!-- Status History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="ti ti-history text-primary me-2"></i>Application Status History</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="historyTimeline" class="position-relative ps-4 border-start ms-2">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let historyModalInstance;
+  let globalApplications = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    historyModalInstance = new bootstrap.Modal(document.getElementById('historyModal'));
+    loadAppliedJobs();
+  });
+
+  window.addEventListener('popstate', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetAppId = urlParams.get('app_id') || urlParams.get('id') || 'all';
+    const select = document.getElementById('jobFilterSelect');
+    if (select) select.value = targetAppId;
+    renderFilteredApplications(targetAppId);
+  });
+
+  async function loadAppliedJobs() {
+    const container = document.getElementById('appliedJobsContainer');
+
+    try {
+      const res = await fetch('/api/candidate/applied-jobs/');
+      const data = await res.json();
+
+      if (res.ok && data.status === 'success') {
+        globalApplications = data.applications || [];
+        populateJobFilterDropdown(globalApplications);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialAppId = urlParams.get('app_id') || urlParams.get('id');
+
+        if (initialAppId && globalApplications.some(item => String(item.application.id) === String(initialAppId))) {
+          const select = document.getElementById('jobFilterSelect');
+          if (select) select.value = initialAppId;
+          renderFilteredApplications(initialAppId);
+        } else {
+          const select = document.getElementById('jobFilterSelect');
+          if (select) select.value = 'all';
+          renderFilteredApplications('all');
+        }
+      } else {
+        container.innerHTML = `<div class="alert alert-danger">Failed to load applied jobs.</div>`;
+      }
+    } catch (e) {
+      container.innerHTML = `<div class="alert alert-danger">Network error loading applied jobs.</div>`;
+    }
+  }
+
+  function populateJobFilterDropdown(list) {
+    const select = document.getElementById('jobFilterSelect');
+    if (!select) return;
+
+    if (!list || list.length === 0) {
+      select.innerHTML = `<option value="all">All Applications (0)</option>`;
+      return;
+    }
+
+    select.innerHTML = `<option value="all">All Applications (${list.length})</option>` +
+      list.map(item => {
+        const app = item.application || {};
+        const job = item.job || {};
+        const displayTitle = job.title || app.job_title || 'Job Opening';
+        return `<option value="${app.id}">${displayTitle} (Applied: ${app.applied_on || 'N/A'})</option>`;
+      }).join('');
+  }
+
+  function onJobFilterChange(val) {
+    const url = new URL(window.location);
+    if (val === 'all') {
+      url.searchParams.delete('app_id');
+      url.searchParams.delete('id');
+    } else {
+      url.searchParams.set('app_id', val);
+    }
+    window.history.pushState({}, '', url);
+
+    const select = document.getElementById('jobFilterSelect');
+    if (select) select.value = val;
+
+    renderFilteredApplications(val);
+  }
+
+  function renderSummaryTable(selectedId) {
+    const summaryCard = document.getElementById('applicationsSummaryCard');
+    const tbody = document.getElementById('applicationsSummaryTbody');
+    const mobileList = document.getElementById('applicationsSummaryMobileList');
+    const countBadge = document.getElementById('totalAppsCountBadge');
+
+    if (!globalApplications || globalApplications.length === 0) {
+      if (summaryCard) summaryCard.classList.add('d-none');
+      return;
+    }
+
+    // Hide summary table when tracking a specific application (per user requirement)
+    if (selectedId && selectedId !== 'all') {
+      if (summaryCard) summaryCard.classList.add('d-none');
+      return;
+    }
+
+    if (summaryCard) summaryCard.classList.remove('d-none');
+    if (countBadge) countBadge.innerText = `${globalApplications.length} Application${globalApplications.length > 1 ? 's' : ''}`;
+
+    // 1. Desktop Table (>= 768px)
+    if (tbody) {
+      tbody.innerHTML = globalApplications.map(item => {
+        const app = item.application || {};
+        const job = item.job || {};
+        const displayTitle = job.title || app.job_title || 'Job Opening';
+        const displayCompany = job.employer_name || job.company_name || app.current_company || 'Sky Vision Client';
+        const displayLocation = job.location || app.city || (app.state ? `${app.city}, ${app.state}` : 'Lucknow, UP');
+        const displayAppliedDate = app.applied_on || 'N/A';
+        const statusText = app.status && app.status.trim() ? app.status : 'Application Submitted';
+        const badgeClass = item.badge_class || 'bg-warning text-dark';
+
+        return `
+          <tr>
+            <td class="ps-4 fw-bold text-dark text-nowrap">${displayTitle}</td>
+            <td class="text-secondary small">
+              <div class="fw-semibold text-dark">${displayCompany}</div>
+              <div class="text-muted fs-8">${displayLocation}</div>
+            </td>
+            <td class="text-muted small text-nowrap">${displayAppliedDate}</td>
+            <td class="text-nowrap"><span class="badge ${badgeClass} badge-status rounded-pill px-3 py-1">${statusText}</span></td>
+            <td class="pe-4 text-end text-nowrap">
+              <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="onJobFilterChange('${app.id}')">
+                <i class="ti ti-eye me-1"></i> Track Progress
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 2. Mobile Cards (< 768px) - 100% visible, zero truncation/cutoff!
+    if (mobileList) {
+      mobileList.innerHTML = globalApplications.map(item => {
+        const app = item.application || {};
+        const job = item.job || {};
+        const displayTitle = job.title || app.job_title || 'Job Opening';
+        const displayCompany = job.employer_name || job.company_name || app.current_company || 'Sky Vision Client';
+        const displayLocation = job.location || app.city || (app.state ? `${app.city}, ${app.state}` : 'Lucknow, UP');
+        const displayAppliedDate = app.applied_on || 'N/A';
+        const statusText = app.status && app.status.trim() ? app.status : 'Application Submitted';
+        const badgeClass = item.badge_class || 'bg-warning text-dark';
+
+        return `
+          <div class="cand-mobile-app-card p-3 rounded-3 border bg-light bg-opacity-50">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+              <div class="min-w-0">
+                <h6 class="fw-bold mb-1 text-dark text-truncate">${displayTitle}</h6>
+                <div class="text-muted small text-truncate"><i class="ti ti-building text-primary me-1"></i>${displayCompany}</div>
+              </div>
+              <span class="badge ${badgeClass} badge-status rounded-pill px-2.5 py-1 flex-shrink-0" style="font-size: 0.78rem;">${statusText}</span>
+            </div>
+            <div class="d-flex align-items-center justify-content-between text-muted small py-1 border-top border-bottom my-2">
+              <div class="text-truncate me-2"><i class="ti ti-map-pin me-1 text-danger"></i>${displayLocation}</div>
+              <div class="text-nowrap"><i class="ti ti-calendar me-1"></i>${displayAppliedDate}</div>
+            </div>
+            <button class="btn btn-outline-primary btn-sm rounded-pill w-100 py-1.5 fw-semibold d-flex align-items-center justify-content-center gap-1 mt-2" onclick="onJobFilterChange('${app.id}')">
+              <i class="ti ti-eye"></i> Track Application Flow
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  function renderFilteredApplications(selectedId) {
+    const filterBanner = document.getElementById('filterBanner');
+    const filterJobTitleName = document.getElementById('filterJobTitleName');
+    const container = document.getElementById('appliedJobsContainer');
+
+    if (!globalApplications || globalApplications.length === 0) {
+      if (filterBanner) {
+        filterBanner.classList.remove('d-flex');
+        filterBanner.classList.add('d-none');
+      }
+      if (document.getElementById('applicationsSummaryCard')) {
+        document.getElementById('applicationsSummaryCard').classList.add('d-none');
+      }
+      container.innerHTML = `
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+          <div class="card-body">
+            <i class="ti ti-briefcase text-muted display-4 mb-3 d-block"></i>
+            <h5 class="fw-bold">No Job Applications Yet</h5>
+            <p class="text-muted">Explore active job listings on our site and apply online to start tracking here.</p>
+            <a href="/" class="btn btn-primary rounded-pill px-4">Browse Jobs</a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    renderSummaryTable(selectedId);
+
+    if (selectedId && selectedId !== 'all') {
+      const listToRender = globalApplications.filter(item => String(item.application.id) === String(selectedId));
+
+      if (listToRender.length > 0) {
+        const item = listToRender[0];
+        const app = item.application || {};
+        const job = item.job || {};
+        const displayTitle = job.title || app.job_title || 'Job Opening';
+
+        if (filterJobTitleName) filterJobTitleName.innerText = displayTitle;
+        if (filterBanner) {
+          filterBanner.classList.remove('d-none');
+          filterBanner.classList.add('d-flex');
+        }
+        renderApplications(listToRender);
+      } else {
+        if (filterBanner) {
+          filterBanner.classList.remove('d-flex');
+          filterBanner.classList.add('d-none');
+        }
+        container.innerHTML = `
+          <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+            <div class="card-body">
+              <i class="ti ti-filter-off text-muted display-4 mb-3 d-block"></i>
+              <h5 class="fw-bold">Application Not Found</h5>
+              <p class="text-muted">The requested application tracking details could not be found.</p>
+              <button class="btn btn-primary rounded-pill px-4" onclick="onJobFilterChange('all')">View All Applications</button>
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      // When viewing 'all', show ONLY the applications list table above, and keep tracker container empty!
+      if (filterBanner) {
+        filterBanner.classList.remove('d-flex');
+        filterBanner.classList.add('d-none');
+      }
+      container.innerHTML = '';
+    }
+  }
+
+  function renderApplications(list) {
+    const container = document.getElementById('appliedJobsContainer');
+
+    if (!list || list.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = list.map(item => {
+      const app = item.application || {};
+      const job = item.job || {};
+      const currentStep = item.current_step || app.flow_step || 2;
+      const approvalStatus = app.approval_status || 'Pending';
+      const isRejected = approvalStatus === 'Rejected' || app.status === 'Rejected';
+      const steps = item.steps || [
+        {step: 1, label: "Candidate Applies Job", icon: "ti-user-check"},
+        {step: 2, label: "Application Submitted", icon: "ti-send"},
+        {step: 3, label: "Employer Reviews", icon: "ti-eye"},
+        {step: 4, label: "Shortlisted", icon: "ti-star"},
+        {step: 5, label: "Interview Scheduled", icon: "ti-calendar-event"},
+        {step: 6, label: "Offer Released", icon: "ti-file-certificate"},
+        {step: 7, label: "Candidate Joined", icon: "ti-award"}
+      ];
+
+      // Extract comprehensive job & application info
+      const displayTitle = job.title || app.job_title || 'Job Opening';
+      const displayCompany = job.employer_name || job.company_name || app.current_company || 'Sky Vision Client Partner';
+      const displayLocation = job.location || app.city || (app.state ? `${app.city}, ${app.state}` : 'Lucknow, UP');
+      const displaySalary = job.salary || (app.expected_salary ? `Expected: ${app.expected_salary}` : 'Best in Industry');
+      const displayType = job.employment_type || 'Full Time';
+      const displayExp = job.experience || app.qualification || (app.experience ? `${app.experience} Years` : 'Freshers / Graduate');
+      const displayAppliedDate = app.applied_on || 'N/A';
+      const displayStatus = (app.status && app.status.trim()) ? app.status : 'Application Submitted';
+
+      let typeBadgeClass = 'bg-primary-subtle text-primary';
+      if (displayType.toLowerCase().includes('part')) typeBadgeClass = 'bg-warning-subtle text-warning-emphasis';
+      else if (displayType.toLowerCase().includes('home') || displayType.toLowerCase().includes('remote') || displayType.toLowerCase().includes('wfh')) typeBadgeClass = 'bg-purple-subtle text-purple';
+
+      // 7-step Stepper HTML
+      let stepsHtml = steps.map((s) => {
+        let stateClass = 'pending';
+        if (!isRejected) {
+          if (s.step < currentStep) stateClass = 'completed';
+          else if (s.step === currentStep) stateClass = 'current';
+        }
+
+        let colorGroup = s.step <= 3 ? 'step-blue' : (s.step == 4 ? 'step-green' : 'step-orange');
+        let iconContent = `<i class="ti ${s.icon || 'ti-circle'}"></i>`;
+        if (stateClass === 'completed') iconContent = '<i class="ti ti-check"></i>';
+
+        return `
+          <div class="app-flow-step ${colorGroup} ${stateClass}">
+            <div class="app-flow-step-num">Step ${s.step}</div>
+            <div class="app-flow-circle">${iconContent}</div>
+            <div class="app-flow-label">${s.label}</div>
+          </div>
+        `;
+      }).join('');
+
+      // State Guidance Message Banner
+      let guidanceBanner = '';
+      if (isRejected) {
+        guidanceBanner = `
+          <div class="alert alert-danger border-0 bg-danger-subtle text-danger-emphasis rounded-3 p-3 mt-3 d-flex align-items-center gap-3">
+            <i class="ti ti-alert-triangle-filled fs-4 text-danger"></i>
+            <div>
+              <strong>Application Rejected:</strong> ${app.rejection_reason || 'Your application was not approved to move forward.'}
+            </div>
+          </div>
+        `;
+      } else if (approvalStatus === 'Pending' || currentStep === 2) {
+        guidanceBanner = `
+          <div class="alert alert-warning border-0 bg-warning-subtle text-warning-emphasis rounded-3 p-3 mt-3 d-flex align-items-center gap-3">
+            <i class="ti ti-clock-filled fs-4 text-warning"></i>
+            <div>
+              <strong>Waiting for Super Admin approval:</strong> Your application has been submitted and is currently being reviewed by Super Admin. The employer will review your profile once approved.
+            </div>
+          </div>
+        `;
+      } else if (currentStep === 3) {
+        guidanceBanner = `
+          <div class="alert alert-info border-0 bg-info-subtle text-info-emphasis rounded-3 p-3 mt-3 d-flex align-items-center gap-3">
+            <i class="ti ti-circle-check-filled fs-4 text-info"></i>
+            <div>
+              <strong>Approved - Employer is reviewing your profile:</strong> Your application was approved by Super Admin and forwarded to ${displayCompany}.
+            </div>
+          </div>
+        `;
+      } else if (currentStep === 4) {
+        guidanceBanner = `
+          <div class="alert alert-success border-0 bg-success-subtle text-success-emphasis rounded-3 p-3 mt-3 d-flex align-items-center gap-3">
+            <i class="ti ti-star-filled fs-4 text-success"></i>
+            <div>
+              <strong>Shortlisted by Employer:</strong> Congratulations! You have been shortlisted for this position. The employer will schedule an interview soon.
+            </div>
+          </div>
+        `;
+      } else if (currentStep === 5 && item.interview) {
+        guidanceBanner = `
+          <div class="alert border-0 rounded-3 p-3 mt-3 d-flex align-items-center gap-3" style="background:#f3e8ff; color:#6b21a8;">
+            <i class="ti ti-calendar-event fs-4 text-purple"></i>
+            <div>
+              <strong>Interview Scheduled!</strong><br>
+              Date: <strong>${item.interview.date}</strong> at <strong>${item.interview.time}</strong> (${item.interview.mode})<br>
+              Venue / Link: <strong>${item.interview.location_or_link || 'To be shared'}</strong>
+            </div>
+          </div>
+        `;
+      } else if (currentStep === 6 && item.offer) {
+        guidanceBanner = `
+          <div class="alert alert-warning border-0 bg-warning-subtle text-warning-emphasis rounded-3 p-3 mt-3 d-flex align-items-center gap-3">
+            <i class="ti ti-file-certificate fs-4 text-warning"></i>
+            <div>
+              <strong>Job Offer Released!</strong><br>
+              Designation: <strong>${item.offer.designation}</strong> | Package: <strong>${item.offer.offered_ctc}</strong> | Expected Joining: <strong>${item.offer.joining_date}</strong>. Check your candidate portal offers section.
+            </div>
+          </div>
+        `;
+      } else if (currentStep >= 7 && item.placement) {
+        guidanceBanner = `
+          <div class="alert alert-success border-0 bg-success-subtle text-success-emphasis rounded-3 p-3 mt-3 d-flex align-items-center gap-3">
+            <i class="ti ti-award-filled fs-4 text-success"></i>
+            <div>
+              <strong>Congratulations, you have joined!</strong><br>
+              Position: <strong>${item.placement.position}</strong> | Joining Date: <strong>${item.placement.joining_date}</strong>.
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+          <div class="card-body p-3 p-sm-4">
+            <!-- Header: Title, Applied Date & Status Badge -->
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+              <div>
+                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                  <h5 class="fw-bold text-dark mb-0 fs-6 fs-sm-5">${displayTitle}</h5>
+                  <span class="badge ${typeBadgeClass} rounded-pill px-2.5 py-1 text-uppercase" style="font-size: 10px;">${displayType}</span>
+                </div>
+                <div class="text-muted small">
+                  <i class="ti ti-calendar me-1"></i> Applied on: <span class="fw-semibold text-dark">${displayAppliedDate}</span>
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge ${item.badge_class || 'bg-secondary text-white'} badge-status rounded-pill px-2.5 py-1.5 fs-7">${displayStatus}</span>
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1" onclick='openHistoryModal(${JSON.stringify(item.history || []).replace(/'/g, "&apos;")})'>
+                  <i class="ti ti-history me-1"></i> Timeline
+                </button>
+              </div>
+            </div>
+
+            <!-- Job Information Grid -->
+            <div class="row g-2 g-sm-3 p-2.5 p-sm-3 bg-light rounded-3 my-3 text-secondary border small">
+              <div class="col-6 col-md-3">
+                <div class="text-muted small mb-1"><i class="ti ti-building me-1 text-primary"></i> Company</div>
+                <div class="fw-bold text-dark text-truncate" title="${displayCompany}">${displayCompany}</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-muted small mb-1"><i class="ti ti-map-pin me-1 text-primary"></i> Location</div>
+                <div class="fw-bold text-dark text-truncate" title="${displayLocation}">${displayLocation}</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-muted small mb-1"><i class="ti ti-currency-rupee me-1 text-primary"></i> Salary / Pay</div>
+                <div class="fw-bold text-dark text-truncate" title="${displaySalary}">${displaySalary}</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-muted small mb-1"><i class="ti ti-school me-1 text-primary"></i> Qualification / Exp</div>
+                <div class="fw-bold text-dark text-truncate" title="${displayExp}">${displayExp}</div>
+              </div>
+            </div>
+
+            <!-- 7-Step Stepper Component -->
+            <div class="app-flow-card my-3">
+              <div class="app-flow-header flex-wrap gap-2">
+                <div class="app-flow-header-title">
+                  <i class="ti ti-timeline"></i> APPLICATION FLOW (7 STEPS)
+                </div>
+                <span class="badge ${isRejected ? 'bg-danger text-white' : (currentStep >= 7 ? 'bg-success text-white' : 'bg-primary text-white')} px-3 py-1">
+                  ${isRejected ? 'REJECTED' : (currentStep >= 7 ? 'COMPLETED' : `STEP ${currentStep} OF 7`)}
+                </span>
+              </div>
+              <div class="app-flow-body">
+                <div class="app-flow-stepper">
+                  ${stepsHtml}
+                </div>
+              </div>
+              <div class="d-md-none text-center py-2 bg-light border-top text-muted small">
+                <i class="ti ti-arrows-horizontal me-1"></i> Swipe horizontally to view all stages
+              </div>
+            </div>
+
+            ${guidanceBanner}
+
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openHistoryModal(history) {
+    const timeline = document.getElementById('historyTimeline');
+    if (!history || history.length === 0) {
+      timeline.innerHTML = `<p class="text-muted py-3">No previous status history entries recorded yet.</p>`;
+    } else {
+      timeline.innerHTML = history.map(h => `
+        <div class="mb-3 position-relative">
+          <span class="position-absolute start-0 top-0 translate-middle p-1 bg-primary border border-light rounded-circle" style="left: -25px !important;"></span>
+          <div class="fw-bold text-dark">${h.new_status}</div>
+          <div class="small text-muted">${h.created_at} — by ${h.changed_by}</div>
+          ${h.notes ? `<div class="small text-secondary mt-1 bg-light p-2 rounded">${h.notes}</div>` : ''}
+        </div>
+      `).join('');
+    }
+    historyModalInstance.show();
+  }
+</script>
+{% endblock %}

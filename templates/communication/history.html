@@ -1,0 +1,222 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Sent Communication History — SVG Admin{% endblock %}
+{% block page_title %}Bulk Messaging &amp; Communication{% endblock %}
+{% block breadcrumb_title %}Communication / Sent History{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin/communication-admin.css' %}?v=1.5">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0 mb-4">
+
+  <!-- Header Banner -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h4 class="fw-bold text-dark mb-0.5" style="font-size: 18px;"><i class="ti ti-history text-primary me-1.5"></i>Communication History</h4>
+      <p class="text-muted mb-0" style="font-size: 12px;">Review dispatched bulk broadcasts, delivery breakdown (sent/failed/skipped/pending), and recipient statuses.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="/admin-panel/communication/compose/" class="btn btn-primary rounded-pill px-3 py-1 btn-sm fw-semibold shadow-sm" style="font-size: 12px;">
+        <i class="ti ti-plus me-1"></i> Compose New Message
+      </a>
+      <a href="/admin-panel/communication/settings/" class="btn btn-outline-dark rounded-pill px-2.5 py-1 btn-sm fw-semibold" style="font-size: 12px;">
+        <i class="ti ti-adjustments me-1"></i> Delivery Settings
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <div class="card border-0 shadow-sm rounded-3 mb-3 bg-white">
+    <div class="card-body py-2 px-2.5">
+      <form method="GET" action="/admin-panel/communication/history/" class="d-flex flex-wrap align-items-center gap-1.5">
+        <!-- Search -->
+        <div class="input-group input-group-sm" style="flex: 1 1 160px; min-width: 150px; max-width: 220px;">
+          <span class="input-group-text bg-white border-end-0 rounded-start-pill text-muted ps-2.5 pe-1"><i class="ti ti-search" style="font-size: 13px;"></i></span>
+          <input type="text" name="q" value="{{ q }}" class="form-control border-start-0 rounded-end-pill comm-filter-control" placeholder="Search title or subject...">
+        </div>
+
+        <!-- Audience Filter -->
+        <select name="audience" class="form-select form-select-sm rounded-pill comm-filter-control" style="width: 122px;" onchange="this.form.submit()">
+          <option value="">All Audiences</option>
+          <option value="candidate" {% if audience == 'candidate' %}selected{% endif %}>Candidates</option>
+          <option value="employer" {% if audience == 'employer' %}selected{% endif %}>Employers</option>
+        </select>
+
+        <!-- Channel Filter -->
+        <select name="channel" class="form-select form-select-sm rounded-pill comm-filter-control" style="width: 120px;" onchange="this.form.submit()">
+          <option value="">All Channels</option>
+          <option value="email" {% if channel == 'email' %}selected{% endif %}>Email Channel</option>
+          <option value="dashboard" {% if channel == 'dashboard' %}selected{% endif %}>Dashboard</option>
+        </select>
+
+        <!-- Status Filter -->
+        <select name="status" class="form-select form-select-sm rounded-pill comm-filter-control" style="width: 115px;" onchange="this.form.submit()">
+          <option value="">All Statuses</option>
+          <option value="Sending" {% if status_val == 'Sending' %}selected{% endif %}>Sending</option>
+          <option value="Sent" {% if status_val == 'Sent' %}selected{% endif %}>Sent</option>
+          <option value="Partial" {% if status_val == 'Partial' %}selected{% endif %}>Partial</option>
+          <option value="Failed" {% if status_val == 'Failed' %}selected{% endif %}>Failed</option>
+          <option value="Stopped" {% if status_val == 'Stopped' %}selected{% endif %}>Stopped</option>
+          <option value="Interrupted" {% if status_val == 'Interrupted' %}selected{% endif %}>Interrupted</option>
+          <option value="Draft" {% if status_val == 'Draft' %}selected{% endif %}>Draft</option>
+        </select>
+
+        <!-- Date From & To -->
+        <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm rounded-pill comm-filter-control" style="width: 125px;" title="Date From" onchange="this.form.submit()">
+        <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm rounded-pill comm-filter-control" style="width: 125px;" title="Date To" onchange="this.form.submit()">
+
+        <button type="submit" class="btn btn-primary rounded-pill px-2.5 py-1 btn-sm fw-semibold" style="font-size: 11.5px; height: 32px;">Filter</button>
+        <a href="/admin-panel/communication/history/" class="btn btn-outline-secondary rounded-pill px-2 py-1 btn-sm fw-semibold d-inline-flex align-items-center" style="font-size: 11.5px; height: 32px;" title="Reset Filters"><i class="ti ti-rotate"></i></a>
+      </form>
+    </div>
+  </div>
+
+  <!-- Messages Table -->
+  <div class="card border-0 shadow-sm rounded-3 bg-white">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table comm-compact-table align-middle mb-0" style="table-layout: fixed; width: 100%;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3" style="width: 13%;">Date &amp; Time</th>
+              <th style="width: 32%;">Message Title / Subject</th>
+              <th style="width: 18%;">Audience</th>
+              <th style="width: 12%;">Channels</th>
+              <th style="width: 12%;">Deliveries</th>
+              <th style="width: 7%;">Status</th>
+              <th class="pe-3 text-end" style="width: 6%;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if page_obj %}
+              {% for msg in page_obj %}
+                <tr>
+                  <!-- Date -->
+                  <td class="ps-3 text-truncate text-muted" style="font-size: 11.5px; line-height: 1.25;">
+                    <div class="fw-semibold text-dark">{{ msg.created_at|date:"d M Y" }}</div>
+                    <div style="font-size: 10.5px;">{{ msg.created_at|date:"h:i A" }}</div>
+                  </td>
+
+                  <!-- Title / Subject -->
+                  <td>
+                    <div class="fw-bold text-dark text-truncate" style="font-size: 12px; line-height: 1.3;" title="{{ msg.title }}">{{ msg.title }}</div>
+                    <div class="text-muted text-truncate" style="font-size: 11px;" title="{{ msg.subject }}">
+                      {{ msg.subject }}
+                    </div>
+                    {% if msg.attachment %}
+                      <span class="badge bg-light text-secondary border mt-0.5" style="font-size: 9.5px; padding: 1px 5px;">
+                        <i class="ti ti-paperclip text-primary"></i> Attachment
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Audience -->
+                  <td>
+                    {% if msg.audience_type == 'candidate' %}
+                      <span class="badge bg-primary-subtle text-primary border rounded-pill text-truncate d-inline-block mw-100" style="font-size: 10.5px; padding: 3px 8px;">
+                        <i class="ti ti-user"></i> Candidates{% if msg.candidate_filter %} &rarr; {{ msg.candidate_filter|title }}{% endif %}
+                      </span>
+                    {% else %}
+                      <span class="badge bg-info-subtle text-info border rounded-pill text-truncate d-inline-block mw-100" style="font-size: 10.5px; padding: 3px 8px;">
+                        <i class="ti ti-building"></i> Employers{% if msg.candidate_filter %} &rarr; {{ msg.candidate_filter|title }}{% endif %}
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Channels -->
+                  <td>
+                    {% for ch in msg.channels %}
+                      <span class="badge bg-light text-dark border me-0.5" style="font-size: 9.5px; padding: 2px 5px;">{{ ch|upper }}</span>
+                    {% endfor %}
+                  </td>
+
+                  <!-- Deliveries Breakdown -->
+                  <td>
+                    <div class="fw-semibold text-dark text-nowrap" style="font-size: 11.5px; line-height: 1.2;">
+                      <span class="text-success" title="Sent">{{ msg.sent_count }} sent</span> / <span class="text-muted">{{ msg.total_recipients }} total</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 mt-0.5" style="font-size: 10px;">
+                      {% if msg.failed_count > 0 %}
+                        <span class="badge bg-danger-subtle text-danger px-1 py-0.5">{{ msg.failed_count }} Failed</span>
+                      {% endif %}
+                      {% if msg.skipped_count > 0 %}
+                        <span class="badge bg-secondary-subtle text-secondary px-1 py-0.5">{{ msg.skipped_count }} Skipped</span>
+                      {% endif %}
+                      {% if msg.pending_count > 0 %}
+                        <span class="badge bg-warning-subtle text-warning px-1 py-0.5">{{ msg.pending_count }} Pending</span>
+                      {% endif %}
+                    </div>
+                  </td>
+
+                  <!-- Status -->
+                  <td class="text-nowrap">
+                    {% if msg.status == 'Sent' %}
+                      <span class="badge bg-success rounded-pill" style="font-size: 10.5px; padding: 2px 7px;">Sent</span>
+                    {% elif msg.status == 'Partial' %}
+                      <span class="badge bg-warning text-dark rounded-pill" style="font-size: 10.5px; padding: 2px 7px;">Partial</span>
+                    {% elif msg.status == 'Sending' %}
+                      <span class="badge bg-info rounded-pill d-inline-flex align-items-center gap-1" style="font-size: 10.5px; padding: 2px 7px;">
+                        <span class="spinner-border spinner-border-sm" style="width: 8px; height: 8px;"></span> Sending
+                      </span>
+                    {% elif msg.status == 'Failed' %}
+                      <span class="badge bg-danger rounded-pill" style="font-size: 10.5px; padding: 2px 7px;">Failed</span>
+                    {% elif msg.status == 'Stopped' %}
+                      <span class="badge bg-dark rounded-pill" style="font-size: 10.5px; padding: 2px 7px;">Stopped</span>
+                    {% elif msg.status == 'Interrupted' %}
+                      <span class="badge bg-danger-subtle text-danger border rounded-pill" style="font-size: 10.5px; padding: 2px 7px;">Interrupted</span>
+                    {% else %}
+                      <span class="badge bg-secondary rounded-pill" style="font-size: 10.5px; padding: 2px 7px;">Draft</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Action -->
+                  <td class="pe-3 text-end text-nowrap">
+                    <a href="/admin-panel/communication/history/{{ msg.id }}/" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 10.5px;">
+                      View <i class="ti ti-chevron-right"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-5 text-muted">
+                  <i class="ti ti-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                  No bulk message history records found matching your filter criteria.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+          <span class="small text-muted">Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} broadcasts</span>
+          <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link rounded-pill px-3" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&audience={{ audience }}&channel={{ channel }}&status={{ status_val }}&date_from={{ date_from }}&date_to={{ date_to }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link rounded-pill px-3">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link rounded-pill px-3" href="?page={{ page_obj.next_page_number }}&q={{ q }}&audience={{ audience }}&channel={{ channel }}&status={{ status_val }}&date_from={{ date_from }}&date_to={{ date_to }}">Next</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

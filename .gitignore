@@ -1,0 +1,49 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+*.so
+.Python
+
+# Virtual Environments
+env/
+venv/
+ENV/
+.venv/
+
+# Environment Secrets
+.env
+.env.*
+!.env.example
+secret_key.txt
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+db.sqlite3
+db.sqlite3-journal
+database/*.db
+database/*.bak
+database/*.sqlite*
+
+# Django Media & Static
+media/
+media/uploads/
+staticfiles/
+
+# Logs & Temp
+*.log
+scratch/
+local_settings.py
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

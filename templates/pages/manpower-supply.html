@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ ms_settings.meta_title|default:"Manpower Supply Services — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/manpower-supply.css' %}?v=4.1">
+  <style>
+    .ms-hero-grid {
+      align-items: stretch !important;
+    }
+    .ms-hero-visual {
+      position: relative !important;
+      border-radius: var(--radius-lg, 16px) !important;
+      overflow: hidden !important;
+      box-shadow: var(--shadow-pop, 0 20px 40px rgba(0,0,0,0.4)) !important;
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 480px !important;
+      display: flex !important;
+      background: #07162c;
+    }
+    .ms-hero-visual img {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 480px !important;
+      object-fit: cover !important;
+      object-position: 75% center !important;
+      display: block !important;
+    }
+    .ms-hero-badge {
+      position: absolute !important;
+      left: 20px !important;
+      bottom: 20px !important;
+      background: rgba(7, 12, 24, 0.78) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      color: #ffffff !important;
+      padding: 10px 18px !important;
+      border-radius: 100px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+      z-index: 2 !important;
+    }
+    .ms-hero-badge i {
+      color: var(--amber-2, #f59e0b) !important;
+    }
+    @media (max-width: 991px) {
+      .ms-hero-visual {
+        min-height: 300px !important;
+        max-width: 540px !important;
+        margin: 24px auto 0 !important;
+      }
+      .ms-hero-visual img {
+        min-height: 300px !important;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<!-- ============ HERO ============ -->
+  {% if ms_settings.hero_visible %}
+  <section class="ms-hero">
+    <div class="wrap">
+      <div class="ms-breadcrumb">
+        <a href="{% url 'core:home' %}">Home</a> <i class="fa-solid fa-chevron-right"></i>
+        <a href="{% url 'core:services' %}">Services</a> <i class="fa-solid fa-chevron-right"></i>
+        <span>Manpower Supply Services</span>
+      </div>
+
+      <div class="ms-hero-grid">
+        <div>
+          <span class="sv-eyebrow">{{ ms_settings.hero_eyebrow|default:"Workforce Solutions" }}</span>
+          <h1>{{ ms_settings.hero_title|safe|default:"Manpower Supply <em>Services</em>" }}</h1>
+          <p class="lead">{{ ms_settings.hero_subtitle|default:"Professional workforce solutions for every business — the right people, the right skills, right on time." }}</p>
+
+          <div class="ms-hero-features">
+            <div class="ms-hero-feature"><i class="{{ ms_settings.hero_feat1_icon|default:'fa-solid fa-user-group' }}"></i><span>{{ ms_settings.hero_feat1_text|safe|default:"Right People,<br>Right Skills" }}</span></div>
+            <div class="ms-hero-feature"><i class="{{ ms_settings.hero_feat2_icon|default:'fa-solid fa-shield-halved' }}"></i><span>{{ ms_settings.hero_feat2_text|safe|default:"Verified &amp;<br>Trained Workforce" }}</span></div>
+            <div class="ms-hero-feature"><i class="{{ ms_settings.hero_feat3_icon|default:'fa-regular fa-clock' }}"></i><span>{{ ms_settings.hero_feat3_text|safe|default:"On Time,<br>Every Time" }}</span></div>
+          </div>
+
+          <div class="sv-hero-actions">
+            <a href="{{ ms_settings.hero_enquire_btn_url|default:'/contact/' }}" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> {{ ms_settings.hero_enquire_btn_text|default:"Enquire Now" }}</a>
+            <a href="tel:{{ ms_settings.hero_call_phone|default:'+918853111111' }}" class="btn btn-outline"><i class="fa-solid fa-phone"></i> {{ ms_settings.hero_call_btn_text|default:"Call Now" }}</a>
+          </div>
+        </div>
+
+        <div class="ms-hero-visual" style="height:100%; min-height:480px; position:relative; overflow:hidden; display:flex;">
+          <img src="{{ ms_settings.get_hero_image }}" alt="{{ ms_settings.hero_title|striptags|default:'Manpower Supply Services' }}" style="width:100%; height:100%; min-height:480px; object-fit:cover; object-position:75% center; display:block;">
+          <div class="ms-hero-badge"><i class="fa-solid fa-circle-check"></i> {{ ms_settings.hero_badge_text|default:"Verified Workforce" }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ ABOUT ============ -->
+  {% if ms_settings.about_visible %}
+  <section class="ms-about">
+    <div class="wrap ms-about-grid">
+
+      <div class="ms-about-visual">
+        <img src="{{ ms_settings.get_about_image }}" alt="Sky Vision manpower supply team discussion">
+      </div>
+
+      <div class="ms-about-copy">
+        <span class="sv-tag">{{ ms_settings.about_tag|default:"About Manpower Supply" }}</span>
+        <h2>{{ ms_settings.about_title|default:"Powering Businesses with the Right Workforce" }}</h2>
+        <p>{{ ms_settings.about_description|linebreaksbr }}</p>
+      </div>
+
+      <div class="ms-about-checklist">
+        <ul>
+          {% for chk in checklist_items %}
+          <li><i class="{{ chk.icon_class|default:'fa-solid fa-circle-check' }}"></i> {{ chk.text }}</li>
+          {% empty %}
+          <li><i class="fa-solid fa-circle-check"></i> Quality Manpower</li>
+          <li><i class="fa-solid fa-circle-check"></i> Verified Background</li>
+          <li><i class="fa-solid fa-circle-check"></i> Flexible Engagement</li>
+          <li><i class="fa-solid fa-circle-check"></i> Timely Delivery</li>
+          <li><i class="fa-solid fa-circle-check"></i> Pan India Services</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ SERVICES GRID ============ -->
+  {% if ms_settings.services_visible %}
+  <section class="ms-services">
+    <div class="wrap">
+      <div class="sv-section-head">
+        <span class="sv-tag">{{ ms_settings.services_tag|default:"Our Manpower Supply Services" }}</span>
+        <h2>{{ ms_settings.services_title|default:"We Provide the Best Manpower Solutions" }}</h2>
+      </div>
+
+      <div class="ms-services-grid">
+        {% for card in service_cards %}
+        <div class="sv-service-card">
+          <div class="sv-service-icon {{ card.color_class|default:'i-blue' }}"><i class="{{ card.icon_class|default:'fa-solid fa-people-group' }}"></i></div>
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.description }}</p>
+        </div>
+        {% empty %}
+        <div class="sv-service-card">
+          <div class="sv-service-icon i-blue"><i class="fa-solid fa-people-group"></i></div>
+          <h3>Skilled Manpower</h3>
+          <p>Well trained and experienced professionals for specialized job roles.</p>
+        </div>
+        <div class="sv-service-card">
+          <div class="sv-service-icon i-teal"><i class="fa-solid fa-user"></i></div>
+          <h3>Unskilled Manpower</h3>
+          <p>Dependable and hardworking manpower for general and supporting tasks.</p>
+        </div>
+        <div class="sv-service-card">
+          <div class="sv-service-icon i-amber"><i class="fa-solid fa-industry"></i></div>
+          <h3>Industrial Workforce</h3>
+          <p>Industrial manpower for production, operations and maintenance.</p>
+        </div>
+        <div class="sv-service-card">
+          <div class="sv-service-icon i-purple"><i class="fa-solid fa-helmet-safety"></i></div>
+          <h3>Factory Staff</h3>
+          <p>Reliable staff for factories, plants and manufacturing units.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ INDUSTRIES + WHY CHOOSE ============ -->
+  {% if ms_settings.industries_why_visible %}
+  <section class="ms-split">
+    <div class="wrap ms-split-grid">
+
+      <div class="ms-split-col">
+        <span class="sv-tag">{{ ms_settings.industries_tag|default:"Industries We Serve" }}</span>
+        <h2>{{ ms_settings.industries_title|default:"Serving a Wide Range of Industries" }}</h2>
+        <div class="ms-icon-grid">
+          {% for ind in industry_items %}
+          <div class="ms-icon-item"><i class="{{ ind.icon_class|default:'fa-solid fa-industry' }}"></i><span>{{ ind.name }}</span></div>
+          {% empty %}
+          <div class="ms-icon-item"><i class="fa-solid fa-industry"></i><span>Manufacturing</span></div>
+          <div class="ms-icon-item"><i class="fa-solid fa-hard-hat"></i><span>Construction</span></div>
+          <div class="ms-icon-item"><i class="fa-solid fa-truck"></i><span>Logistics</span></div>
+          <div class="ms-icon-item"><i class="fa-solid fa-heart-pulse"></i><span>Healthcare</span></div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="ms-split-divider" aria-hidden="true"></div>
+
+      <div class="ms-split-col">
+        <span class="sv-tag">{{ ms_settings.why_choose_tag|default:"Why Choose Sky Vision" }}</span>
+        <h2>{{ ms_settings.why_choose_title|default:"Your Trusted Manpower Partner" }}</h2>
+        <div class="ms-icon-grid">
+          {% for why in why_choose_items %}
+          <div class="ms-icon-item circle"><i class="{{ why.icon_class|default:'fa-solid fa-user-group' }}"></i><span>{{ why.title }}</span></div>
+          {% empty %}
+          <div class="ms-icon-item circle"><i class="fa-solid fa-user-group"></i><span>Experienced Team</span></div>
+          <div class="ms-icon-item circle"><i class="fa-solid fa-circle-check"></i><span>Verified Candidates</span></div>
+          <div class="ms-icon-item circle"><i class="fa-solid fa-bolt"></i><span>Fast Recruitment</span></div>
+          <div class="ms-icon-item circle"><i class="fa-solid fa-headset"></i><span>24x7 Support</span></div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ PROCESS ============ -->
+  {% if ms_settings.process_visible %}
+  <section class="sv-process">
+    <div class="wrap">
+      <div class="sv-process-head">
+        <div>
+          <span class="sv-tag">{{ ms_settings.process_tag|default:"Our Recruitment Process" }}</span>
+          <h2>{{ ms_settings.process_title|default:"Simple Process to Find the Right People" }}</h2>
+        </div>
+        <p>{{ ms_settings.process_subtitle|default:"A clear, structured pipeline we follow for every manpower requirement." }}</p>
+      </div>
+
+      <div class="sv-process-line">
+        <div class="sv-process-track ms-track-{{ process_steps|length|default:5 }}">
+          {% for stp in process_steps %}
+          <div class="sv-step"><span class="num">{{ stp.step_number }}</span>
+            <div class="sv-step-dot"><i class="{{ stp.icon_class|default:'fa-solid fa-clipboard-list' }}"></i></div>
+            <p>{{ stp.title }}</p>
+          </div>
+          {% empty %}
+          <div class="sv-step"><span class="num">01</span>
+            <div class="sv-step-dot"><i class="fa-solid fa-clipboard-list"></i></div>
+            <p>Requirement Analysis</p>
+          </div>
+          <div class="sv-step"><span class="num">02</span>
+            <div class="sv-step-dot"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <p>Screening &amp; Shortlisting</p>
+          </div>
+          <div class="sv-step"><span class="num">03</span>
+            <div class="sv-step-dot"><i class="fa-solid fa-comments"></i></div>
+            <p>Interview &amp; Evaluation</p>
+          </div>
+          <div class="sv-step"><span class="num">04</span>
+            <div class="sv-step-dot"><i class="fa-solid fa-user-check"></i></div>
+            <p>Selection &amp; Verification</p>
+          </div>
+          <div class="sv-step"><span class="num">05</span>
+            <div class="sv-step-dot"><i class="fa-solid fa-user-shield"></i></div>
+            <p>Deployment &amp; Onboarding</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ STATS BAR ============ -->
+  {% if ms_settings.stats_visible %}
+  <section class="ms-stats">
+    <div class="wrap ms-stats-grid">
+      {% for st in stat_items %}
+      <div class="ms-stat"><i class="{{ st.icon_class|default:'fa-solid fa-user-group' }}"></i>
+        <div>
+          <h4>{{ st.value }}</h4><span>{{ st.label }}</span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="ms-stat"><i class="fa-solid fa-user-group"></i>
+        <div>
+          <h4>5000+</h4><span>Candidates Placed</span>
+        </div>
+      </div>
+      <div class="ms-stat"><i class="fa-solid fa-building"></i>
+        <div>
+          <h4>300+</h4><span>Happy Clients</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ FAQ + CTA ============ -->
+  {% if ms_settings.faq_cta_visible %}
+  <section class="ms-faq-cta">
+    <div class="wrap ms-faq-cta-grid">
+
+      <div>
+        <div class="sv-section-head" style="text-align:left; margin:0 0 26px;">
+          <span class="sv-tag">{{ ms_settings.faq_tag|default:"Frequently Asked Questions" }}</span>
+        </div>
+        <div class="sv-faq-list">
+          {% for faq in faq_items %}
+          <div class="sv-faq-item">
+            <button class="sv-faq-q">{{ faq.question }} <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+            <div class="sv-faq-a">
+              <p>{{ faq.answer }}</p>
+            </div>
+          </div>
+          {% empty %}
+          <div class="sv-faq-item">
+            <button class="sv-faq-q">How quickly can you provide manpower? <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+            <div class="sv-faq-a">
+              <p>We typically deploy manpower within 2–5 working days depending on the role and location.</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="ms-cta-card" id="contact">
+        <img src="{{ ms_settings.get_cta_image }}" alt="Business handshake">
+        <div class="ms-cta-card-body">
+          <span class="sv-tag">{{ ms_settings.cta_tag|default:"Need Manpower For Your Business?" }}</span>
+          <h3>{{ ms_settings.cta_title|default:"We are Ready to Help You!" }}</h3>
+          <p>{{ ms_settings.cta_subtitle|default:"Get the right people for the right job. Contact us today for a customized solution." }}</p>
+          <div class="ms-cta-card-actions">
+            <a href="tel:{{ ms_settings.cta_call_phone|default:'+918853111111' }}" class="btn btn-primary"><i class="fa-solid fa-phone"></i> {{ ms_settings.cta_call_btn_text|default:"Call Now" }}</a>
+            <a href="{{ ms_settings.cta_enquire_url|default:'/contact/' }}" class="btn btn-outline-dark"><i class="fa-solid fa-paper-plane"></i> {{ ms_settings.cta_enquire_btn_text|default:"Send Enquiry" }}</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ TRUST STRIP ============ -->
+  {% if ms_settings.trust_visible %}
+  <section class="ms-trust">
+    <div class="wrap ms-trust-grid">
+      {% for tr in trust_items %}
+      <div class="ms-trust-item"><i class="{{ tr.icon_class|default:'fa-solid fa-award' }}"></i><span>{{ tr.line1 }}<br>{{ tr.line2 }}</span></div>
+      {% empty %}
+      <div class="ms-trust-item"><i class="fa-solid fa-award"></i><span>Trusted by<br>Top Companies</span></div>
+      <div class="ms-trust-item"><i class="fa-solid fa-file-shield"></i><span>100% Compliance<br>&amp; Legal Support</span></div>
+      <div class="ms-trust-item"><i class="fa-regular fa-clock"></i><span>Timely Service<br>Delivery</span></div>
+      <div class="ms-trust-item"><i class="fa-solid fa-face-smile"></i><span>Customer Satisfaction<br>Our Priority</span></div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ FOOTER ============ -->
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/pages/manpower-supply.js' %}"></script>
+{% endblock %}
+

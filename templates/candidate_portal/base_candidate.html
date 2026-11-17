@@ -1,0 +1,641 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Candidate Portal — Sky Vision Group Consultancy{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="icon" href="{% static 'images/logo/logo.png' %}" type="image/png">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #0d6efd;
+      --primary-hover: #0b5ed7;
+      --navy-bg: #0f172a;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navbar */
+    .cand-navbar {
+      background: #0f172a;
+      color: #fff;
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+    .cand-navbar .navbar-brand {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .cand-navbar .navbar-brand img {
+      height: 34px;
+      object-fit: contain;
+    }
+
+    /* Layout Wrapper */
+    .cand-wrapper {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Sidebar */
+    .cand-sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: #ffffff;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      flex-shrink: 0;
+      z-index: 1020;
+    }
+    .cand-nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .cand-nav-item {
+      margin-bottom: 5px;
+    }
+    .cand-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 16px;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.92rem;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .cand-nav-link i {
+      font-size: 1.2rem;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .cand-nav-link:hover, .cand-nav-link.active {
+      color: var(--primary-color);
+      background: #eff6ff;
+    }
+
+    /* Main Content */
+    .cand-content {
+      flex: 1;
+      min-width: 0;
+      padding: 24px 28px;
+      overflow-y: auto;
+    }
+    .cand-container-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .cand-track-btn-wrap {
+      width: 100%;
+    }
+    .cand-track-btn {
+      width: 100%;
+    }
+    @media (min-width: 768px) {
+      .cand-track-btn-wrap {
+        width: auto !important;
+      }
+      .cand-track-btn {
+        width: auto !important;
+      }
+    }
+
+    /* Desktop View Layout */
+    @media (min-width: 992px) {
+      html, body {
+        height: 100vh;
+        overflow: hidden;
+      }
+      .cand-wrapper {
+        height: calc(100vh - 61px);
+        overflow: hidden;
+      }
+      .cand-sidebar {
+        height: 100%;
+        overflow-y: auto;
+        position: static !important;
+        transform: none !important;
+        visibility: visible !important;
+      }
+      .cand-content {
+        height: 100%;
+        overflow-y: auto;
+      }
+      .cand-mobile-quick-nav,
+      .cand-quick-nav-wrapper {
+        display: none !important;
+      }
+    }
+
+    /* Custom Scrollbars */
+    .cand-sidebar::-webkit-scrollbar,
+    .cand-content::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .cand-sidebar::-webkit-scrollbar-track,
+    .cand-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .cand-sidebar::-webkit-scrollbar-thumb,
+    .cand-content::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    .cand-sidebar::-webkit-scrollbar-thumb:hover,
+    .cand-content::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Status Badges */
+    .badge-status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.82rem;
+    }
+    .bg-purple {
+      background-color: #7c3aed !important;
+      color: #ffffff !important;
+    }
+    .bg-purple-subtle {
+      background-color: #f3e8ff !important;
+      color: #6b21a8 !important;
+    }
+    .text-purple {
+      color: #7c3aed !important;
+    }
+
+    /* Card styling */
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    /* Mobile Responsive Rules (< 992px) */
+    @media (max-width: 991px) {
+      html, body {
+        height: auto;
+        overflow-x: hidden;
+      }
+      .cand-navbar {
+        padding: 10px 14px;
+      }
+      .cand-navbar .navbar-brand img {
+        height: 28px;
+      }
+      .cand-wrapper {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+      }
+      .cand-sidebar.offcanvas-lg {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1050;
+        width: 290px;
+        max-width: 85vw;
+        background: #ffffff;
+        box-shadow: 0 0 40px rgba(0,0,0,0.25);
+        border-right: 1px solid var(--border-color);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transform: translateX(-100%);
+        visibility: hidden;
+      }
+      .cand-sidebar.offcanvas-lg.show {
+        transform: translateX(0);
+        visibility: visible;
+      }
+      .cand-content {
+        padding: 12px 10px;
+        height: auto;
+        overflow-x: hidden;
+      }
+
+      /* Quick Nav Wrapper with Scroll Arrows */
+      .cand-quick-nav-wrapper {
+        display: flex;
+        align-items: center;
+        background: #ffffff;
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 54px;
+        z-index: 1010;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        padding: 6px 8px;
+        gap: 4px;
+      }
+
+      .cand-nav-arrow {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        border-radius: 50%;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        cursor: pointer;
+        padding: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        z-index: 2;
+      }
+      .cand-nav-arrow:hover, .cand-nav-arrow:active {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #2563eb;
+      }
+      .cand-nav-arrow.disabled {
+        opacity: 0.25;
+        pointer-events: none;
+      }
+
+      /* Horizontal quick pills bar */
+      .cand-mobile-quick-nav {
+        display: flex;
+        overflow-x: auto;
+        gap: 6px;
+        padding: 2px 4px;
+        background: transparent;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        white-space: nowrap;
+        scroll-behavior: smooth;
+        flex: 1;
+        min-width: 0;
+      }
+      .cand-mobile-quick-nav::-webkit-scrollbar {
+        display: none;
+      }
+      .cand-quick-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: #f1f5f9;
+        border-radius: 9999px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+      }
+      .cand-quick-pill i {
+        font-size: 14px;
+      }
+      .cand-quick-pill.active {
+        background: #2563eb;
+        color: #ffffff;
+        font-weight: 700;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+      }
+      .cand-quick-pill:not(.active):hover {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+
+      /* Stat card scaling on mobile */
+      .stat-card {
+        padding: 14px 12px;
+      }
+      .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.15rem;
+      }
+      .stat-card h4 {
+        font-size: 1.35rem;
+      }
+      .stat-card .small {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="cand-navbar">
+    <div class="container-fluid px-2 px-md-3 d-flex align-items-center justify-content-between flex-nowrap">
+      <!-- Left side: Hamburger Toggle (mobile) + Brand -->
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <button class="btn btn-outline-light btn-sm d-lg-none p-1 px-2 border-opacity-25" type="button" data-bs-toggle="offcanvas" data-bs-target="#candSidebar" aria-controls="candSidebar" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars fs-6"></i>
+        </button>
+
+        <a class="navbar-brand m-0" href="/candidate/dashboard/">
+          <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Logo" onerror="this.style.display='none'">
+          <span class="d-none d-sm-inline">Sky Vision Portal</span>
+          <span class="badge bg-primary-subtle text-primary fw-semibold d-none d-md-inline" style="font-size: 11px;">Candidate</span>
+        </a>
+      </div>
+
+      <!-- Right side: Notifications + Main Website + Profile Dropdown -->
+      <div class="d-flex align-items-center gap-2 gap-sm-3 flex-shrink-0">
+        <!-- Messages Bell Icon -->
+        <a href="/candidate/messages/" class="btn btn-dark btn-sm rounded-circle position-relative p-2" title="Messages &amp; Announcements">
+          <i class="ti ti-bell fs-5"></i>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="candBellBadge">
+            0
+          </span>
+        </a>
+
+        <!-- Main Website Link (Compact Icon on Mobile) -->
+        <a href="/" class="btn btn-outline-light btn-sm rounded-pill px-2 px-sm-3 d-flex align-items-center gap-1" title="Back to Main Website">
+          <i class="fa-solid fa-globe"></i>
+          <span class="d-none d-md-inline">Main Website</span>
+        </a>
+
+        <!-- Candidate Profile Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-dark btn-sm rounded-pill dropdown-toggle px-2 px-sm-3 d-flex align-items-center gap-1" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-circle-user fs-5 text-primary"></i>
+            <span class="d-none d-sm-inline fw-semibold text-truncate" style="max-width: 140px;">{{ candidate.full_name|default:"Candidate" }}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userMenu">
+            <li class="px-3 py-2 border-bottom d-sm-none bg-light rounded-top">
+              <strong class="d-block text-dark text-truncate">{{ candidate.full_name|default:"Candidate" }}</strong>
+              <small class="text-muted" style="font-size:11px;">Candidate Portal</small>
+            </li>
+            <li><a class="dropdown-item py-2" href="/candidate/dashboard/"><i class="ti ti-dashboard me-2 text-primary"></i> Dashboard</a></li>
+            <li><a class="dropdown-item py-2" href="/candidate/profile/"><i class="fa-solid fa-id-card me-2 text-info"></i> My Profile</a></li>
+            <li><a class="dropdown-item py-2" href="/candidate/applied-jobs/"><i class="fa-solid fa-briefcase me-2 text-success"></i> Applied Jobs</a></li>
+            <li><a class="dropdown-item py-2" href="/candidate/messages/"><i class="ti ti-mail me-2 text-warning"></i> Messages</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item py-2 text-danger" href="/candidate/logout/"><i class="fa-solid fa-right-from-bracket me-2"></i> Log Out</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Horizontal Quick Nav Strip with Scroll Arrows (Visible on <= 991px) -->
+  <div class="cand-quick-nav-wrapper d-lg-none">
+    <button type="button" class="cand-nav-arrow cand-nav-arrow-left" id="candQuickNavLeft" aria-label="Previous options">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+
+    <nav class="cand-mobile-quick-nav" id="candQuickNav" aria-label="Quick Navigation">
+      <a href="/candidate/dashboard/" class="cand-quick-pill {% if request.path == '/candidate/dashboard/' %}active{% endif %}">
+        <i class="ti ti-dashboard"></i> Dashboard
+      </a>
+      <a href="/candidate/applied-jobs/" class="cand-quick-pill {% if '/candidate/applied-jobs/' in request.path %}active{% endif %}">
+        <i class="ti ti-briefcase"></i> Applied Jobs
+      </a>
+      <a href="/candidate/interviews/" class="cand-quick-pill {% if '/candidate/interviews/' in request.path %}active{% endif %}">
+        <i class="ti ti-calendar-event"></i> Interviews
+      </a>
+      <a href="/candidate/messages/" class="cand-quick-pill {% if '/candidate/messages/' in request.path %}active{% endif %}">
+        <i class="ti ti-mail"></i> Messages
+      </a>
+      <a href="/candidate/profile/" class="cand-quick-pill {% if '/candidate/profile/' in request.path %}active{% endif %}">
+        <i class="ti ti-user-circle"></i> Profile
+      </a>
+      <a href="/candidate/offers/" class="cand-quick-pill {% if '/candidate/offers/' in request.path %}active{% endif %}">
+        <i class="ti ti-award"></i> Offers
+      </a>
+      <a href="/candidate/saved-jobs/" class="cand-quick-pill {% if '/candidate/saved-jobs/' in request.path %}active{% endif %}">
+        <i class="ti ti-bookmark"></i> Saved
+      </a>
+      <a href="/candidate/documents/" class="cand-quick-pill {% if '/candidate/documents/' in request.path %}active{% endif %}">
+        <i class="ti ti-file-text"></i> Documents
+      </a>
+      <a href="/candidate/internships/" class="cand-quick-pill {% if '/candidate/internships/' in request.path %}active{% endif %}">
+        <i class="ti ti-school"></i> Internships
+      </a>
+    </nav>
+
+    <button type="button" class="cand-nav-arrow cand-nav-arrow-right" id="candQuickNavRight" aria-label="Next options">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Layout Wrapper -->
+  <div class="cand-wrapper">
+    <!-- Sidebar Navigation (Desktop Static Sidebar & Mobile Responsive Offcanvas) -->
+    <aside class="offcanvas-lg offcanvas-start cand-sidebar" tabindex="-1" id="candSidebar" aria-labelledby="candSidebarLabel">
+      <!-- Offcanvas Mobile Header -->
+      <div class="offcanvas-header d-lg-none p-3 border-bottom bg-light">
+        <div class="d-flex align-items-center gap-2">
+          <div class="stat-icon bg-primary bg-opacity-10 text-primary" style="width:36px; height:36px; font-size:1.1rem; border-radius:10px;">
+            <i class="fa-solid fa-circle-user"></i>
+          </div>
+          <div class="lh-sm">
+            <h6 class="fw-bold mb-0 text-dark" id="candSidebarLabel">{{ candidate.full_name|default:"Candidate" }}</h6>
+            <small class="text-muted" style="font-size: 11px;">Candidate Portal</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" data-bs-target="#candSidebar" aria-label="Close"></button>
+      </div>
+
+      <div class="offcanvas-body p-0 d-flex flex-column h-100">
+        <ul class="cand-nav-list flex-grow-1 p-3">
+          <li class="cand-nav-item">
+            <a href="/candidate/dashboard/" class="cand-nav-link {% if request.path == '/candidate/dashboard/' %}active{% endif %}">
+              <i class="ti ti-dashboard"></i> <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="cand-nav-item">
+            <a href="/candidate/messages/" class="cand-nav-link {% if request.path == '/candidate/messages/' %}active{% endif %}">
+              <i class="ti ti-mail"></i> <span>Messages</span> <span class="badge bg-danger rounded-pill ms-auto d-none" id="candSidebarBadge">0</span>
+            </a>
+          </li>
+          <li class="cand-nav-item">
+            <a href="/candidate/profile/" class="cand-nav-link {% if request.path == '/candidate/profile/' %}active{% endif %}">
+              <i class="ti ti-user-circle"></i> <span>My Profile</span>
+            </a>
+          </li>
+          <li class="cand-nav-item">
+            <a href="/candidate/applied-jobs/" class="cand-nav-link {% if request.path == '/candidate/applied-jobs/' %}active{% endif %}">
+              <i class="ti ti-briefcase"></i> <span>Applied Jobs &amp; Status</span>
+            </a>
+          </li>
+          <li class="cand-nav-item">
+            <a href="/candidate/saved-jobs/" class="cand-nav-link {% if request.path == '/candidate/saved-jobs/' %}active{% endif %}">
+              <i class="ti ti-bookmark"></i> <span>Saved Jobs</span>
+            </a>
+          </li>
+          <li class="cand-nav-item">
+            <a href="/candidate/interviews/" class="cand-nav-link {% if request.path == '/candidate/interviews/' %}active{% endif %}">
+              <i class="ti ti-calendar-event"></i> <span>Interviews</span>
+            </a>
+          </li>
+          <li class="cand-nav-item">
+            <a href="/candidate/offers/" class="cand-nav-link {% if request.path == '/candidate/offers/' %}active{% endif %}">
+              <i class="ti ti-award"></i> <span>Offers &amp; Placement</span>
+            </a>
+          </li>
+          <li class="cand-nav-item">
+            <a href="/candidate/documents/" class="cand-nav-link {% if request.path == '/candidate/documents/' %}active{% endif %}">
+              <i class="ti ti-file-text"></i> <span>Documents &amp; Resume</span>
+            </a>
+          </li>
+          <li class="cand-nav-item">
+            <a href="/candidate/internships/" class="cand-nav-link {% if '/candidate/internships/' in request.path %}active{% endif %}">
+              <i class="ti ti-school"></i> <span>Applied Internships</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="p-3 border-top mt-auto bg-light bg-opacity-50">
+          <a href="/" class="btn btn-outline-secondary btn-sm w-100 rounded-pill mb-2 d-lg-none">
+            <i class="fa-solid fa-globe me-1"></i> Main Website
+          </a>
+          <a href="/candidate/logout/" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Log Out
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="cand-content">
+      <div class="cand-container-inner">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/api/candidate/messages/unread-count/')
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.unread_count > 0) {
+            const bell = document.getElementById('candBellBadge');
+            const side = document.getElementById('candSidebarBadge');
+            if (bell) { bell.innerText = data.unread_count; bell.classList.remove('d-none'); }
+            if (side) { side.innerText = data.unread_count; side.classList.remove('d-none'); }
+          }
+        }).catch(e => {});
+
+      initQuickNavArrows();
+    });
+
+    function initQuickNavArrows() {
+      const nav = document.getElementById('candQuickNav');
+      const leftBtn = document.getElementById('candQuickNavLeft');
+      const rightBtn = document.getElementById('candQuickNavRight');
+
+      if (!nav) return;
+
+      function updateArrows() {
+        const maxScroll = nav.scrollWidth - nav.clientWidth;
+        if (leftBtn) {
+          if (nav.scrollLeft <= 4) {
+            leftBtn.classList.add('disabled');
+          } else {
+            leftBtn.classList.remove('disabled');
+          }
+        }
+        if (rightBtn) {
+          if (nav.scrollLeft >= maxScroll - 4) {
+            rightBtn.classList.add('disabled');
+          } else {
+            rightBtn.classList.remove('disabled');
+          }
+        }
+      }
+
+      if (leftBtn) {
+        leftBtn.addEventListener('click', () => {
+          nav.scrollBy({ left: -160, behavior: 'smooth' });
+        });
+      }
+      if (rightBtn) {
+        rightBtn.addEventListener('click', () => {
+          nav.scrollBy({ left: 160, behavior: 'smooth' });
+        });
+      }
+
+      nav.addEventListener('scroll', updateArrows);
+      window.addEventListener('resize', updateArrows);
+
+      // Auto-scroll active pill into view so it is never hidden on page load!
+      const activePill = nav.querySelector('.cand-quick-pill.active');
+      if (activePill) {
+        const navWidth = nav.clientWidth;
+        const pillLeft = activePill.offsetLeft;
+        const pillWidth = activePill.offsetWidth;
+        nav.scrollLeft = pillLeft - (navWidth / 2) + (pillWidth / 2);
+      }
+
+      setTimeout(updateArrows, 60);
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

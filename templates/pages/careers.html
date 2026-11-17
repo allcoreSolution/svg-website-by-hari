@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ career_settings.meta_title|default:"Careers & Counseling — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_head %}
+  <meta name="description" content="{{ career_settings.meta_description }}">
+  {% if career_settings.meta_keywords %}
+    <meta name="keywords" content="{{ career_settings.meta_keywords }}">
+  {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/careers.css' %}?v=3.5">
+{% endblock %}
+
+{% block content %}
+  {% if career_settings.hero_visible %}
+  <!-- ============ HERO — left content, right photo panel ============ -->
+  <section class="cr-hero">
+    <div class="wrap cr-hero-grid">
+      <div>
+        <span class="cr-eyebrow">{{ career_settings.hero_eyebrow|default:"Careers at Sky Vision" }}</span>
+        <h1>{{ career_settings.get_rendered_hero_title|safe }}</h1>
+        <p class="lead">{{ career_settings.hero_subtitle }}</p>
+        <div class="cr-hero-actions">
+          {% if career_settings.hero_btn1_text %}
+            <a href="{{ career_settings.hero_btn1_url|default:'#openings' }}" class="btn btn-primary">{{ career_settings.hero_btn1_text }} <i class="fa-solid fa-arrow-right"></i></a>
+          {% endif %}
+          {% if career_settings.hero_btn2_text %}
+            <a href="{{ career_settings.hero_btn2_url|default:'#journey' }}" class="btn btn-outline">{{ career_settings.hero_btn2_text }}</a>
+          {% endif %}
+        </div>
+        <div class="cr-hero-features">
+          <div class="cr-hero-feature"><i class="{{ career_settings.feature_1_icon|default:'fa-solid fa-bullseye' }}"></i>
+            <div>
+              <h4>{{ career_settings.feature_1_title }}</h4><span>{{ career_settings.feature_1_desc }}</span>
+            </div>
+          </div>
+          <div class="cr-hero-feature"><i class="{{ career_settings.feature_2_icon|default:'fa-solid fa-chart-line' }}"></i>
+            <div>
+              <h4>{{ career_settings.feature_2_title }}</h4><span>{{ career_settings.feature_2_desc }}</span>
+            </div>
+          </div>
+          <div class="cr-hero-feature"><i class="{{ career_settings.feature_3_icon|default:'fa-solid fa-user-group' }}"></i>
+            <div>
+              <h4>{{ career_settings.feature_3_title }}</h4><span>{{ career_settings.feature_3_desc }}</span>
+            </div>
+          </div>
+          <div class="cr-hero-feature"><i class="{{ career_settings.feature_4_icon|default:'fa-solid fa-award' }}"></i>
+            <div>
+              <h4>{{ career_settings.feature_4_title }}</h4><span>{{ career_settings.feature_4_desc }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cr-hero-visual">
+        {% if career_settings.hero_image %}
+          <img src="{{ career_settings.hero_image.url }}" alt="Sky Vision Careers">
+        {% else %}
+          <img src="https://images.unsplash.com/photo-1758873268663-5a362616b5a7?fm=jpg&q=80&w=1200&auto=format&fit=crop"
+            alt="Sky Vision team members collaborating in the office">
+        {% endif %}
+        {% if career_settings.hero_rating_badge %}
+          <span class="cr-hero-chip"><i class="fa-solid fa-star"></i>{{ career_settings.hero_rating_badge }}</span>
+        {% endif %}
+        {% if career_settings.hero_placed_badge %}
+          <span class="cr-hero-badge"><i class="fa-solid fa-users"></i>{{ career_settings.hero_placed_badge }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if career_settings.openings_visible %}
+  <!-- ============ CURRENT OPENINGS ============ -->
+  <section class="op-section" id="openings">
+    <span class="op-decor" aria-hidden="true"></span>
+
+    <div class="wrap op-head">
+      <div class="op-head-text">
+        {% if career_settings.openings_eyebrow %}<span class="op-badge">{{ career_settings.openings_eyebrow }}</span>{% endif %}
+        <h2>{{ career_settings.openings_title }}</h2>
+        {% if career_settings.openings_subtitle %}<span class="op-subtitle">{{ career_settings.openings_subtitle }}</span>{% endif %}
+        <p>{{ career_settings.openings_desc }}</p>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="op-grid">
+        {% for op in career_settings.get_openings %}
+        <div class="op-card reveal">
+          <div class="op-icon op-bg-{{ op.color|default:'blue' }}"><i class="{{ op.icon|default:'fa-solid fa-user-tie' }}"></i></div>
+          <h3>{{ op.title }}</h3>
+          <ul class="op-meta">
+            <li><i class="fa-solid fa-location-dot"></i> Location: {{ op.location }}</li>
+            <li><i class="fa-solid fa-briefcase"></i> Experience: {{ op.experience }}</li>
+            <li><i class="fa-regular fa-clock"></i> Employment: {{ op.employment }}</li>
+            <li><i class="fa-solid fa-indian-rupee-sign"></i> Salary: {{ op.salary }}</li>
+          </ul>
+          <a href="#" class="op-apply" data-role="{{ op.title }}">Apply Now <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if career_settings.resume_cta_visible %}
+      <!-- ===== Bottom Resume Upload CTA ===== -->
+      <div class="op-cta reveal">
+        <div class="op-cta-left">
+          <div class="op-cta-icon"><i class="{{ career_settings.resume_cta_icon|default:'fa-solid fa-file-arrow-up' }}"></i></div>
+          <div class="op-cta-copy">
+            <h3>{{ career_settings.resume_cta_title }}</h3>
+            <p>{{ career_settings.resume_cta_desc }}</p>
+          </div>
+        </div>
+        <div class="op-cta-right">
+          <div class="op-cta-actions">
+            <button type="button" class="op-btn op-btn-primary" id="resumeUploadTrigger">
+              <i class="fa-solid fa-upload"></i> {{ career_settings.resume_btn_text|default:'Upload Resume' }}
+            </button>
+            <input type="file" id="opResumeInput" accept=".pdf,.doc,.docx" hidden>
+            <a href="{{ career_settings.resume_contact_btn_url|default:'#contact' }}" class="op-btn op-btn-outline"><i class="fa-solid fa-envelope"></i> {{ career_settings.resume_contact_btn_text|default:'Contact Recruitment' }}</a>
+          </div>
+          <span class="op-cta-filename" id="opResumeFileName"></span>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if career_settings.why_build_visible or career_settings.career_areas_visible or career_settings.journey_visible %}
+  <!-- ============ WHY BUILD YOUR CAREER + CAREER AREAS + JOURNEY ============ -->
+  <section class="cr-triple" id="journey">
+    <div class="wrap cr-triple-grid">
+
+      {% if career_settings.why_build_visible %}
+      <div class="cr-panel-box">
+        <span class="sv-tag">{{ career_settings.why_build_tag|default:'Why Build Here' }}</span>
+        <h2 class="panel-title">{{ career_settings.why_build_title }}</h2>
+        <div class="cs-underline"></div>
+        <div class="cr-feature-list">
+          {% for item in career_settings.get_why_build %}
+          <div class="cr-feature-item"><i class="{{ item.icon|default:'fa-solid fa-clipboard-list' }}"></i>
+            <div>
+              <h4>{{ item.title }}</h4>
+              <p>{{ item.desc }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if career_settings.career_areas_visible %}
+      <div class="cr-panel-box">
+        <span class="sv-tag">{{ career_settings.career_areas_tag|default:'Career Areas' }}</span>
+        <h2 class="panel-title">{{ career_settings.career_areas_title }}</h2>
+        <div class="cs-underline"></div>
+        <div class="cr-areas-grid">
+          {% for area in career_settings.get_career_areas %}
+          <div class="cr-area-card"><i class="{{ area.icon|default:'fa-solid fa-people-group' }}"></i>
+            <h4>{{ area.title }}</h4>
+            <p>{{ area.desc }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if career_settings.journey_visible %}
+      <div class="cr-panel-box">
+        <span class="sv-tag">{{ career_settings.journey_tag|default:'Your Career Journey' }}</span>
+        <h2 class="panel-title">{{ career_settings.journey_title }}</h2>
+        <div class="cs-underline"></div>
+        <div class="cr-journey">
+          {% for step in career_settings.get_journey_steps %}
+          <div class="cc-vstep"><span class="dot">{{ step.step|default:forloop.counter }}</span>
+            <div>
+              <h4>{{ step.title }}</h4>
+              <p>{{ step.desc }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if career_settings.look_for_visible or career_settings.benefits_visible %}
+  <!-- ============ WHAT WE LOOK FOR + EMPLOYEE BENEFITS ============ -->
+  <section class="cr-strip">
+    <div class="wrap cr-strip-grid">
+
+      {% if career_settings.look_for_visible %}
+      <div class="cr-strip-box">
+        <span class="sv-tag">{{ career_settings.look_for_tag|default:'What We Look For' }}</span>
+        <div class="cs-underline"></div>
+        <div class="cr-icon-row">
+          {% for item in career_settings.get_look_for %}
+          <div class="cr-icon-item"><i class="{{ item.icon|default:'fa-solid fa-face-smile' }}"></i><span>{{ item.title }}</span></div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if career_settings.benefits_visible %}
+      <div class="cr-strip-box">
+        <span class="sv-tag">{{ career_settings.benefits_tag|default:'Employee Benefits' }}</span>
+        <div class="cs-underline"></div>
+        <div class="cr-icon-row">
+          {% for item in career_settings.get_benefits %}
+          <div class="cr-icon-item"><i class="{{ item.icon|default:'fa-solid fa-sack-dollar' }}"></i><span>{{ item.title }}</span></div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if career_settings.cta_visible %}
+  <!-- ============ CTA BANNER ============ -->
+  <section class="sv-cta" id="contact">
+    <div class="sv-cta-inner">
+      <div class="cr-cta-copy">
+        <div class="cr-cta-icon"><i class="{{ career_settings.cta_icon|default:'fa-solid fa-person-hiking' }}"></i></div>
+        <div>
+          <h2>{{ career_settings.cta_title }}</h2>
+          <p>{{ career_settings.cta_subtitle }}</p>
+        </div>
+      </div>
+      <div class="cs-cta-actions">
+        {% if career_settings.cta_btn1_text %}
+          <a href="{{ career_settings.cta_btn1_url|default:'/jobs/' }}" class="btn btn-primary">{{ career_settings.cta_btn1_text }} <i class="fa-solid fa-arrow-right"></i></a>
+        {% endif %}
+        {% if career_settings.cta_btn2_text %}
+          <a href="{{ career_settings.cta_btn2_url|default:'/contact/' }}" class="btn btn-outline">{{ career_settings.cta_btn2_text }} <i class="fa-solid fa-phone"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============ RESUME UPLOAD MODAL ============ -->
+  <div class="resume-modal-overlay" id="resumeModalOverlay" role="dialog" aria-modal="true"
+    aria-labelledby="resumeModalHeading" aria-hidden="true">
+    <div class="resume-modal">
+
+      <button type="button" class="resume-modal-close" id="resumeModalClose" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- ---- Header ---- -->
+      <div class="resume-modal-header">
+        <div class="resume-modal-logo">
+          <img src="{% static 'images/logo.png' %}" alt="Sky Vision Group Consultancy">
+        </div>
+        <h2 class="resume-modal-heading" id="resumeModalHeading">Upload Your Resume</h2>
+        <p class="resume-modal-subtitle">Take the first step toward your dream career. Submit your resume and our
+          recruitment team will contact you if your profile matches any current or upcoming opportunities.</p>
+      </div>
+
+      <!-- ---- Form view ---- -->
+      <form class="resume-modal-form" id="resumeModalForm" novalidate>
+        {% csrf_token %}
+        <div class="resume-modal-row">
+          <div class="resume-modal-field">
+            <label for="rmFullName">Full Name <span class="req">*</span></label>
+            <div class="resume-modal-input-wrap">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="rmFullName" name="FullName" placeholder="Your full name" required>
+            </div>
+            <span class="resume-modal-error"></span>
+          </div>
+
+          <div class="resume-modal-field">
+            <label for="rmMobile">Mobile Number <span class="req">*</span></label>
+            <div class="resume-modal-input-wrap">
+              <i class="fa-solid fa-phone"></i>
+              <input type="tel" id="rmMobile" name="Mobile" placeholder="10-digit mobile number" maxlength="10"
+                inputmode="numeric" required>
+            </div>
+            <span class="resume-modal-error"></span>
+          </div>
+        </div>
+
+        <div class="resume-modal-row">
+          <div class="resume-modal-field">
+            <label for="rmEmail">Email Address <span class="req">*</span></label>
+            <div class="resume-modal-input-wrap">
+              <i class="fa-solid fa-envelope"></i>
+              <input type="email" id="rmEmail" name="Email" placeholder="you@example.com" required>
+            </div>
+            <span class="resume-modal-error"></span>
+          </div>
+
+          <div class="resume-modal-field">
+            <label for="rmCity">Current City <span class="req">*</span></label>
+            <div class="resume-modal-input-wrap">
+              <i class="fa-solid fa-location-dot"></i>
+              <input type="text" id="rmCity" name="City" placeholder="e.g. Lucknow">
+            </div>
+          </div>
+        </div>
+
+        <div class="resume-modal-row">
+          <div class="resume-modal-field">
+            <label for="rmQualification">Highest Qualification <span class="req">*</span></label>
+            <div class="resume-modal-input-wrap">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <input type="text" id="rmQualification" name="Qualification" placeholder="e.g. B.Com, MBA">
+            </div>
+          </div>
+
+          <div class="resume-modal-field">
+            <label for="rmExperience">Years of Experience </label>
+            <div class="resume-modal-input-wrap">
+              <i class="fa-solid fa-briefcase"></i>
+              <select id="rmExperience" name="Experience">
+                <option value="" selected>Select experience</option>
+                <option value="fresher">Fresher</option>
+                <option value="0-1">0 – 1 Year</option>
+                <option value="1-3">1 – 3 Years</option>
+                <option value="3-5">3 – 5 Years</option>
+                <option value="5+">5+ Years</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="resume-modal-field">
+          <label for="rmApplyingFor">Applying For <span class="req">*</span></label>
+          <div class="resume-modal-input-wrap">
+            <i class="fa-solid fa-file-lines"></i>
+            <select id="rmApplyingFor" name="ApplyingFor">
+              <option value="" selected>Select a role</option>
+              {% for op in career_settings.get_openings %}
+                <option value="{{ op.title }}">{{ op.title }}</option>
+              {% endfor %}
+              <option value="Other / Not Listed">Other / Not Listed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="resume-modal-field">
+          <label for="rmResumeFile">Upload Resume <span class="req">*</span></label>
+          <div class="resume-upload-area" id="rmUploadArea">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p class="rm-upload-title">Drag &amp; drop your resume here</p>
+            <p class="rm-upload-sub">or click to browse — PDF, DOC, DOCX (Max 5MB)</p>
+            <input type="file" id="rmResumeFile" name="ResumeFile" accept=".pdf,.doc,.docx">
+          </div>
+          <div class="resume-upload-filename" id="rmFileNameBox">
+            <i class="fa-solid fa-paperclip"></i>
+            <span id="rmFileNameText"></span>
+            <i class="fa-solid fa-xmark rm-remove-file" id="rmRemoveFile" title="Remove file"></i>
+          </div>
+          <span class="resume-modal-error" id="rmFileError"></span>
+        </div>
+
+        <div class="resume-modal-field">
+          <label for="rmMessage">Cover Letter / Message (Optional)</label>
+          <div class="resume-modal-textarea-wrap">
+            <i class="fa-solid fa-comment"></i>
+            <textarea id="rmMessage" name="Message" rows="3"
+              placeholder="Tell us a little about yourself..."></textarea>
+          </div>
+        </div>
+
+        <div class="resume-modal-actions">
+          <button type="button" class="resume-modal-btn resume-modal-btn-secondary"
+            id="resumeModalCancel">Cancel</button>
+          <button type="submit" class="resume-modal-btn resume-modal-btn-primary">
+            <i class="fa-solid fa-paper-plane"></i> Submit Resume
+          </button>
+        </div>
+      </form>
+
+      <!-- ---- Success view ---- -->
+      <div class="resume-modal-success" id="resumeModalSuccess" tabindex="-1">
+        <div class="rm-success-icon"><i class="fa-solid fa-check"></i></div>
+        <h3>Resume Uploaded Successfully!</h3>
+        <p>Thank you for submitting your resume. Our HR team will review your profile and contact you if a suitable
+          opportunity is available.</p>
+        <button type="button" class="resume-modal-btn resume-modal-btn-primary" id="resumeModalOk">OK</button>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // 1. Reveal elements immediately & on scroll
+      var reveals = document.querySelectorAll('.reveal');
+      if (reveals.length) {
+        reveals.forEach(function (el) { el.classList.add('in-view'); });
+      }
+
+      // 2. Wire up all "Apply Now" buttons on job cards to open resume modal with role selected
+      document.querySelectorAll('.op-apply').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          var role = this.getAttribute('data-role');
+          if (!role) {
+            var card = this.closest('.op-card');
+            var titleEl = card ? card.querySelector('h3') : null;
+            role = titleEl ? titleEl.textContent.trim() : '';
+          }
+
+          var overlay = document.getElementById('resumeModalOverlay');
+          if (overlay) {
+            var select = document.getElementById('rmApplyingFor');
+            if (select && role) {
+              for (var i = 0; i < select.options.length; i++) {
+                if (select.options[i].text.toLowerCase().indexOf(role.toLowerCase()) !== -1 ||
+                    role.toLowerCase().indexOf(select.options[i].text.toLowerCase()) !== -1) {
+                  select.selectedIndex = i;
+                  break;
+                }
+              }
+            }
+            overlay.classList.add('is-open');
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('resume-modal-open');
+          }
+        });
+      });
+    });
+  </script>
+{% endblock %}

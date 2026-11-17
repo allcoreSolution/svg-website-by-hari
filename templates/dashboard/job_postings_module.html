@@ -1,0 +1,1748 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Job Postings Management — Super Admin Panel{% endblock %}
+{% block page_title %}Job Postings{% endblock %}
+{% block breadcrumb_title %}Job Management / Job Postings{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* KPI Cards Grid */
+  .job-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .job-stat-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 15px 16px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .job-stat-card:hover {
+    border-color: #CBD5E1;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(15,23,42,0.08);
+  }
+  .job-stat-card.active-card {
+    border-color: #2563EB;
+    background: #F8FAFC;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.25);
+  }
+  .job-stat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .job-stat-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .job-stat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+  }
+  .job-stat-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0F172A;
+  }
+  .job-stat-sub {
+    font-size: 11px;
+    color: #64748B;
+  }
+  .btn-card-quick-add {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+    border: none;
+    text-decoration: none;
+    line-height: 1.2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .btn-card-quick-add:hover {
+    filter: brightness(0.95);
+    transform: scale(1.03);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  }
+
+  /* Filter Bar */
+  .job-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #FFFFFF;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .job-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 6px 12px;
+    width: 280px;
+  }
+  .job-search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 12px;
+    width: 100%;
+  }
+
+  /* Table styling */
+  .job-table-container {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    overflow-x: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+    width: 100%;
+  }
+  .job-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+    table-layout: auto;
+  }
+  .job-table th {
+    background: #F8FAFC;
+    color: #475569;
+    font-weight: 700;
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+  }
+  .job-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #334155;
+    vertical-align: middle;
+  }
+  .job-table tr:hover {
+    background: #F8FAFC;
+  }
+
+  /* Action Dropdown Menu */
+  .job-action-dropdown-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .btn-job-action-dots {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-job-action-dots:hover {
+    background: #EFF6FF;
+    color: #2563EB;
+    border-color: #BFDBFE;
+  }
+  .job-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.18);
+    min-width: 190px;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    padding: 6px;
+  }
+  .job-dropdown-menu.show {
+    display: flex;
+  }
+  .job-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+    white-space: nowrap;
+    text-align: left;
+    border: none;
+    background: none;
+    width: 100%;
+  }
+  .job-dropdown-item:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+  }
+  .job-dropdown-item.text-success { color: #16A34A; }
+  .job-dropdown-item.text-success:hover { background: #DCFCE7; }
+  .job-dropdown-item.text-danger { color: #DC2626; }
+  .job-dropdown-item.text-danger:hover { background: #FEE2E2; }
+  .job-dropdown-item.text-warning { color: #D97706; }
+  .job-dropdown-item.text-warning:hover { background: #FEF3C7; }
+
+  /* ==========================================================================
+     CUSTOM MODAL & FORM CONTROLS REDESIGN
+     ========================================================================== */
+  .custom-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 1200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .custom-modal-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    width: 740px;
+    max-width: 94vw;
+    max-height: 85vh;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #E2E8F0;
+    position: relative;
+  }
+
+  .custom-modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+    flex-shrink: 0;
+  }
+
+  .modal-title-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .modal-title-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #DBEAFE;
+    color: #2563EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .modal-close-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: #F1F5F9;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .modal-close-btn:hover {
+    background: #E2E8F0;
+    color: #0F172A;
+  }
+
+  .custom-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    max-height: calc(85vh - 130px);
+  }
+
+  .custom-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #E2E8F0;
+    background: #F8FAFC !important;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Form Layout Grid */
+  .form-grid-2col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .form-group-full {
+    grid-column: span 2;
+  }
+
+  .form-group-custom {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-label-custom {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1E293B;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+  }
+
+  .form-label-custom .req-star {
+    color: #EF4444;
+    font-weight: 700;
+  }
+
+  .form-control-custom,
+  .form-select-custom,
+  .form-textarea-custom {
+    width: 100%;
+    padding: 9px 13px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #0F172A;
+    background-color: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    outline: none;
+  }
+
+  .form-control-custom:focus,
+  .form-select-custom:focus,
+  .form-textarea-custom:focus {
+    background-color: #FFFFFF;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+
+  .form-control-custom::placeholder,
+  .form-textarea-custom::placeholder {
+    color: #94A3B8;
+    font-size: 12.5px;
+  }
+
+  .form-textarea-custom {
+    resize: vertical;
+    min-height: 85px;
+    line-height: 1.5;
+  }
+
+  .custom-modal-footer .btn-modal-cancel,
+  button.btn-modal-cancel {
+    background: #F1F5F9 !important;
+    background-color: #F1F5F9 !important;
+    color: #334155 !important;
+    border: 1px solid #CBD5E1 !important;
+    padding: 9px 20px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    opacity: 1 !important;
+    transition: background 0.15s ease !important;
+  }
+  .custom-modal-footer .btn-modal-cancel:hover,
+  button.btn-modal-cancel:hover {
+    background: #E2E8F0 !important;
+    background-color: #E2E8F0 !important;
+    color: #0F172A !important;
+  }
+
+  .custom-modal-footer .btn-modal-submit,
+  button.btn-modal-submit {
+    background: #2563EB !important;
+    background-color: #2563EB !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1D4ED8 !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: all 0.15s ease-in-out !important;
+  }
+  .custom-modal-footer .btn-modal-submit:hover,
+  button.btn-modal-submit:hover {
+    background: #1D4ED8 !important;
+    background-color: #1D4ED8 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important;
+  }
+
+  /* Quick Toggle Pill Buttons for Company/Employer inputs */
+  .btn-field-mode-toggle {
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    color: #2563EB;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+  }
+  .btn-field-mode-toggle:hover {
+    background: #DBEAFE;
+    color: #1D4ED8;
+    border-color: #93C5FD;
+  }
+
+  /* View Detail Card Items */
+  .view-detail-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .view-detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+  }
+  .view-detail-value {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #0F172A;
+  }
+
+  @media (max-width: 640px) {
+    .job-stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .form-grid-2col {
+      grid-template-columns: 1fr;
+    }
+    .form-group-full {
+      grid-column: span 1;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- 1. Header Card -->
+<div class="module-header-card">
+  <div class="module-title-group">
+    <div class="module-icon-box" style="background:#EFF6FF; color:#2563EB;">
+      <i class="ti ti-briefcase"></i>
+    </div>
+    <div>
+      <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">Job Postings</h3>
+      <span style="font-size:12px; color:#64748B;">Post, Edit, Approve &amp; Manage All Open Vacancies</span>
+    </div>
+  </div>
+
+  <div class="module-actions-group">
+    <button type="button" class="btn-admin btn-admin-secondary" onclick="window.location.reload();">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
+    <button type="button" class="btn-admin btn-admin-primary" onclick="openPostJobModal();">
+      <i class="ti ti-plus"></i> Post New Job
+    </button>
+  </div>
+</div>
+
+<!-- 2. KPI Summary Cards (Full Time, Part Time, Work From Home, Other with Add Job Options) -->
+<div class="job-stat-grid">
+  <!-- 1. Full Time -->
+  <div class="job-stat-card" id="cardFullTime" onclick="quickFilterByType('full time', this)" title="Click to filter Full Time jobs in table">
+    <div class="job-stat-head">
+      <span class="job-stat-title">FULL TIME JOBS</span>
+      <div class="job-stat-icon" style="background:#EFF6FF; color:#2563EB;"><i class="ti ti-briefcase"></i></div>
+    </div>
+    <div style="display:flex; align-items:baseline; justify-content:space-between;">
+      <div class="job-stat-num" style="color:#2563EB;">{{ full_time_count|default:0 }}</div>
+      <span style="font-size:11px; font-weight:600; color:#64748B;">Regular Openings</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px; padding-top:8px; border-top:1px solid #F1F5F9;">
+      <span class="job-stat-sub" style="color:#2563EB; font-weight:600;"><i class="ti ti-filter"></i> Filter Table</span>
+      <button type="button" class="btn-card-quick-add" onclick="event.stopPropagation(); openPostJobModalForType('Full Time');" title="Post new Full Time job vacancy" style="background:#2563EB; color:#FFFFFF;">
+        <i class="ti ti-plus"></i> Add Job
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Part Time -->
+  <div class="job-stat-card" id="cardPartTime" onclick="quickFilterByType('part time', this)" title="Click to filter Part Time jobs in table">
+    <div class="job-stat-head">
+      <span class="job-stat-title">PART TIME JOBS</span>
+      <div class="job-stat-icon" style="background:#FEF3C7; color:#D97706;"><i class="ti ti-clock"></i></div>
+    </div>
+    <div style="display:flex; align-items:baseline; justify-content:space-between;">
+      <div class="job-stat-num" style="color:#D97706;">{{ part_time_count|default:0 }}</div>
+      <span style="font-size:11px; font-weight:600; color:#64748B;">Flexible Shifts</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px; padding-top:8px; border-top:1px solid #F1F5F9;">
+      <span class="job-stat-sub" style="color:#D97706; font-weight:600;"><i class="ti ti-filter"></i> Filter Table</span>
+      <button type="button" class="btn-card-quick-add" onclick="event.stopPropagation(); openPostJobModalForType('Part Time');" title="Post new Part Time job vacancy" style="background:#D97706; color:#FFFFFF;">
+        <i class="ti ti-plus"></i> Add Job
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. Work From Home -->
+  <div class="job-stat-card" id="cardWFH" onclick="quickFilterByType('work from home', this)" title="Click to filter Work From Home jobs in table">
+    <div class="job-stat-head">
+      <span class="job-stat-title">WORK FROM HOME</span>
+      <div class="job-stat-icon" style="background:#DCFCE7; color:#16A34A;"><i class="ti ti-device-laptop"></i></div>
+    </div>
+    <div style="display:flex; align-items:baseline; justify-content:space-between;">
+      <div class="job-stat-num" style="color:#16A34A;">{{ wfh_count|default:0 }}</div>
+      <span style="font-size:11px; font-weight:600; color:#64748B;">Remote / Hybrid</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px; padding-top:8px; border-top:1px solid #F1F5F9;">
+      <span class="job-stat-sub" style="color:#16A34A; font-weight:600;"><i class="ti ti-filter"></i> Filter Table</span>
+      <button type="button" class="btn-card-quick-add" onclick="event.stopPropagation(); openPostJobModalForType('Work From Home');" title="Post new Work From Home job vacancy" style="background:#16A34A; color:#FFFFFF;">
+        <i class="ti ti-plus"></i> Add Job
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Other Jobs -->
+  <div class="job-stat-card" id="cardOther" onclick="quickFilterByType('other', this)" title="Click to filter Other / Contract jobs in table">
+    <div class="job-stat-head">
+      <span class="job-stat-title">OTHER / CONTRACT</span>
+      <div class="job-stat-icon" style="background:#F3E8FF; color:#7C3AED;"><i class="ti ti-adjustments-horizontal"></i></div>
+    </div>
+    <div style="display:flex; align-items:baseline; justify-content:space-between;">
+      <div class="job-stat-num" style="color:#7C3AED;">{{ other_count|default:0 }}</div>
+      <span style="font-size:11px; font-weight:600; color:#64748B;">Contract / Intern</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px; padding-top:8px; border-top:1px solid #F1F5F9;">
+      <span class="job-stat-sub" style="color:#7C3AED; font-weight:600;"><i class="ti ti-filter"></i> Filter Table</span>
+      <button type="button" class="btn-card-quick-add" onclick="event.stopPropagation(); openPostJobModalForType('Other');" title="Post new Other / Contract job vacancy" style="background:#7C3AED; color:#FFFFFF;">
+        <i class="ti ti-plus"></i> Add Job
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Filter Bar -->
+<div class="job-filter-bar">
+  <div class="job-search-box">
+    <i class="ti ti-search" style="color:#94A3B8;"></i>
+    <input type="text" id="jobSearchInput" placeholder="Filter by Job Title, Company, Category..." onkeyup="filterJobsTable()">
+  </div>
+
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <!-- Category Filter -->
+    <select id="jobCategoryFilter" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px; border-radius:8px;" onchange="filterJobsTable()">
+      <option value="" selected>All Categories</option>
+      {% for cat in job_categories %}
+        <option value="{{ cat.name|lower }}">{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+
+    <!-- Employment Type Filter -->
+    <select id="jobTypeFilter" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px; border-radius:8px;" onchange="filterJobsTable()">
+      <option value="" selected>All Job Types</option>
+      <option value="full time">Full Time</option>
+      <option value="part time">Part Time</option>
+      <option value="work from home">Work From Home</option>
+      <option value="other">Other</option>
+    </select>
+
+    <!-- Status Filter -->
+    <select id="jobStatusFilter" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px; border-radius:8px;" onchange="filterJobsTable()">
+      <option value="" selected>All Statuses</option>
+      <option value="active">Active / Live</option>
+      <option value="inactive">Inactive / Closed</option>
+    </select>
+  </div>
+</div>
+
+<!-- 4. Job Postings Table (STATUS column removed as requested; Active toggle placed inside 3-dots menu) -->
+<div class="job-table-container">
+  <table class="job-table" id="jobsMasterTable">
+    <thead>
+      <tr>
+        <th style="width:80px;">JOB ID</th>
+        <th>JOB TITLE &amp; DETAILS</th>
+        <th>COMPANY / EMPLOYER</th>
+        <th>CATEGORY &amp; LOCATION</th>
+        <th>SALARY &amp; VACANCIES</th>
+        <th style="width:115px;">DATE POSTED</th>
+        <th style="width:70px; text-align:center;">ACTIONS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if jobs_list %}
+        {% for j in jobs_list %}
+        <tr data-job-id="{{ j.id }}" data-status="{{ j.status|lower }}" data-title="{{ j.title|lower }}" data-company="{% if j.company %}{{ j.company.name|lower }}{% elif j.employer %}{{ j.employer.company_name|lower }}{% endif %}" data-category="{{ j.category|default:''|lower }}" data-type="{{ j.employment_type|default:'full time'|lower }}">
+          <td><strong style="font-size:11.5px; color:#475569;">#JOB-{{ j.id }}</strong></td>
+          <td>
+            <div style="display:flex; align-items:center; gap:6px;">
+              {% if j.status|lower == 'active' or j.status|lower == 'live' %}
+                <span title="Status: Active" style="width:8px; height:8px; border-radius:50%; background:#16A34A; display:inline-block; flex-shrink:0;"></span>
+              {% else %}
+                <span title="Status: Inactive" style="width:8px; height:8px; border-radius:50%; background:#DC2626; display:inline-block; flex-shrink:0;"></span>
+              {% endif %}
+              <div style="font-weight:700; color:#0F172A; font-size:13px;">{{ j.title }}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
+              <span class="badge" style="font-size:10px; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:2px 6px; border-radius:4px; font-weight:600;">{{ j.employment_type|default:'Full Time' }}</span>
+              {% if j.status|lower == 'active' or j.status|lower == 'live' %}
+                <span style="font-size:10px; color:#16A34A; font-weight:700;"><i class="ti ti-check"></i> Live</span>
+              {% else %}
+                <span style="font-size:10px; color:#DC2626; font-weight:600;"><i class="ti ti-x"></i> Inactive</span>
+              {% endif %}
+            </div>
+            {% if j.experience %}
+              <span class="text-muted" style="font-size:10.5px; margin-top:2px; display:block;"><i class="ti ti-briefcase me-1"></i>{{ j.experience }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if j.company %}
+              <div style="font-weight:700; color:#2563EB; font-size:12px;"><i class="ti ti-building me-1"></i>{{ j.company.name }}</div>
+            {% elif j.employer %}
+              <div style="font-weight:700; color:#7C3AED; font-size:12px;"><i class="ti ti-user-check me-1"></i>{{ j.employer.company_name }}</div>
+              <small class="text-muted" style="font-size:10px;">Contact: {{ j.employer.contact_name }}</small>
+            {% else %}
+              <div style="font-weight:700; color:#0F172A; font-size:12px;">SVG Consultancy</div>
+            {% endif %}
+          </td>
+          <td>
+            <div style="font-weight:600; color:#334155;">{{ j.category|default:j.department|default:'General' }}</div>
+            <small class="text-muted" style="font-size:10.5px;"><i class="ti ti-map-pin me-1"></i>{{ j.location|default:'Lucknow, UP' }}</small>
+          </td>
+          <td>
+            <div style="font-weight:700; color:#16A34A; font-size:12px;">{{ j.salary|default:'Negotiable' }}</div>
+            <small class="text-muted" style="font-size:10.5px;">Vacancies: {{ j.vacancies|default:'1' }}</small>
+          </td>
+          <td style="font-size:11px; color:#475569;">{{ j.created_at|date:"d M Y" }}</td>
+          <td style="text-align:center;">
+            <div class="job-action-dropdown-wrap">
+              <button type="button" class="btn-job-action-dots" onclick="toggleJobDropdown(event, {{ j.id }})">
+                <i class="ti ti-dots-vertical"></i>
+              </button>
+              <div class="job-dropdown-menu" id="jobDropdown_{{ j.id }}">
+                <!-- Current Status Pill -->
+                {% if j.status|lower == 'active' or j.status|lower == 'live' %}
+                  <div style="padding:6px 12px; font-size:11px; font-weight:700; color:#15803D; background:#DCFCE7; border:1px solid #86EFAC; border-radius:6px; margin:4px 6px; display:flex; align-items:center; gap:6px;">
+                    <i class="ti ti-circle-check"></i> Status: Live
+                  </div>
+                  <!-- Option to Deactivate -->
+                  <button type="button" class="job-dropdown-item text-danger" onclick="updateJobStatus({{ j.id }}, 'CLOSED'); closeAllJobDropdowns();">
+                    <i class="ti ti-power"></i> <span>Mark as Closed</span>
+                  </button>
+                {% else %}
+                  <div style="padding:6px 12px; font-size:11px; font-weight:700; color:#991B1B; background:#FEE2E2; border:1px solid #FCA5A5; border-radius:6px; margin:4px 6px; display:flex; align-items:center; gap:6px;">
+                    <i class="ti ti-circle-x"></i> Status: {{ j.status }}
+                  </div>
+                  <!-- Option to Activate -->
+                  <button type="button" class="job-dropdown-item text-success" onclick="updateJobStatus({{ j.id }}, 'LIVE'); closeAllJobDropdowns();">
+                    <i class="ti ti-check"></i> <span>Activate (Make Live)</span>
+                  </button>
+                {% endif %}
+
+                <div class="job-dropdown-divider" style="height:1px; background:#F1F5F9; margin:4px 0;"></div>
+
+                <button type="button" class="job-dropdown-item" onclick="openEditJobModal({{ j.id }}); closeAllJobDropdowns();">
+                  <i class="ti ti-pencil" style="color:#2563EB;"></i> <span>Edit Job Details</span>
+                </button>
+                <button type="button" class="job-dropdown-item" onclick="openViewJobModal({{ j.id }}); closeAllJobDropdowns();">
+                  <i class="ti ti-eye" style="color:#64748B;"></i> <span>View Job Details</span>
+                </button>
+
+                <div class="job-dropdown-divider" style="height:1px; background:#F1F5F9; margin:4px 0;"></div>
+
+                <button type="button" class="job-dropdown-item text-danger" onclick="promptDeleteJob({{ j.id }}, '{{ j.title|escapejs }}'); closeAllJobDropdowns();">
+                  <i class="ti ti-trash"></i> <span>Delete Job Posting</span>
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:45px 20px;">
+            <div style="font-size:38px; color:#CBD5E1; margin-bottom:8px;"><i class="ti ti-briefcase-off"></i></div>
+            <div style="font-weight:700; color:#0F172A; font-size:14.5px;">No job postings found.</div>
+            <div style="font-size:12px; color:#64748B;">Click "+ Post New Job" to add a job vacancy to the portal.</div>
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ==========================================
+     MODAL 1: POST NEW JOB / EDIT JOB MODAL
+     ========================================== -->
+<div class="custom-modal-backdrop" id="jobFormModal">
+  <div class="custom-modal-card">
+    <div class="custom-modal-header">
+      <div class="modal-title-box">
+        <div class="modal-title-icon"><i class="ti ti-briefcase"></i></div>
+        <div>
+          <h4 style="margin:0; font-size:15px; font-weight:700; color:#0F172A;" id="jobModalTitle">Post New Job Vacancy</h4>
+          <span style="font-size:11.5px; color:#64748B;">Fill in the requirement details below to publish job</span>
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeJobFormModal()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <form id="jobSaveForm">
+      {% csrf_token %}
+      <input type="hidden" id="formJobId" name="job_id" value="">
+
+      <div class="custom-modal-body">
+        <div id="jobModalAlert" class="alert d-none" style="padding:10px 14px; border-radius:8px; font-size:12.5px; margin-bottom:16px;"></div>
+
+        <!-- Preset Type Banner (When opened from a specific card) -->
+        <div id="modalPresetTypeBanner" class="d-none" style="align-items:center; justify-content:space-between; background:#EFF6FF; border:1px solid #BFDBFE; padding:10px 14px; border-radius:8px; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i class="ti ti-briefcase" id="modalPresetTypeIcon" style="font-size:18px; color:#2563EB;"></i>
+            <span style="font-size:12.5px; color:#1E3A8A;">Target Employment Type: <strong id="modalPresetTypeText" style="color:#2563EB;">Full Time</strong></span>
+          </div>
+          <span style="font-size:11px; color:#64748B; background:#FFFFFF; padding:2px 8px; border-radius:4px; border:1px solid #CBD5E1;">Pre-selected</span>
+        </div>
+
+        <div class="form-grid-2col">
+          <!-- Job Title (Full Width) -->
+          <div class="form-group-custom form-group-full">
+            <label class="form-label-custom">Job Title <span class="req-star">*</span></label>
+            <input type="text" class="form-control-custom" id="formTitle" name="title" placeholder="e.g. Senior Software Engineer / Sales Executive" required>
+          </div>
+
+          <!-- Status -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Status</label>
+            <select class="form-select-custom" id="formStatus" name="status">
+              <option value="LIVE" selected>Live</option>
+              <option value="PENDING_APPROVAL">Pending Approval</option>
+              <option value="DRAFT">Draft</option>
+              <option value="CLOSED">Closed</option>
+              <option value="EXPIRED">Expired</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+
+          <!-- Employment Type -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Employment Type <span class="req-star">*</span></label>
+            <select class="form-select-custom" id="formEmploymentType" name="employment_type" required onchange="handleEmploymentTypeChange(this.value)">
+              <option value="Full Time" selected>Full Time</option>
+              <option value="Part Time">Part Time</option>
+              <option value="Work From Home">Work From Home</option>
+              <option value="Other">Other (Contract / Internship)</option>
+            </select>
+          </div>
+
+          <!-- Associated Company (Select from list OR type manually) -->
+          <div class="form-group-custom">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <label class="form-label-custom" style="margin-bottom:0;">Associated Company</label>
+              <button type="button" id="btnToggleCompanyMode" class="btn-field-mode-toggle" onclick="toggleCompanyInputMode()" title="Switch between dropdown select and manual typing">
+                <i class="ti ti-pencil" id="iconCompanyToggle"></i> <span id="textCompanyToggle">Type Manually</span>
+              </button>
+            </div>
+            
+            <!-- Mode 1: Select Dropdown -->
+            <div id="companySelectWrap">
+              <select class="form-select-custom" id="formCompanyId" name="company_id" onchange="handleCompanySelectChange(this)">
+                <option value="" selected>-- Select Company (Optional) --</option>
+                {% for c in companies_list %}
+                  <option value="{{ c.id }}" data-name="{{ c.name|escape }}">{{ c.name }}</option>
+                {% endfor %}
+                <option value="__custom__" style="color:#2563EB; font-weight:700;">➕ + Type New / Custom Company...</option>
+              </select>
+            </div>
+
+            <!-- Mode 2: Manual Text Input with Suggestions Datalist -->
+            <div id="companyInputWrap" class="d-none">
+              <div style="position:relative;">
+                <input type="text" class="form-control-custom" id="formCompanyCustom" name="custom_company" list="companySuggestionsList" placeholder="Type company name (e.g. Tata, Infosys, Blinkit)..." autocomplete="off">
+                <datalist id="companySuggestionsList">
+                  {% for c in companies_list %}
+                    <option value="{{ c.name }}">
+                  {% endfor %}
+                </datalist>
+              </div>
+              <div style="font-size:10.5px; color:#64748B; margin-top:3px;"><i class="ti ti-info-circle"></i> Type company name or pick from autocomplete list.</div>
+            </div>
+          </div>
+
+          <!-- Associated Employer (Select from list OR type manually) -->
+          <div class="form-group-custom">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <label class="form-label-custom" style="margin-bottom:0;">Or Associated Employer</label>
+              <button type="button" id="btnToggleEmployerMode" class="btn-field-mode-toggle" onclick="toggleEmployerInputMode()" title="Switch between dropdown select and manual typing">
+                <i class="ti ti-pencil" id="iconEmployerToggle"></i> <span id="textEmployerToggle">Type Manually</span>
+              </button>
+            </div>
+
+            <!-- Mode 1: Select Dropdown -->
+            <div id="employerSelectWrap">
+              <select class="form-select-custom" id="formEmployerId" name="employer_id" onchange="handleEmployerSelectChange(this)">
+                <option value="" selected>-- Select Employer Account (Optional) --</option>
+                {% for emp in employers_list %}
+                  <option value="{{ emp.id }}" data-name="{{ emp.company_name|escape }}">{{ emp.company_name }} ({{ emp.contact_name }})</option>
+                {% endfor %}
+                <option value="__custom__" style="color:#2563EB; font-weight:700;">➕ + Type New / Custom Employer...</option>
+              </select>
+            </div>
+
+            <!-- Mode 2: Manual Text Input with Suggestions Datalist -->
+            <div id="employerInputWrap" class="d-none">
+              <div style="position:relative;">
+                <input type="text" class="form-control-custom" id="formEmployerCustom" name="custom_employer" list="employerSuggestionsList" placeholder="Type employer / contact name..." autocomplete="off">
+                <datalist id="employerSuggestionsList">
+                  {% for emp in employers_list %}
+                    <option value="{{ emp.company_name }}">
+                  {% endfor %}
+                </datalist>
+              </div>
+              <div style="font-size:10.5px; color:#64748B; margin-top:3px;"><i class="ti ti-info-circle"></i> Type employer name or pick from autocomplete list.</div>
+            </div>
+          </div>
+
+          <!-- Category Type Selector -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Select Category Type</label>
+            <select class="form-select-custom" id="formCategoryTypeFilter" onchange="filterCategoryOptgroups(this.value)">
+              <option value="all" selected>-- All Category Types --</option>
+              <option value="job_category">🎓 Career Tracks / Job Categories</option>
+              <option value="industry">🏭 Industries We Serve</option>
+              <option value="job_pill">🏷️ Job Pills (Top Highlights)</option>
+              <option value="__custom__">➕ Custom Category...</option>
+            </select>
+          </div>
+
+          <!-- Category / Sector Dropdown -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Job Category / Sector <span class="req-star">*</span></label>
+            <select class="form-select-custom" id="formCategory" name="category" required onchange="handleCategorySelectChange(this)">
+              <option value="" disabled selected>-- Select Job Category --</option>
+              {% if job_categories %}
+                <optgroup label="Career Tracks / Job Categories" data-type="job_category">
+                  {% for cat in job_categories %}
+                    {% if cat.category_type == 'job_category' %}
+                      <option value="{{ cat.name }}">{{ cat.name }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </optgroup>
+                <optgroup label="Industries We Serve" data-type="industry">
+                  {% for cat in job_categories %}
+                    {% if cat.category_type == 'industry' %}
+                      <option value="{{ cat.name }}">{{ cat.name }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </optgroup>
+                <optgroup label="Job Pills (Top Strip)" data-type="job_pill">
+                  {% for cat in job_categories %}
+                    {% if cat.category_type == 'job_pill' %}
+                      <option value="{{ cat.name }}">{{ cat.name }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </optgroup>
+              {% endif %}
+              <option value="__custom__">+ Enter Custom Category...</option>
+            </select>
+            <input type="text" class="form-control-custom d-none" id="formCategoryCustom" placeholder="Enter custom category name..." style="margin-top:6px;">
+          </div>
+
+          <!-- Department -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Department</label>
+            <input type="text" class="form-control-custom" id="formDepartment" name="department" placeholder="e.g. Engineering / HR / Operations">
+          </div>
+
+          <!-- Job Location -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Job Location</label>
+            <input type="text" class="form-control-custom" id="formLocation" name="location" placeholder="e.g. Lucknow, UP / Remote" value="Lucknow, UP">
+          </div>
+
+          <!-- Experience Required -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Experience Required</label>
+            <input type="text" class="form-control-custom" id="formExperience" name="experience" placeholder="e.g. 0-2 Years / Freshers">
+          </div>
+
+          <!-- Salary Range -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Salary Range</label>
+            <input type="text" class="form-control-custom" id="formSalary" name="salary" placeholder="e.g. ₹20,000 - ₹35,000 / month">
+          </div>
+
+          <!-- Number of Vacancies -->
+          <div class="form-group-custom">
+            <label class="form-label-custom">Number of Vacancies</label>
+            <input type="number" class="form-control-custom" id="formVacancies" name="vacancies" placeholder="1" value="1" min="1">
+          </div>
+
+          <!-- Description (Full Width) -->
+          <div class="form-group-custom form-group-full">
+            <label class="form-label-custom">Job Description</label>
+            <textarea class="form-textarea-custom" id="formDescription" name="description" rows="3" placeholder="Provide details about job responsibilities, daily duties, and role summary..."></textarea>
+          </div>
+
+          <!-- Requirements (Full Width) -->
+          <div class="form-group-custom form-group-full">
+            <label class="form-label-custom">Requirements &amp; Required Skills</label>
+            <textarea class="form-textarea-custom" id="formRequirements" name="requirements" rows="3" placeholder="List required qualifications, technical skills, certifications..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeJobFormModal()">Cancel</button>
+        <button type="submit" class="btn-modal-submit" id="btnSaveJob">
+          <i class="ti ti-send"></i> Save Job Posting
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ==========================================
+     MODAL 2: VIEW JOB DETAILS MODAL
+     ========================================== -->
+<div class="custom-modal-backdrop" id="viewJobModal">
+  <div class="custom-modal-card" style="width: 680px;">
+    <div class="custom-modal-header">
+      <div class="modal-title-box">
+        <div class="modal-title-icon" style="background:#EFF6FF; color:#2563EB;"><i class="ti ti-eye"></i></div>
+        <div>
+          <h4 style="margin:0; font-size:15px; font-weight:700; color:#0F172A;" id="viewModalTitle">Job Posting Details</h4>
+          <span style="font-size:11.5px; color:#64748B;" id="viewModalSubtitle">View complete job vacancy details</span>
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeViewJobModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="custom-modal-body" id="viewModalContent" style="display:flex; flex-direction:column; gap:16px;">
+      <!-- Content populated dynamically -->
+    </div>
+    <div class="custom-modal-footer">
+      <button type="button" class="btn-modal-cancel" onclick="closeViewJobModal()">Close</button>
+      <button type="button" class="btn-modal-submit" id="btnEditFromView" onclick="">
+        <i class="ti ti-pencil"></i> Edit Job
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     MODAL 3: DELETE CONFIRMATION MODAL
+     ========================================== -->
+<div class="custom-modal-backdrop" id="deleteJobModal">
+  <div class="custom-modal-card" style="width: 440px;">
+    <div class="custom-modal-header" style="background:#FEF2F2;">
+      <div class="modal-title-box">
+        <div class="modal-title-icon" style="background:#FEE2E2; color:#DC2626;"><i class="ti ti-alert-triangle"></i></div>
+        <div>
+          <h4 style="margin:0; font-size:15px; font-weight:700; color:#991B1B;">Delete Job Posting</h4>
+          <span style="font-size:11px; color:#B91C1C;">Action cannot be undone</span>
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeDeleteJobModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="custom-modal-body text-center" style="padding:28px 24px;">
+      <p style="font-size:13.5px; color:#334155; margin:0 0 8px 0;">Are you sure you want to delete job posting:</p>
+      <div style="font-size:14px; font-weight:700; color:#0F172A; background:#F8FAFC; border:1px solid #E2E8F0; padding:10px 14px; border-radius:8px;" id="deleteJobTitleText"></div>
+    </div>
+    <div class="custom-modal-footer">
+      <button type="button" class="btn-modal-cancel" onclick="closeDeleteJobModal()">Cancel</button>
+      <button type="button" class="btn-modal-submit" style="background:#DC2626;" id="btnConfirmDeleteJob" onclick="executeDeleteJob()">
+        <i class="ti ti-trash"></i> Yes, Delete Job
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Global Jobs Data Store JS -->
+<script>
+  // Store jobs data for fast Modal pre-fill & View
+  const jobsMasterData = {
+    {% for j in jobs_list %}
+      "{{ j.id }}": {
+        "id": "{{ j.id }}",
+        "title": "{{ j.title|escapejs }}",
+        "company_id": "{{ j.company_id|default:'' }}",
+        "company_name": "{% if j.company %}{{ j.company.name|escapejs }}{% elif j.employer %}{{ j.employer.company_name|escapejs }}{% else %}SVG Consultancy{% endif %}",
+        "employer_id": "{{ j.employer_id|default:'' }}",
+        "category": "{{ j.category|escapejs }}",
+        "department": "{{ j.department|escapejs }}",
+        "location": "{{ j.location|escapejs }}",
+        "employment_type": "{{ j.employment_type|escapejs }}",
+        "experience": "{{ j.experience|escapejs }}",
+        "salary": "{{ j.salary|escapejs }}",
+        "vacancies": "{{ j.vacancies|escapejs }}",
+        "status": "{{ j.status|escapejs }}",
+        "description": "{{ j.description|escapejs }}",
+        "requirements": "{{ j.requirements|escapejs }}",
+        "created_at": "{{ j.created_at|date:'d M Y, h:i A' }}"
+      }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  let jobToDeleteId = null;
+
+  function toggleJobDropdown(event, jobId) {
+    event.stopPropagation();
+    const dropdown = document.getElementById(`jobDropdown_${jobId}`);
+    const isShown = dropdown && dropdown.classList.contains('show');
+    closeAllJobDropdowns();
+    if (dropdown && !isShown) {
+      const btn = event.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      dropdown.style.position = 'fixed';
+      dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+      dropdown.style.left = 'auto';
+      dropdown.style.zIndex = '99999';
+
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 220 && rect.top > 220) {
+        dropdown.style.top = 'auto';
+        dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+      } else {
+        dropdown.style.top = (rect.bottom + 4) + 'px';
+        dropdown.style.bottom = 'auto';
+      }
+      dropdown.classList.add('show');
+    }
+  }
+
+  function closeAllJobDropdowns() {
+    document.querySelectorAll('.job-dropdown-menu').forEach(m => {
+      m.classList.remove('show');
+      m.style.position = '';
+      m.style.top = '';
+      m.style.bottom = '';
+      m.style.left = '';
+      m.style.right = '';
+      m.style.zIndex = '';
+    });
+  }
+
+  document.addEventListener('click', closeAllJobDropdowns);
+  window.addEventListener('scroll', closeAllJobDropdowns, true);
+  window.addEventListener('resize', closeAllJobDropdowns);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAllJobDropdowns();
+  });
+
+  // Category Select Helpers
+  function setCategoryValue(val) {
+    const sel = document.getElementById('formCategory');
+    const customInp = document.getElementById('formCategoryCustom');
+    if (!sel) return;
+    val = (val || '').trim();
+    if (!val) {
+      sel.value = '';
+      if (customInp) { customInp.classList.add('d-none'); customInp.value = ''; customInp.required = false; }
+      return;
+    }
+    let found = false;
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value.toLowerCase() === val.toLowerCase()) {
+        sel.selectedIndex = i;
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      if (customInp) { customInp.classList.add('d-none'); customInp.value = ''; customInp.required = false; }
+    } else {
+      let opt = new Option(val, val, true, true);
+      sel.add(opt, sel.options[sel.options.length - 1]);
+      sel.value = val;
+      if (customInp) { customInp.classList.add('d-none'); customInp.value = ''; customInp.required = false; }
+    }
+  }
+
+  function handleCategorySelectChange(sel) {
+    const customInp = document.getElementById('formCategoryCustom');
+    if (sel.value === '__custom__') {
+      if (customInp) {
+        customInp.classList.remove('d-none');
+        customInp.focus();
+        customInp.required = true;
+      }
+    } else {
+      if (customInp) {
+        customInp.classList.add('d-none');
+        customInp.required = false;
+        customInp.value = '';
+      }
+    }
+  }
+
+  // ==========================================
+  // Company & Employer Dual Input / Select Handlers
+  // ==========================================
+  let companyMode = 'select';
+  function toggleCompanyInputMode(targetMode) {
+    const selectWrap = document.getElementById('companySelectWrap');
+    const inputWrap = document.getElementById('companyInputWrap');
+    const toggleText = document.getElementById('textCompanyToggle');
+    const toggleIcon = document.getElementById('iconCompanyToggle');
+    const customInp = document.getElementById('formCompanyCustom');
+    const selectEl = document.getElementById('formCompanyId');
+    if (!selectWrap || !inputWrap) return;
+
+    if (targetMode) {
+      companyMode = targetMode;
+    } else {
+      companyMode = companyMode === 'select' ? 'input' : 'select';
+    }
+
+    if (companyMode === 'input') {
+      selectWrap.classList.add('d-none');
+      inputWrap.classList.remove('d-none');
+      if (toggleText) toggleText.textContent = 'Select from List';
+      if (toggleIcon) toggleIcon.className = 'ti ti-list';
+      if (selectEl && selectEl.value && selectEl.value !== '__custom__') {
+        const opt = selectEl.options[selectEl.selectedIndex];
+        if (opt && customInp && !customInp.value) {
+          customInp.value = opt.getAttribute('data-name') || opt.text;
+        }
+      }
+      if (customInp) customInp.focus();
+    } else {
+      inputWrap.classList.add('d-none');
+      selectWrap.classList.remove('d-none');
+      if (toggleText) toggleText.textContent = 'Type Manually';
+      if (toggleIcon) toggleIcon.className = 'ti ti-pencil';
+      if (selectEl && selectEl.value === '__custom__') {
+        selectEl.value = '';
+      }
+    }
+  }
+
+  function handleCompanySelectChange(sel) {
+    if (sel.value === '__custom__') {
+      toggleCompanyInputMode('input');
+    }
+  }
+
+  let employerMode = 'select';
+  function toggleEmployerInputMode(targetMode) {
+    const selectWrap = document.getElementById('employerSelectWrap');
+    const inputWrap = document.getElementById('employerInputWrap');
+    const toggleText = document.getElementById('textEmployerToggle');
+    const toggleIcon = document.getElementById('iconEmployerToggle');
+    const customInp = document.getElementById('formEmployerCustom');
+    const selectEl = document.getElementById('formEmployerId');
+    if (!selectWrap || !inputWrap) return;
+
+    if (targetMode) {
+      employerMode = targetMode;
+    } else {
+      employerMode = employerMode === 'select' ? 'input' : 'select';
+    }
+
+    if (employerMode === 'input') {
+      selectWrap.classList.add('d-none');
+      inputWrap.classList.remove('d-none');
+      if (toggleText) toggleText.textContent = 'Select from List';
+      if (toggleIcon) toggleIcon.className = 'ti ti-list';
+      if (selectEl && selectEl.value && selectEl.value !== '__custom__') {
+        const opt = selectEl.options[selectEl.selectedIndex];
+        if (opt && customInp && !customInp.value) {
+          customInp.value = opt.getAttribute('data-name') || opt.text;
+        }
+      }
+      if (customInp) customInp.focus();
+    } else {
+      inputWrap.classList.add('d-none');
+      selectWrap.classList.remove('d-none');
+      if (toggleText) toggleText.textContent = 'Type Manually';
+      if (toggleIcon) toggleIcon.className = 'ti ti-pencil';
+      if (selectEl && selectEl.value === '__custom__') {
+        selectEl.value = '';
+      }
+    }
+  }
+
+  function handleEmployerSelectChange(sel) {
+    if (sel.value === '__custom__') {
+      toggleEmployerInputMode('input');
+    }
+  }
+
+  // Modal Open / Close Handlers & Type Presets
+  function openPostJobModalForType(empType, prefillCategory) {
+    document.getElementById('jobSaveForm').reset();
+    document.getElementById('formJobId').value = '';
+
+    // Reset company and employer fields to dropdown mode
+    toggleCompanyInputMode('select');
+    toggleEmployerInputMode('select');
+    const compInp = document.getElementById('formCompanyCustom');
+    if (compInp) compInp.value = '';
+    const empInp = document.getElementById('formEmployerCustom');
+    if (empInp) empInp.value = '';
+    const compSel = document.getElementById('formCompanyId');
+    if (compSel) compSel.value = '';
+    const empSelEl = document.getElementById('formEmployerId');
+    if (empSelEl) empSelEl.value = '';
+
+    // Set requested employment type
+    const empSel = document.getElementById('formEmploymentType');
+    if (empSel && empType) {
+      empSel.value = empType;
+    }
+
+    // Set visual preset banner
+    const banner = document.getElementById('modalPresetTypeBanner');
+    const bannerText = document.getElementById('modalPresetTypeText');
+    const bannerIcon = document.getElementById('modalPresetTypeIcon');
+    if (banner && bannerText && empType) {
+      bannerText.textContent = empType;
+      if (empType === 'Part Time') {
+        banner.style.background = '#FEF3C7';
+        banner.style.borderColor = '#FDE68A';
+        bannerText.style.color = '#D97706';
+        if (bannerIcon) { bannerIcon.className = 'ti ti-clock'; bannerIcon.style.color = '#D97706'; }
+      } else if (empType === 'Work From Home') {
+        banner.style.background = '#DCFCE7';
+        banner.style.borderColor = '#86EFAC';
+        bannerText.style.color = '#16A34A';
+        if (bannerIcon) { bannerIcon.className = 'ti ti-device-laptop'; bannerIcon.style.color = '#16A34A'; }
+      } else if (empType === 'Other') {
+        banner.style.background = '#F3E8FF';
+        banner.style.borderColor = '#DDD6FE';
+        bannerText.style.color = '#7C3AED';
+        if (bannerIcon) { bannerIcon.className = 'ti ti-adjustments-horizontal'; bannerIcon.style.color = '#7C3AED'; }
+      } else {
+        banner.style.background = '#EFF6FF';
+        banner.style.borderColor = '#BFDBFE';
+        bannerText.style.color = '#2563EB';
+        if (bannerIcon) { bannerIcon.className = 'ti ti-briefcase'; bannerIcon.style.color = '#2563EB'; }
+      }
+      banner.classList.remove('d-none');
+      banner.style.display = 'flex';
+    } else if (banner) {
+      banner.classList.add('d-none');
+      banner.style.display = 'none';
+    }
+
+    document.getElementById('jobModalTitle').textContent = empType ? `Post New Job Vacancy • ${empType}` : 'Post New Job Vacancy';
+    document.getElementById('jobModalAlert').className = 'alert d-none';
+
+    // Reset category type filter
+    const catTypeFilter = document.getElementById('formCategoryTypeFilter');
+    if (catTypeFilter) {
+      catTypeFilter.value = 'all';
+      filterCategoryOptgroups('all');
+    }
+
+    setCategoryValue(prefillCategory || '');
+    document.getElementById('jobFormModal').style.display = 'flex';
+  }
+
+  function openPostJobModal(prefillCategory) {
+    openPostJobModalForType('Full Time', prefillCategory);
+  }
+
+  function handleEmploymentTypeChange(val) {
+    const banner = document.getElementById('modalPresetTypeBanner');
+    const bannerText = document.getElementById('modalPresetTypeText');
+    if (banner && bannerText && val) {
+      bannerText.textContent = val;
+    }
+  }
+
+  function filterCategoryOptgroups(typeVal) {
+    const sel = document.getElementById('formCategory');
+    const customInp = document.getElementById('formCategoryCustom');
+    if (!sel) return;
+
+    if (typeVal === '__custom__') {
+      sel.value = '__custom__';
+      if (customInp) {
+        customInp.classList.remove('d-none');
+        customInp.required = true;
+        customInp.focus();
+      }
+      return;
+    }
+
+    if (customInp) {
+      customInp.classList.add('d-none');
+      customInp.required = false;
+    }
+
+    const optgroups = sel.querySelectorAll('optgroup');
+    optgroups.forEach(og => {
+      const ogType = og.getAttribute('data-type');
+      if (typeVal === 'all' || ogType === typeVal) {
+        og.style.display = '';
+        og.disabled = false;
+      } else {
+        og.style.display = 'none';
+        og.disabled = true;
+      }
+    });
+
+    if (typeVal !== 'all') {
+      const activeOg = sel.querySelector(`optgroup[data-type="${typeVal}"]`);
+      if (activeOg && activeOg.children.length > 0) {
+        sel.value = activeOg.children[0].value;
+      }
+    }
+  }
+
+  let activeCardFilter = null;
+  function quickFilterByType(type, cardEl) {
+    const jobTypeSelect = document.getElementById('jobTypeFilter');
+    const allCards = document.querySelectorAll('.job-stat-card');
+
+    if (activeCardFilter === type) {
+      activeCardFilter = null;
+      allCards.forEach(c => c.classList.remove('active-card'));
+      if (jobTypeSelect) {
+        jobTypeSelect.value = '';
+      }
+    } else {
+      activeCardFilter = type;
+      allCards.forEach(c => c.classList.remove('active-card'));
+      if (cardEl) {
+        cardEl.classList.add('active-card');
+      }
+      if (jobTypeSelect) {
+        jobTypeSelect.value = type;
+      }
+    }
+
+    filterJobsTable();
+  }
+
+  function openEditJobModal(jobId) {
+    const job = jobsMasterData[jobId];
+    if (!job) return;
+
+    const banner = document.getElementById('modalPresetTypeBanner');
+    if (banner) {
+      banner.classList.add('d-none');
+      banner.style.display = 'none';
+    }
+
+    document.getElementById('formJobId').value = job.id;
+    document.getElementById('formTitle').value = job.title;
+
+    // Set Company (Dropdown if matches ID, or manual input if custom name)
+    const compSel = document.getElementById('formCompanyId');
+    const compInp = document.getElementById('formCompanyCustom');
+    if (job.company_id && compSel) {
+      toggleCompanyInputMode('select');
+      compSel.value = job.company_id;
+      if (compInp) compInp.value = '';
+    } else if (job.company_name && job.company_name !== 'SVG Consultancy' && !job.employer_id) {
+      toggleCompanyInputMode('input');
+      if (compInp) compInp.value = job.company_name;
+      if (compSel) compSel.value = '';
+    } else {
+      toggleCompanyInputMode('select');
+      if (compSel) compSel.value = '';
+      if (compInp) compInp.value = '';
+    }
+
+    // Set Employer
+    const employerSelect = document.getElementById('formEmployerId');
+    const empInp = document.getElementById('formEmployerCustom');
+    if (job.employer_id && employerSelect) {
+      toggleEmployerInputMode('select');
+      employerSelect.value = job.employer_id;
+      if (empInp) empInp.value = '';
+    } else {
+      toggleEmployerInputMode('select');
+      if (employerSelect) employerSelect.value = '';
+      if (empInp) empInp.value = '';
+    }
+
+    setCategoryValue(job.category || '');
+    document.getElementById('formDepartment').value = job.department || '';
+    document.getElementById('formLocation').value = job.location || 'Lucknow, UP';
+    
+    // Set Employment Type
+    const empTypeSelect = document.getElementById('formEmploymentType');
+    if (empTypeSelect) {
+      const et = (job.employment_type || 'Full Time').toLowerCase();
+      if (et.includes('part')) empTypeSelect.value = 'Part Time';
+      else if (et.includes('home') || et.includes('remote') || et.includes('wfh')) empTypeSelect.value = 'Work From Home';
+      else if (et.includes('contract') || et.includes('intern') || et.includes('other')) empTypeSelect.value = 'Other';
+      else empTypeSelect.value = 'Full Time';
+    }
+
+    document.getElementById('formExperience').value = job.experience || '';
+    document.getElementById('formSalary').value = job.salary || '';
+    document.getElementById('formVacancies').value = job.vacancies || '1';
+    let curStatus = job.status || 'LIVE';
+    if (curStatus === 'Active' || curStatus === 'Live' || curStatus === 'active') curStatus = 'LIVE';
+    if (curStatus === 'Closed' || curStatus === 'closed') curStatus = 'CLOSED';
+    if (curStatus === 'Pending' || curStatus === 'pending') curStatus = 'PENDING_APPROVAL';
+    document.getElementById('formStatus').value = curStatus;
+    document.getElementById('formDescription').value = job.description || '';
+    document.getElementById('formRequirements').value = job.requirements || '';
+
+    document.getElementById('jobModalTitle').textContent = `Edit Job Posting (#JOB-${job.id})`;
+    document.getElementById('jobModalAlert').className = 'alert d-none';
+    document.getElementById('jobFormModal').style.display = 'flex';
+  }
+
+  function closeJobFormModal() {
+    document.getElementById('jobFormModal').style.display = 'none';
+  }
+
+  // View Details Modal Handlers
+  function openViewJobModal(jobId) {
+    const job = jobsMasterData[jobId];
+    if (!job) return;
+
+    document.getElementById('viewModalTitle').textContent = job.title;
+    document.getElementById('viewModalSubtitle').textContent = `#JOB-${job.id} • Posted on ${job.created_at || 'N/A'}`;
+
+    const contentBox = document.getElementById('viewModalContent');
+    contentBox.innerHTML = `
+      <div class="view-detail-card" style="border-left:4px solid #2563EB;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="view-detail-label">Company / Employer</div>
+            <div class="view-detail-value" style="color:#2563EB;">${job.company_name}</div>
+          </div>
+          <div>
+            <span style="font-size:11px; font-weight:700; background:#DCFCE7; color:#15803D; border:1px solid #86EFAC; padding:4px 10px; border-radius:6px;">${job.status}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid-2col">
+        <div class="view-detail-card">
+          <div class="view-detail-label">Category / Department</div>
+          <div class="view-detail-value">${job.category || 'General'} ${job.department ? ' • ' + job.department : ''}</div>
+        </div>
+        <div class="view-detail-card">
+          <div class="view-detail-label">Location &amp; Type</div>
+          <div class="view-detail-value">${job.location || 'Lucknow, UP'} (${job.employment_type})</div>
+        </div>
+        <div class="view-detail-card">
+          <div class="view-detail-label">Experience &amp; Salary</div>
+          <div class="view-detail-value">${job.experience || 'Not specified'} | <span style="color:#16A34A;">${job.salary || 'Negotiable'}</span></div>
+        </div>
+        <div class="view-detail-card">
+          <div class="view-detail-label">Vacancies</div>
+          <div class="view-detail-value">${job.vacancies || '1'} Positions</div>
+        </div>
+      </div>
+
+      ${job.description ? `
+        <div class="view-detail-card">
+          <div class="view-detail-label">Job Description</div>
+          <div style="font-size:12.5px; color:#334155; line-height:1.6; white-space:pre-line; margin-top:4px;">${job.description}</div>
+        </div>
+      ` : ''}
+
+      ${job.requirements ? `
+        <div class="view-detail-card">
+          <div class="view-detail-label">Requirements &amp; Skills</div>
+          <div style="font-size:12.5px; color:#334155; line-height:1.6; white-space:pre-line; margin-top:4px;">${job.requirements}</div>
+        </div>
+      ` : ''}
+    `;
+
+    document.getElementById('btnEditFromView').onclick = function() {
+      closeViewJobModal();
+      openEditJobModal(jobId);
+    };
+
+    document.getElementById('viewJobModal').style.display = 'flex';
+  }
+
+  function closeViewJobModal() {
+    document.getElementById('viewJobModal').style.display = 'none';
+  }
+
+  function promptDeleteJob(jobId, jobTitle) {
+    jobToDeleteId = jobId;
+    document.getElementById('deleteJobTitleText').textContent = `'${jobTitle}' (#JOB-${jobId})`;
+    document.getElementById('deleteJobModal').style.display = 'flex';
+  }
+
+  function closeDeleteJobModal() {
+    jobToDeleteId = null;
+    document.getElementById('deleteJobModal').style.display = 'none';
+  }
+
+  // Submit Save Form (POST & EDIT)
+  document.getElementById('jobSaveForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btnSave = document.getElementById('btnSaveJob');
+    const modalAlert = document.getElementById('jobModalAlert');
+
+    btnSave.disabled = true;
+    btnSave.innerHTML = `<i class="ti ti-loader spin-fast me-1"></i> Saving...`;
+
+    // Process category value
+    const catSel = document.getElementById('formCategory');
+    const catCustom = document.getElementById('formCategoryCustom');
+    let finalCategory = catSel ? catSel.value : '';
+    if (finalCategory === '__custom__' && catCustom && catCustom.value.trim()) {
+      finalCategory = catCustom.value.trim();
+    }
+
+    const formData = new FormData(this);
+    if (finalCategory) {
+      formData.set('category', finalCategory);
+    }
+
+    // Process company value (Dropdown ID or Manual text)
+    if (companyMode === 'input') {
+      const compVal = (document.getElementById('formCompanyCustom')?.value || '').trim();
+      formData.set('custom_company', compVal);
+      formData.set('company_id', '');
+    } else {
+      const compId = document.getElementById('formCompanyId')?.value || '';
+      formData.set('company_id', compId);
+      formData.set('custom_company', '');
+    }
+
+    // Process employer value (Dropdown ID or Manual text)
+    if (employerMode === 'input') {
+      const empVal = (document.getElementById('formEmployerCustom')?.value || '').trim();
+      formData.set('custom_employer', empVal);
+      formData.set('employer_id', '');
+    } else {
+      const empId = document.getElementById('formEmployerId')?.value || '';
+      formData.set('employer_id', empId);
+      formData.set('custom_employer', '');
+    }
+
+    try {
+      const res = await fetch('/api/admin/jobs/save/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        },
+        body: formData
+      });
+      const data = await res.json();
+
+      if (res.ok && data.status === 'success') {
+        modalAlert.className = 'alert alert-success d-block mb-3';
+        modalAlert.style.backgroundColor = '#DCFCE7';
+        modalAlert.style.color = '#15803D';
+        modalAlert.style.border = '1px solid #86EFAC';
+        modalAlert.textContent = data.message;
+        setTimeout(() => window.location.reload(), 700);
+      } else {
+        modalAlert.className = 'alert alert-danger d-block mb-3';
+        modalAlert.style.backgroundColor = '#FEE2E2';
+        modalAlert.style.color = '#991B1B';
+        modalAlert.style.border = '1px solid #FCA5A5';
+        modalAlert.textContent = data.message || 'Failed to save job.';
+      }
+    } catch (err) {
+      modalAlert.className = 'alert alert-danger d-block mb-3';
+      modalAlert.style.backgroundColor = '#FEE2E2';
+      modalAlert.style.color = '#991B1B';
+      modalAlert.style.border = '1px solid #FCA5A5';
+      modalAlert.textContent = 'Server connection error.';
+    } finally {
+      btnSave.disabled = false;
+      btnSave.innerHTML = `<i class="ti ti-send"></i> Save Job Posting`;
+    }
+  });
+
+  // Execute Job Deletion
+  async function executeDeleteJob() {
+    if (!jobToDeleteId) return;
+    const btnDelete = document.getElementById('btnConfirmDeleteJob');
+    btnDelete.disabled = true;
+    btnDelete.innerHTML = `<i class="ti ti-loader spin-fast me-1"></i> Deleting...`;
+
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobToDeleteId}/delete/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        }
+      });
+      const data = await res.json();
+
+      if (res.ok && data.status === 'success') {
+        closeDeleteJobModal();
+        window.location.reload();
+      } else {
+        alert(data.message || 'Failed to delete job posting.');
+      }
+    } catch (e) {
+      alert('Server connection error.');
+    } finally {
+      btnDelete.disabled = false;
+      btnDelete.innerHTML = `<i class="ti ti-trash"></i> Yes, Delete Job`;
+    }
+  }
+
+  // Update Status directly from 3-dots menu
+  async function updateJobStatus(jobId, newStatus) {
+    const formData = new FormData();
+    formData.append('status', newStatus);
+
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/status/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        window.location.reload();
+      } else {
+        alert(data.message || 'Failed to update status.');
+      }
+    } catch (e) {
+      alert('Server connection error.');
+    }
+  }
+
+  // Live Table Search & Multi-Filter
+  function filterJobsTable() {
+    const q = (document.getElementById('jobSearchInput')?.value || '').toLowerCase().trim();
+    const cat = (document.getElementById('jobCategoryFilter')?.value || '').toLowerCase().trim();
+    const type = (document.getElementById('jobTypeFilter')?.value || '').toLowerCase().trim();
+    const st = (document.getElementById('jobStatusFilter')?.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#jobsMasterTable tbody tr[data-job-id]');
+
+    rows.forEach(row => {
+      const title = row.getAttribute('data-title') || '';
+      const company = row.getAttribute('data-company') || '';
+      const category = row.getAttribute('data-category') || '';
+      const status = row.getAttribute('data-status') || '';
+      const empType = (row.getAttribute('data-type') || '').toLowerCase();
+
+      const matchQuery = !q || title.includes(q) || company.includes(q) || category.includes(q);
+      const matchCat = !cat || category.includes(cat);
+      const matchType = !type || (type === 'other' ? (!empType.includes('full') && !empType.includes('part') && !empType.includes('home') && !empType.includes('remote') && !empType.includes('wfh')) : empType.includes(type));
+      const matchStatus = !st || (st === 'active' ? (status === 'active' || status === 'live') : (status !== 'active' && status !== 'live'));
+
+      if (matchQuery && matchCat && matchType && matchStatus) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    // Sync active card highlight with selected type filter
+    const allCards = document.querySelectorAll('.job-stat-grid .job-stat-card');
+    allCards.forEach(c => c.classList.remove('active-card'));
+    if (type === 'full time') document.getElementById('cardFullTime')?.classList.add('active-card');
+    else if (type === 'part time') document.getElementById('cardPartTime')?.classList.add('active-card');
+    else if (type === 'work from home') document.getElementById('cardWFH')?.classList.add('active-card');
+    else if (type === 'other') document.getElementById('cardOther')?.classList.add('active-card');
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Close modals when clicking backdrop
+  ['jobFormModal', 'viewJobModal', 'deleteJobModal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', function(e) {
+        if (e.target === el) {
+          el.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>
+
+{% endblock %}

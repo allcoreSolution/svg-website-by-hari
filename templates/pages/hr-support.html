@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ hr_settings.meta_title|default:"HR Support — Sky Vision Group Consultancy" }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/hr-support.css' %}?v=3.6">
+{% endblock %}
+
+{% block content %}
+  {% if hr_settings.hero_visible %}
+  <!-- ============ HERO ============ -->
+  <section class="ms-hero">
+    <div class="wrap ms-hero-grid">
+      <div>
+        <span class="cs-eyebrow-chip"><i class="fa-solid fa-people-arrows"></i> {{ hr_settings.hero_eyebrow|default:"HR Support Services" }}</span>
+        <h1>{{ hr_settings.formatted_hero_title|safe }}</h1>
+        <p class="lead">{{ hr_settings.hero_subtitle }}</p>
+        <div class="sv-hero-actions">
+          {% if hr_settings.hero_primary_btn_text %}
+          <a href="{{ hr_settings.hero_primary_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> {{ hr_settings.hero_primary_btn_text }}</a>
+          {% endif %}
+          {% if hr_settings.hero_secondary_btn_text %}
+          <a href="{{ hr_settings.hero_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ hr_settings.hero_secondary_btn_text }} <i class="fa-solid fa-arrow-right"></i></a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="ms-hero-visual">
+        <img src="{{ hr_settings.get_hero_image }}" alt="HR team discussion">
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if hr_settings.about_visible %}
+  <!-- ============ ABOUT + 3 FEATURES ============ -->
+  <section class="ms-about">
+    <div class="wrap hr-about-grid">
+      <div class="cs-about-copy">
+        <span class="sv-tag">{{ hr_settings.about_tag|default:"About HR Support Services" }}</span>
+        <span class="cs-underline"></span>
+        <h2>{{ hr_settings.about_title|default:"Complete HR Solutions for Your Business" }}</h2>
+        <p>{{ hr_settings.about_description }}</p>
+      </div>
+      <div class="hr-feature-row">
+        {% for feat in hr_features %}
+        <div class="hr-feature"><i class="{{ feat.icon_class|default:'fa-solid fa-check' }}"></i><span>{{ feat.title }}</span></div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if hr_settings.services_visible %}
+  <!-- ============ SERVICES GRID ============ -->
+  <section class="ms-services">
+    <div class="wrap">
+      <div class="sv-section-head" style="text-align:left; max-width:none;">
+        <span class="sv-tag">{{ hr_settings.services_tag|default:"What We Offer" }}</span>
+        <h2>{{ hr_settings.services_title|default:"Our HR Support Services" }}</h2>
+      </div>
+      <div class="hr-services-grid">
+        {% for card in hr_services %}
+        <div class="sv-service-card hr-card">
+          <div class="hr-icon"><i class="{{ card.icon_class|default:'fa-solid fa-file-signature' }}"></i></div>
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if hr_settings.additional_visible %}
+  <!-- ============ ADDITIONAL HR SERVICES STRIP ============ -->
+  <section class="hr-strip">
+    <div class="wrap">
+      <span class="hr-strip-title">{{ hr_settings.additional_title|default:"Additional HR Services" }}</span>
+      <div class="hr-strip-grid">
+        {% for item in hr_additional %}
+        <div class="hr-strip-item"><i class="{{ item.icon_class|default:'fa-solid fa-briefcase' }}"></i><span>{{ item.title }}</span></div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if hr_settings.why_choose_visible or hr_settings.process_visible or hr_settings.benefits_visible %}
+  <!-- ============ WHY CHOOSE / PROCESS / BENEFITS ============ -->
+  <section class="cs-panel">
+    <div class="wrap cc-triple-grid">
+
+      {% if hr_settings.why_choose_visible %}
+      <div class="cc-panel-box">
+        <span class="sv-tag">{{ hr_settings.why_choose_tag|default:"Why Choose Us?" }}</span>
+        <ul class="cc-check-list">
+          {% for item in hr_why_choose %}
+          <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+          {% endfor %}
+        </ul>
+        <div class="cc-panel-photo"><img src="{{ hr_settings.get_why_choose_image }}" alt="HR professional at work"></div>
+      </div>
+      {% endif %}
+
+      {% if hr_settings.process_visible %}
+      <div class="cc-panel-box">
+        <span class="sv-tag">{{ hr_settings.process_tag|default:"Our HR Support Process" }}</span>
+        <div class="cc-vertical-steps">
+          {% for step in hr_process_steps %}
+          <div class="cc-vstep"><span class="dot"><i class="{{ step.icon_class|default:'fa-solid fa-clipboard-list' }}"></i></span>
+            <div><b>{{ step.step_number|default:"Step" }}</b>
+              <p>{{ step.title }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if hr_settings.benefits_visible %}
+      <div class="cc-panel-box">
+        <span class="sv-tag">{{ hr_settings.benefits_tag|default:"Benefits" }}</span>
+        <div class="cs-benefits-col cs-col-blue cc-benefit-card">
+          <h4>{{ hr_settings.employers_badge|default:"For Employers" }}</h4>
+          <ul>
+            {% for item in hr_employer_benefits %}
+            <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="cs-benefits-col cs-col-amber cc-benefit-card">
+          <h4>{{ hr_settings.employees_badge|default:"For Employees" }}</h4>
+          <ul>
+            {% for item in hr_employee_benefits %}
+            <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+  {% endif %}
+
+  {% if hr_settings.cta_visible %}
+  <!-- ============ CTA BANNER ============ -->
+  <section class="sv-cta" id="contact">
+    <div class="sv-cta-inner">
+      <div>
+        <h2>{{ hr_settings.formatted_cta_title|safe }}</h2>
+        {% if hr_settings.cta_subtitle %}
+        <p>{{ hr_settings.cta_subtitle }}</p>
+        {% endif %}
+      </div>
+      <div class="cs-cta-actions">
+        {% if hr_settings.cta_primary_btn_text %}
+        <a href="{{ hr_settings.cta_primary_btn_url|default:'/contact/' }}" class="btn btn-primary"><i class="fa-regular fa-calendar-check"></i> {{ hr_settings.cta_primary_btn_text }}</a>
+        {% endif %}
+        {% if hr_settings.cta_secondary_btn_text %}
+        <a href="{{ hr_settings.cta_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ hr_settings.cta_secondary_btn_text }} <i class="fa-solid fa-arrow-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,266 @@
+{% extends 'candidate_portal/base_candidate.html' %}
+{% load static %}
+
+{% block title %}Job Offers & Placement — Candidate Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Job Offers &amp; Placement</h3>
+    <p class="text-muted mb-0">View official job offers, designation, offered CTC, and joining details.</p>
+  </div>
+</div>
+
+<div id="offersContainer">
+  <div class="text-center py-5 text-muted">
+    <span class="spinner-border spinner-border-sm me-2"></span> Loading offers & placement details...
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', loadOffers);
+
+  async function loadOffers() {
+    const container = document.getElementById('offersContainer');
+
+    try {
+      const res = await fetch('/api/candidate/offers/');
+      const data = await res.json();
+
+      if (res.ok && data.status === 'success') {
+        renderOffers(data.job_offers, data.placements);
+      } else {
+        container.innerHTML = `<div class="alert alert-danger">Failed to load offers.</div>`;
+      }
+    } catch (e) {
+      container.innerHTML = `<div class="alert alert-danger">Network error.</div>`;
+    }
+  }
+
+  function renderOffers(offers, placements) {
+    const container = document.getElementById('offersContainer');
+    const totalCount = (offers ? offers.length : 0) + (placements ? placements.length : 0);
+
+    if (totalCount === 0) {
+      container.innerHTML = `
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+          <div class="card-body">
+            <i class="ti ti-award text-muted display-4 mb-3 d-block"></i>
+            <h5 class="fw-bold">No Job Offers Yet</h5>
+            <p class="text-muted">Job offers issued by employers will appear here once your application reaches selection phase.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+
+    if (offers && offers.length > 0) {
+      html += `<h5 class="fw-bold text-primary mb-3"><i class="ti ti-file-certificate me-2"></i>Official Job Offers</h5>`;
+      html += offers.map(o => {
+        const isPending = (o.status === 'Offer Sent' || o.status === 'Pending');
+        const badgeCls = isPending ? 'bg-warning text-dark' : 'bg-success text-white';
+        return `
+        <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 p-sm-4">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <div>
+              <div class="d-flex align-items-center gap-2">
+                <h5 class="fw-bold mb-0 text-dark">${o.designation}</h5>
+                <span class="badge ${badgeCls} px-2 py-1">${o.status}</span>
+              </div>
+              <div class="text-primary fw-semibold mt-1"><i class="ti ti-building me-1"></i>${o.company_name}</div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              ${o.document_url ? `
+                <a href="${o.document_url}" target="_blank" download class="btn btn-outline-success btn-sm fw-semibold">
+                  <i class="ti ti-download me-1"></i> Download Offer Letter
+                </a>
+              ` : ''}
+              <button class="btn btn-outline-primary btn-sm" onclick='showOfferDetails(${JSON.stringify(o).replace(/'/g, "&apos;")})'>
+                <i class="ti ti-file-text me-1"></i> View Letter Details
+              </button>
+              ${isPending ? `
+                <button class="btn btn-success btn-sm fw-bold px-3 shadow-sm" onclick="acceptOffer(${o.id}, '${o.company_name.replace(/'/g, "\\'")}')">
+                  <i class="ti ti-check me-1"></i> Accept &amp; Confirm Joining
+                </button>
+              ` : `
+                <span class="badge bg-success-subtle text-success border px-3 py-2 fw-bold d-inline-flex align-items-center">
+                  <i class="ti ti-circle-check me-1"></i> Offer Accepted
+                </span>
+              `}
+            </div>
+          </div>
+
+          <div class="row g-3 bg-light p-3 rounded-3 mt-2">
+            <div class="col-12 col-sm-4">
+              <div class="text-muted small">Offered CTC / Salary</div>
+              <div class="fw-bold text-success fs-6">${o.offered_ctc || 'As per industry norms'}</div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="text-muted small">Offer Date</div>
+              <div class="fw-bold">${o.offer_date || 'N/A'}</div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="text-muted small">Expected Joining Date</div>
+              <div class="fw-bold text-primary">${o.joining_date || 'Immediate / To be agreed'}</div>
+            </div>
+          </div>
+
+          ${o.notes ? `
+          <div class="mt-3 text-muted small bg-white p-2 rounded border">
+            <strong>Notes / Instructions:</strong> ${o.notes}
+          </div>
+          ` : ''}
+        </div>
+        `;
+      }).join('');
+    }
+
+    if (placements && placements.length > 0) {
+      html += `<h5 class="fw-bold text-success mb-3 mt-4"><i class="ti ti-award me-2"></i>Confirmed Placements &amp; Joinings</h5>`;
+      html += placements.map(p => `
+        <div class="card border-0 shadow-sm rounded-4 mb-3 p-3 p-sm-4 border-start border-success border-4">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <div>
+              <h5 class="fw-bold mb-1 text-dark">${p.position}</h5>
+              <div class="text-muted fw-semibold"><i class="ti ti-building me-1"></i>${p.company_name}</div>
+            </div>
+            <span class="badge bg-success text-white px-3 py-1"><i class="ti ti-circle-check me-1"></i>${p.status || 'Joined'}</span>
+          </div>
+
+          <div class="row g-3 bg-light p-3 rounded-3 mt-1">
+            <div class="col-12 col-sm-4">
+              <div class="text-muted small">Final Package (CTC)</div>
+              <div class="fw-bold text-success fs-6">${p.package || 'Confirmed'}</div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="text-muted small">Placement Date</div>
+              <div class="fw-bold">${p.placement_date || 'N/A'}</div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="text-muted small">Joining Date</div>
+              <div class="fw-bold text-primary">${p.joining_date || 'Joined'}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    container.innerHTML = html;
+  }
+
+  async function acceptOffer(offerId, companyName) {
+    if (!confirm(`Are you sure you want to accept the job offer from ${companyName} and confirm your joining?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/candidate/offers/${offerId}/accept/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        alert(data.message || '✓ Offer accepted successfully! Congratulations on your joining.');
+        loadOffers();
+      } else {
+        alert(data.message || 'Failed to accept offer.');
+      }
+    } catch (e) {
+      alert('Network error while accepting offer.');
+    }
+  }
+
+  function showOfferDetails(offer) {
+    document.getElementById('modalOfferCompany').textContent = offer.company_name;
+    document.getElementById('modalOfferDesignation').textContent = offer.designation;
+    document.getElementById('modalOfferCandidate').textContent = offer.candidate_name;
+    document.getElementById('modalOfferCTC').textContent = offer.offered_ctc || 'As per norms';
+    document.getElementById('modalOfferDate').textContent = offer.offer_date || 'N/A';
+    document.getElementById('modalOfferJoining').textContent = offer.joining_date || 'To be scheduled';
+    document.getElementById('modalOfferNotes').textContent = offer.notes || 'Please report with your original documents and ID proofs on the joining date.';
+
+    const docContainer = document.getElementById('modalOfferDocContainer');
+    const docBtn = document.getElementById('modalOfferDocBtn');
+    if (offer.document_url) {
+      docContainer.style.display = 'flex';
+      docBtn.href = offer.document_url;
+    } else {
+      docContainer.style.display = 'none';
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('offerDetailsModal'));
+    modal.show();
+  }
+</script>
+
+<!-- Offer Letter Preview Modal -->
+<div class="modal fade" id="offerDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-bottom bg-light">
+        <h5 class="modal-title fw-bold text-dark"><i class="ti ti-file-certificate text-primary me-2"></i>Formal Job Offer Letter</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4" id="printableOfferLetter">
+        <div class="text-center pb-3 border-bottom mb-4">
+          <h4 class="fw-bold text-primary mb-1" id="modalOfferCompany">Company Name</h4>
+          <p class="text-muted small mb-0">Official Letter of Employment &amp; Appointment</p>
+        </div>
+
+        <p class="lead fs-6 mb-3">Dear <strong id="modalOfferCandidate">Candidate</strong>,</p>
+        <p class="text-muted">We are pleased to extend this formal offer of employment for the position of <strong class="text-dark" id="modalOfferDesignation">Designation</strong> with our organization. Based on your successful interviews and profile evaluation, we look forward to welcoming you to our team.</p>
+
+        <div class="card bg-light border-0 p-3 rounded-3 my-3">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="small text-muted">Designation / Role:</div>
+              <div class="fw-bold text-dark" id="modalOfferDesignation"></div>
+            </div>
+            <div class="col-sm-6">
+              <div class="small text-muted">Annual Compensation (CTC):</div>
+              <div class="fw-bold text-success fs-6" id="modalOfferCTC"></div>
+            </div>
+            <div class="col-sm-6">
+              <div class="small text-muted">Offer Release Date:</div>
+              <div class="fw-bold text-dark" id="modalOfferDate"></div>
+            </div>
+            <div class="col-sm-6">
+              <div class="small text-muted">Reporting / Joining Date:</div>
+              <div class="fw-bold text-primary" id="modalOfferJoining"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <h6 class="fw-bold text-dark mb-1">Terms &amp; Joining Instructions:</h6>
+          <p class="small text-muted" id="modalOfferNotes"></p>
+        </div>
+
+        <div id="modalOfferDocContainer" class="mt-3 p-3 bg-light border border-success-subtle rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="display:none;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="ti ti-file-certificate text-success fs-3"></i>
+            <div>
+              <strong class="text-dark d-block">Official Signed Offer Letter Attached</strong>
+              <small class="text-muted">Uploaded directly by employer</small>
+            </div>
+          </div>
+          <a id="modalOfferDocBtn" href="#" target="_blank" download class="btn btn-sm btn-success fw-bold">
+            <i class="ti ti-download me-1"></i> Download Attached Document
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer border-top bg-light">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.print()"><i class="ti ti-printer me-1"></i> Print / Save PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,852 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Job Approvals Queue — Super Admin Panel{% endblock %}
+{% block page_title %}Job Approvals{% endblock %}
+{% block breadcrumb_title %}Job Management / Job Approvals{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* KPI Cards Grid */
+  .approval-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .approval-stat-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .approval-stat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .approval-stat-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .approval-stat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+  }
+  .approval-stat-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0F172A;
+  }
+  .approval-stat-sub {
+    font-size: 11px;
+    color: #64748B;
+  }
+
+  /* Navigation Tabs Bar */
+  .approval-tabs-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #FFFFFF;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .approval-nav-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .approval-tab-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #64748B;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+    text-decoration: none;
+  }
+  .approval-tab-btn:hover {
+    background: #EFF6FF;
+    color: #2563EB;
+    border-color: #BFDBFE;
+  }
+  .approval-tab-btn.active {
+    background: #2563EB;
+    color: #FFFFFF;
+    border-color: #2563EB;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+  }
+  .approval-tab-btn.active .badge-tab {
+    background: #FFFFFF;
+    color: #2563EB;
+  }
+
+  .badge-tab {
+    font-size: 11px;
+    font-weight: 700;
+    background: #E2E8F0;
+    color: #475569;
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+
+  .approval-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 6px 12px;
+    width: 280px;
+  }
+  .approval-search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 12px;
+    width: 100%;
+  }
+
+  /* Table styling */
+  .approval-table-container {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    overflow: visible !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+    width: 100%;
+    min-height: 220px;
+  }
+  .approval-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+    table-layout: auto;
+  }
+  .approval-table th {
+    background: #F8FAFC;
+    color: #475569;
+    font-weight: 700;
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+    font-size: 10.5px;
+    letter-spacing: 0.3px;
+  }
+  .approval-table td {
+    padding: 8px 8px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #334155;
+    vertical-align: middle;
+  }
+  .approval-table tr:hover {
+    background: #F8FAFC;
+  }
+
+  /* Action Buttons */
+  .btn-approve-direct {
+    background: #16A34A !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    padding: 6px 14px !important;
+    border-radius: 6px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 2px 4px rgba(22, 163, 74, 0.25) !important;
+    transition: background 0.15s ease !important;
+  }
+  .btn-approve-direct:hover {
+    background: #15803D !important;
+  }
+
+  .btn-reject-direct {
+    background: #FEE2E2 !important;
+    color: #DC2626 !important;
+    border: 1px solid #FCA5A5 !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    transition: all 0.15s ease !important;
+  }
+  .btn-reject-direct:hover {
+    background: #DC2626 !important;
+    color: #FFFFFF !important;
+  }
+
+  .btn-view-direct {
+    background: #F1F5F9 !important;
+    color: #334155 !important;
+    border: 1px solid #CBD5E1 !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  .btn-view-direct:hover {
+    background: #E2E8F0 !important;
+    color: #0F172A !important;
+  }
+
+  /* 3-Dots Action Dropdown */
+  .approval-action-dropdown-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .approval-action-dropdown-wrap.open-active {
+    z-index: 1100;
+  }
+  .btn-approval-dots {
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    color: #475569;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.15s ease;
+  }
+  .btn-approval-dots:hover {
+    background: #EFF6FF;
+    color: #2563EB;
+    border-color: #BFDBFE;
+  }
+  .approval-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.22);
+    border-radius: 10px;
+    min-width: 175px;
+    padding: 6px 0;
+    z-index: 9999;
+    display: none;
+    text-align: left;
+  }
+  .approval-dropdown-menu.show {
+    display: block;
+    animation: approvalFadeIn 0.15s ease-out;
+  }
+  @keyframes approvalFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .approval-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .approval-dropdown-item:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+  }
+  .approval-dropdown-item.text-success:hover {
+    background: #DCFCE7;
+    color: #15803D;
+  }
+  .approval-dropdown-item.text-danger:hover {
+    background: #FEE2E2;
+    color: #DC2626;
+  }
+
+  /* Modal styling */
+  .custom-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 1200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .custom-modal-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    width: 680px;
+    max-width: 94vw;
+    max-height: 85vh;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #E2E8F0;
+  }
+  .custom-modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+    flex-shrink: 0;
+  }
+  .modal-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #F1F5F9;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .custom-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+  }
+  .custom-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .view-detail-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .view-detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+  }
+  .view-detail-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0F172A;
+  }
+
+  @media (max-width: 640px) {
+    .approval-stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- 1. Header Card -->
+<div class="module-header-card">
+  <div class="module-title-group">
+    <div class="module-icon-box" style="background:#FEF3C7; color:#D97706;">
+      <i class="ti ti-checkbox"></i>
+    </div>
+    <div>
+      <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">Job Approvals Queue</h3>
+      <span style="font-size:12px; color:#64748B;">Review &amp; Approve Employer Job Postings Before Publishing to Website</span>
+    </div>
+  </div>
+
+  <div class="module-actions-group">
+    <button type="button" class="btn-admin btn-admin-secondary" onclick="window.location.reload();">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
+  </div>
+</div>
+
+<!-- 2. KPI Summary Cards -->
+<div class="approval-stat-grid">
+  <!-- Pending -->
+  <div class="approval-stat-card">
+    <div class="approval-stat-head">
+      <span class="approval-stat-title">PENDING APPROVALS</span>
+      <div class="approval-stat-icon" style="background:#FEF3C7; color:#D97706;"><i class="ti ti-clock"></i></div>
+    </div>
+    <div class="approval-stat-num" style="color:#D97706;">{{ pending_count|default:0 }}</div>
+    <div class="approval-stat-sub">Requires Admin Review</div>
+  </div>
+
+  <!-- Live / Active -->
+  <div class="approval-stat-card">
+    <div class="approval-stat-head">
+      <span class="approval-stat-title">APPROVED / LIVE JOBS</span>
+      <div class="approval-stat-icon" style="background:#DCFCE7; color:#16A34A;"><i class="ti ti-circle-check"></i></div>
+    </div>
+    <div class="approval-stat-num" style="color:#16A34A;">{{ active_count|default:0 }}</div>
+    <div class="approval-stat-sub">Visible on Public Website</div>
+  </div>
+
+  <!-- Rejected -->
+  <div class="approval-stat-card">
+    <div class="approval-stat-head">
+      <span class="approval-stat-title">REJECTED JOBS</span>
+      <div class="approval-stat-icon" style="background:#FEE2E2; color:#DC2626;"><i class="ti ti-circle-x"></i></div>
+    </div>
+    <div class="approval-stat-num" style="color:#DC2626;">{{ rejected_count|default:0 }}</div>
+    <div class="approval-stat-sub">Not Published</div>
+  </div>
+
+  <!-- Total -->
+  <div class="approval-stat-card">
+    <div class="approval-stat-head">
+      <span class="approval-stat-title">TOTAL SUBMISSIONS</span>
+      <div class="approval-stat-icon" style="background:#E0F2FE; color:#0284C7;"><i class="ti ti-briefcase"></i></div>
+    </div>
+    <div class="approval-stat-num">{{ total_count|default:0 }}</div>
+    <div class="approval-stat-sub">All Submitted Jobs</div>
+  </div>
+</div>
+
+<!-- 3. Navigation Tabs Bar & Search -->
+<div class="approval-tabs-bar">
+  <div class="approval-nav-pills">
+    <a href="?tab=pending" class="approval-tab-btn {% if status_tab == 'pending' %}active{% endif %}">
+      <i class="ti ti-clock"></i> Pending Approvals
+      <span class="badge-tab">{{ pending_count|default:0 }}</span>
+    </a>
+    <a href="?tab=active" class="approval-tab-btn {% if status_tab == 'active' %}active{% endif %}">
+      <i class="ti ti-check"></i> Approved / Live
+      <span class="badge-tab">{{ active_count|default:0 }}</span>
+    </a>
+    <a href="?tab=rejected" class="approval-tab-btn {% if status_tab == 'rejected' %}active{% endif %}">
+      <i class="ti ti-x"></i> Rejected
+      <span class="badge-tab">{{ rejected_count|default:0 }}</span>
+    </a>
+  </div>
+
+  <div class="approval-search-box">
+    <i class="ti ti-search" style="color:#94A3B8;"></i>
+    <input type="text" id="approvalSearchInput" placeholder="Search by Title, Employer, Location..." onkeyup="filterApprovalTable()">
+  </div>
+</div>
+
+<!-- 4. Approvals Table -->
+<div class="approval-table-container">
+  <table class="approval-table" id="approvalsMasterTable">
+    <thead>
+      <tr>
+        <th style="width:70px;">REF ID</th>
+        <th>JOB TITLE &amp; TYPE</th>
+        <th>EMPLOYER / COMPANY</th>
+        <th>CATEGORY &amp; LOCATION</th>
+        <th>SALARY &amp; VACANCIES</th>
+        <th style="width:95px;">SUBMITTED</th>
+        <th style="width:95px; text-align:center;">STATUS</th>
+        <th style="width:60px; text-align:center;">ACTION</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if jobs_list %}
+        {% for j in jobs_list %}
+        <tr data-job-id="{{ j.id }}" data-status="{{ j.status|lower }}" data-title="{{ j.title|lower }}" data-company="{% if j.company %}{{ j.company.name|lower }}{% elif j.employer %}{{ j.employer.company_name|lower }}{% endif %}">
+          <td><strong style="font-size:11.5px; color:#475569;">#JOB-{{ j.id }}</strong></td>
+          <td>
+            <div style="font-weight:700; color:#0F172A; font-size:13px;">{{ j.title }}</div>
+            <span style="font-size:10px; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:2px 6px; border-radius:4px; font-weight:600;">{{ j.employment_type|default:'Full Time' }}</span>
+            {% if j.experience %}
+              <span class="text-muted" style="font-size:10.5px; margin-left:4px;"><i class="ti ti-briefcase me-1"></i>{{ j.experience }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if j.employer %}
+              <div style="font-weight:700; color:#7C3AED; font-size:12px;"><i class="ti ti-user-check me-1"></i>{{ j.employer.company_name }}</div>
+              <small class="text-muted" style="font-size:10.5px;">Contact: {{ j.employer.contact_name }} ({{ j.employer.phone }})</small>
+            {% elif j.company %}
+              <div style="font-weight:700; color:#2563EB; font-size:12px;"><i class="ti ti-building me-1"></i>{{ j.company.name }}</div>
+            {% else %}
+              <div style="font-weight:700; color:#0F172A; font-size:12px;">SVG Consultancy</div>
+            {% endif %}
+          </td>
+          <td>
+            <div style="font-weight:600; color:#334155;">{{ j.category|default:j.department|default:'General' }}</div>
+            <small class="text-muted" style="font-size:10.5px;"><i class="ti ti-map-pin me-1"></i>{{ j.location|default:'Lucknow, UP' }}</small>
+          </td>
+          <td>
+            <div style="font-weight:700; color:#16A34A; font-size:12px;">{{ j.salary|default:'Negotiable' }}</div>
+            <small class="text-muted" style="font-size:10.5px;">Vacancies: {{ j.vacancies|default:'1' }}</small>
+          </td>
+          <td style="font-size:11px; color:#475569;">{{ j.created_at|date:"d M Y" }}</td>
+          <td style="text-align:center;">
+            {% if j.status|lower == 'active' or j.status|lower == 'live' %}
+              <span style="font-size:10.5px; font-weight:700; background:#DCFCE7; color:#15803D; border:1px solid #86EFAC; padding:3px 8px; border-radius:6px; display:inline-block;"><i class="ti ti-check me-1"></i>Active / Live</span>
+            {% elif j.status|lower == 'pending_approval' or j.status|lower == 'pending' %}
+              <span style="font-size:10.5px; font-weight:700; background:#FEF3C7; color:#B45309; border:1px solid #FDE68A; padding:3px 8px; border-radius:6px; display:inline-block;"><i class="ti ti-clock me-1"></i>Pending Review</span>
+            {% else %}
+              <span style="font-size:10.5px; font-weight:700; background:#FEE2E2; color:#991B1B; border:1px solid #FCA5A5; padding:3px 8px; border-radius:6px; display:inline-block;"><i class="ti ti-x me-1"></i>{{ j.status|default:'Rejected' }}</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center;">
+            <div class="approval-action-dropdown-wrap">
+              <button type="button" class="btn-approval-dots" onclick="toggleApprovalDropdown(event, {{ j.id }})" title="Actions">
+                <i class="ti ti-dots-vertical"></i>
+              </button>
+              <div class="approval-dropdown-menu" id="approvalDropdownMenu-{{ j.id }}">
+                <button type="button" class="approval-dropdown-item" onclick="closeAllApprovalDropdowns(); openViewApprovalModal({{ j.id }});">
+                  <i class="ti ti-eye text-primary" style="font-size:15px;"></i> View Details
+                </button>
+                {% if j.status|lower != 'active' and j.status|lower != 'live' %}
+                  <button type="button" class="approval-dropdown-item text-success" onclick="closeAllApprovalDropdowns(); approveJobPosting({{ j.id }}, '{{ j.title|escapejs }}');">
+                    <i class="ti ti-check" style="font-size:15px;"></i> Approve &amp; Publish
+                  </button>
+                {% endif %}
+                {% if j.status|lower != 'rejected' %}
+                  <button type="button" class="approval-dropdown-item text-danger" onclick="closeAllApprovalDropdowns(); promptRejectJob({{ j.id }}, '{{ j.title|escapejs }}');">
+                    <i class="ti ti-x" style="font-size:15px;"></i> Reject Requirement
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:45px 20px;">
+            <div style="font-size:38px; color:#CBD5E1; margin-bottom:8px;"><i class="ti ti-clipboard-check"></i></div>
+            <div style="font-weight:700; color:#0F172A; font-size:14.5px;">No jobs found in this queue.</div>
+            <div style="font-size:12px; color:#64748B;">Employer job postings submitted for approval will appear here.</div>
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ==========================================
+     MODAL 1: VIEW JOB DETAILS MODAL
+     ========================================== -->
+<div class="custom-modal-backdrop" id="viewApprovalModal">
+  <div class="custom-modal-card">
+    <div class="custom-modal-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:38px; height:38px; border-radius:10px; background:#EFF6FF; color:#2563EB; display:flex; align-items:center; justify-content:center; font-size:18px;">
+          <i class="ti ti-eye"></i>
+        </div>
+        <div>
+          <h4 style="margin:0; font-size:15px; font-weight:700; color:#0F172A;" id="viewApprTitle">Job Posting Details</h4>
+          <span style="font-size:11.5px; color:#64748B;" id="viewApprSubtitle">Review requirement before approving</span>
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeViewApprovalModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="custom-modal-body" id="viewApprContent" style="display:flex; flex-direction:column; gap:16px;">
+      <!-- Content populated dynamically -->
+    </div>
+    <div class="custom-modal-footer">
+      <button type="button" class="btn-view-direct" onclick="closeViewApprovalModal()">Close</button>
+      <button type="button" class="btn-approve-direct" id="btnApproveFromModal">
+        <i class="ti ti-check"></i> Approve &amp; Publish to Website
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     MODAL 2: REJECT REASON MODAL
+     ========================================== -->
+<div class="custom-modal-backdrop" id="rejectApprovalModal">
+  <div class="custom-modal-card" style="width: 480px;">
+    <div class="custom-modal-header" style="background:#FEF2F2;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:38px; height:38px; border-radius:10px; background:#FEE2E2; color:#DC2626; display:flex; align-items:center; justify-content:center; font-size:18px;">
+          <i class="ti ti-x"></i>
+        </div>
+        <div>
+          <h4 style="margin:0; font-size:15px; font-weight:700; color:#991B1B;">Reject Job Posting</h4>
+          <span style="font-size:11px; color:#B91C1C;">Employer will be notified of rejection reason</span>
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeRejectApprovalModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="custom-modal-body" style="padding:24px;">
+      <p style="font-size:13px; color:#334155; margin-bottom:12px;">Rejecting job posting: <strong id="rejectJobTitleText"></strong></p>
+      <label style="font-size:12px; font-weight:600; color:#0F172A; display:block; margin-bottom:6px;">Rejection Reason (Optional):</label>
+      <textarea id="rejectReasonText" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:12.5px;" placeholder="Provide feedback for the employer (e.g., incomplete requirements, invalid salary info)..."></textarea>
+    </div>
+    <div class="custom-modal-footer">
+      <button type="button" class="btn-view-direct" onclick="closeRejectApprovalModal()">Cancel</button>
+      <button type="button" class="btn-reject-direct" id="btnConfirmRejectJob" onclick="executeRejectJob()">
+        <i class="ti ti-x"></i> Confirm Reject
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Jobs store for quick View / Approve
+  const jobsApprovalData = {
+    {% for j in jobs_list %}
+      "{{ j.id }}": {
+        "id": "{{ j.id }}",
+        "title": "{{ j.title|escapejs }}",
+        "company_name": "{% if j.employer %}{{ j.employer.company_name|escapejs }}{% elif j.company %}{{ j.company.name|escapejs }}{% else %}SVG Consultancy{% endif %}",
+        "employer_contact": "{% if j.employer %}{{ j.employer.contact_name|escapejs }} ({{ j.employer.email|escapejs }} • {{ j.employer.phone|escapejs }}){% else %}N/A{% endif %}",
+        "category": "{{ j.category|escapejs }}",
+        "department": "{{ j.department|escapejs }}",
+        "location": "{{ j.location|escapejs }}",
+        "employment_type": "{{ j.employment_type|escapejs }}",
+        "experience": "{{ j.experience|escapejs }}",
+        "salary": "{{ j.salary|escapejs }}",
+        "vacancies": "{{ j.vacancies|escapejs }}",
+        "status": "{{ j.status|escapejs }}",
+        "description": "{{ j.description|escapejs }}",
+        "requirements": "{{ j.requirements|escapejs }}",
+        "created_at": "{{ j.created_at|date:'d M Y, h:i A' }}"
+      }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  let jobToRejectId = null;
+
+  async function approveJobPosting(jobId, jobTitle) {
+    if (!confirm(`Are you sure you want to approve '${jobTitle}'? It will immediately publish live on the public website.`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/job-approvals/${jobId}/approve/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        alert(data.message || 'Job approved and published to website!');
+        window.location.reload();
+      } else {
+        alert(data.message || 'Failed to approve job.');
+      }
+    } catch (e) {
+      alert('Server connection error.');
+    }
+  }
+
+  function promptRejectJob(jobId, jobTitle) {
+    jobToRejectId = jobId;
+    document.getElementById('rejectJobTitleText').textContent = `'${jobTitle}' (#JOB-${jobId})`;
+    document.getElementById('rejectReasonText').value = '';
+    document.getElementById('rejectApprovalModal').style.display = 'flex';
+  }
+
+  function closeRejectApprovalModal() {
+    jobToRejectId = null;
+    document.getElementById('rejectApprovalModal').style.display = 'none';
+  }
+
+  async function executeRejectJob() {
+    if (!jobToRejectId) return;
+    const btnReject = document.getElementById('btnConfirmRejectJob');
+    const reason = document.getElementById('rejectReasonText').value.trim();
+
+    btnReject.disabled = true;
+    btnReject.innerHTML = `<i class="ti ti-loader spin-fast me-1"></i> Rejecting...`;
+
+    try {
+      const res = await fetch(`/api/admin/job-approvals/${jobToRejectId}/reject/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        },
+        body: JSON.stringify({ reason: reason })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        closeRejectApprovalModal();
+        window.location.reload();
+      } else {
+        alert(data.message || 'Failed to reject job.');
+      }
+    } catch (e) {
+      alert('Server connection error.');
+    } finally {
+      btnReject.disabled = false;
+      btnReject.innerHTML = `<i class="ti ti-x"></i> Confirm Reject`;
+    }
+  }
+
+  function openViewApprovalModal(jobId) {
+    const job = jobsApprovalData[jobId];
+    if (!job) return;
+
+    document.getElementById('viewApprTitle').textContent = job.title;
+    document.getElementById('viewApprSubtitle').textContent = `#JOB-${job.id} • Submitted on ${job.created_at || 'N/A'}`;
+
+    const contentBox = document.getElementById('viewApprContent');
+    contentBox.innerHTML = `
+      <div class="view-detail-card" style="border-left:4px solid #2563EB;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="view-detail-label">Employer / Company Name</div>
+            <div class="view-detail-value" style="color:#2563EB; font-size:14px;">${job.company_name}</div>
+            <div style="font-size:11.5px; color:#64748B; margin-top:2px;">${job.employer_contact}</div>
+          </div>
+          <div>
+            <span style="font-size:11px; font-weight:700; background:#FEF3C7; color:#B45309; border:1px solid #FDE68A; padding:4px 10px; border-radius:6px;">${job.status}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="view-detail-card">
+          <div class="view-detail-label">Category &amp; Department</div>
+          <div class="view-detail-value">${job.category || 'General'} ${job.department ? ' • ' + job.department : ''}</div>
+        </div>
+        <div class="view-detail-card">
+          <div class="view-detail-label">Location &amp; Employment Type</div>
+          <div class="view-detail-value">${job.location || 'Lucknow, UP'} (${job.employment_type})</div>
+        </div>
+        <div class="view-detail-card">
+          <div class="view-detail-label">Experience &amp; Salary</div>
+          <div class="view-detail-value">${job.experience || 'Fresher / Any'} | <span style="color:#16A34A;">${job.salary || 'Best in Industry'}</span></div>
+        </div>
+        <div class="view-detail-card">
+          <div class="view-detail-label">Vacancies</div>
+          <div class="view-detail-value">${job.vacancies || '1'} Positions</div>
+        </div>
+      </div>
+
+      ${job.description ? `
+        <div class="view-detail-card">
+          <div class="view-detail-label">Job Description</div>
+          <div style="font-size:12.5px; color:#334155; line-height:1.6; white-space:pre-line; margin-top:4px;">${job.description}</div>
+        </div>
+      ` : ''}
+
+      ${job.requirements ? `
+        <div class="view-detail-card">
+          <div class="view-detail-label">Requirements &amp; Required Skills</div>
+          <div style="font-size:12.5px; color:#334155; line-height:1.6; white-space:pre-line; margin-top:4px;">${job.requirements}</div>
+        </div>
+      ` : ''}
+    `;
+
+    document.getElementById('btnApproveFromModal').onclick = function() {
+      closeViewApprovalModal();
+      approveJobPosting(jobId, job.title);
+    };
+
+    document.getElementById('viewApprovalModal').style.display = 'flex';
+  }
+
+  function closeViewApprovalModal() {
+    document.getElementById('viewApprovalModal').style.display = 'none';
+  }
+
+  function filterApprovalTable() {
+    const q = document.getElementById('approvalSearchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#approvalsMasterTable tbody tr[data-job-id]');
+
+    rows.forEach(row => {
+      const title = row.getAttribute('data-title') || '';
+      const company = row.getAttribute('data-company') || '';
+      const matchQuery = !q || title.includes(q) || company.includes(q);
+      row.style.display = matchQuery ? '' : 'none';
+    });
+  }
+
+  function toggleApprovalDropdown(event, jobId) {
+    event.stopPropagation();
+    const wrap = event.currentTarget.closest('.approval-action-dropdown-wrap');
+    const targetMenu = document.getElementById(`approvalDropdownMenu-${jobId}`);
+    const isShowing = targetMenu ? targetMenu.classList.contains('show') : false;
+    closeAllApprovalDropdowns();
+    if (targetMenu && !isShowing) {
+      targetMenu.classList.add('show');
+      if (wrap) wrap.classList.add('open-active');
+    }
+  }
+
+  function closeAllApprovalDropdowns() {
+    document.querySelectorAll('.approval-dropdown-menu').forEach(menu => {
+      menu.classList.remove('show');
+    });
+    document.querySelectorAll('.approval-action-dropdown-wrap').forEach(wrap => {
+      wrap.classList.remove('open-active');
+    });
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.approval-action-dropdown-wrap')) {
+      closeAllApprovalDropdowns();
+    }
+  });
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+
+{% endblock %}

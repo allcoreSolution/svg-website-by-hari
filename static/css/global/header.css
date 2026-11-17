@@ -1,0 +1,531 @@
+/* =========================================================
+   SKY VISION GROUP — GLOBAL HEADER & TOPBAR STYLESHEET
+   Clean, Modern, Responsive & Compatible across all pages.
+========================================================= */
+
+:root {
+  --hdr-navy-950: #0b1329;
+  --hdr-navy-900: #101c3d;
+  --hdr-indigo: #2563eb;
+  --hdr-indigo-hover: #1d4ed8;
+  --hdr-indigo-soft: rgba(37, 99, 235, 0.08);
+  --hdr-amber: #f59e0b;
+  --hdr-amber-hover: #d97706;
+  --hdr-text: #1e293b;
+  --hdr-text-dim: #64748b;
+  --hdr-line: rgba(226, 232, 240, 0.9);
+  --hdr-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* =========================================================
+   1. TOP BAR (.top-bar & .sv-topbar)
+========================================================= */
+.top-bar,
+.sv-topbar {
+  background: var(--hdr-navy-950) !important;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  padding: 0;
+  width: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 101;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.top-bar .wrap,
+.top-bar .top-bar-inner,
+.sv-topbar .wrap,
+.sv-topbar .top-bar-inner,
+.top-bar .container {
+  max-width: 1280px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.top-bar .left-info,
+.sv-topbar .left-info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.top-bar .info,
+.sv-topbar .info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.top-bar .info i,
+.sv-topbar .info i {
+  color: var(--hdr-amber);
+  font-size: 13px;
+}
+
+.top-bar .divider,
+.sv-topbar .divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  display: inline-block;
+}
+
+.top-bar .top-actions,
+.sv-topbar .top-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.top-bar .apply-franchise-btn,
+.sv-topbar .apply-franchise-btn,
+.apply-franchise-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff !important;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.top-bar .apply-franchise-btn:hover,
+.sv-topbar .apply-franchise-btn:hover,
+.apply-franchise-btn:hover {
+  background: #ffffff;
+  color: var(--hdr-navy-950) !important;
+  transform: translateY(-1px);
+}
+
+.top-bar .social-icons,
+.sv-topbar .social-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-bar .social-icons a,
+.sv-topbar .social-icons a {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1 !important;
+  font-size: 12px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.top-bar .social-icons a:hover,
+.sv-topbar .social-icons a:hover {
+  background: var(--hdr-amber);
+  color: #ffffff !important;
+  transform: translateY(-2px);
+}
+
+html,
+body {
+  overflow-x: clip !important;
+}
+
+/* =========================================================
+   2. NAVBAR WRAPPER & CONTAINER (.navbar-wrap & .sv-navbar-wrap)
+========================================================= */
+.navbar-wrap,
+.sv-navbar-wrap {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 68px;
+  min-height: 68px;
+  max-height: 68px;
+  z-index: 9999 !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--hdr-line);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.navbar,
+.sv-navbar {
+  max-width: 1280px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* Logo */
+.logo,
+.sv-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logo img,
+.sv-logo img {
+  height: 48px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Nav Links List */
+.nav-links,
+.sv-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mobile-login-wrap,
+.mobile-drawer-login-card,
+li.mobile-drawer-login-card,
+.nav-links > li.mobile-drawer-login-card,
+.sv-nav-links > li.mobile-drawer-login-card {
+  display: none !important;
+}
+
+.nav-links > li,
+.sv-nav-links > li {
+  position: relative;
+  list-style: none;
+}
+
+.nav-links > li > a,
+.sv-nav-links > li > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--hdr-text) !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.nav-links > li > a i,
+.sv-nav-links > li > a i {
+  font-size: 10px;
+  color: #94a3b8;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.nav-links > li > a:hover,
+.sv-nav-links > li > a:hover {
+  background: var(--hdr-indigo-soft);
+  color: var(--hdr-indigo) !important;
+}
+
+.nav-links > li > a:hover i,
+.sv-nav-links > li > a:hover i {
+  color: var(--hdr-indigo);
+}
+
+.nav-links > li > a.active,
+.sv-nav-links > li > a.active {
+  background: var(--hdr-indigo-soft);
+  color: var(--hdr-indigo) !important;
+  font-weight: 700;
+}
+
+.nav-links > li > a.active i,
+.sv-nav-links > li > a.active i {
+  color: var(--hdr-indigo);
+}
+
+/* =========================================================
+   3. DROPDOWN MENUS
+========================================================= */
+.dropdown {
+  position: relative;
+}
+
+.dropdown:hover > a i,
+.dropdown.active > a i {
+  transform: rotate(180deg);
+  color: var(--hdr-indigo);
+}
+
+.dropdown-menu,
+.sv-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 240px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
+  padding: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+  z-index: 1000;
+  list-style: none;
+  border-top: 3px solid var(--hdr-indigo);
+}
+
+.dropdown:hover .dropdown-menu,
+.dropdown.active .dropdown-menu,
+.dropdown:focus-within .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-menu li,
+.sv-dropdown-menu li {
+  list-style: none;
+  margin: 2px 0;
+}
+
+.dropdown-menu li a,
+.sv-dropdown-menu li a {
+  display: block;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hdr-text) !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.dropdown-menu li a:hover,
+.sv-dropdown-menu li a:hover {
+  background: var(--hdr-indigo-soft);
+  color: var(--hdr-indigo) !important;
+  padding-left: 18px;
+}
+
+/* =========================================================
+   4. CALL BUTTON (.call-btn & .sv-call-btn)
+========================================================= */
+.call-btn,
+.sv-call-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 9px !important;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  padding: 10px 20px !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  transition: all 0.25s ease !important;
+  flex-shrink: 0;
+}
+
+.call-btn i,
+.sv-call-btn i {
+  color: #fbbf24 !important;
+  font-size: 13px !important;
+  transition: transform 0.25s ease;
+}
+
+.call-btn span,
+.sv-call-btn span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.call-btn:hover,
+.sv-call-btn:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.4) !important;
+}
+
+.call-btn:hover i,
+.sv-call-btn:hover i {
+  transform: scale(1.15) rotate(10deg);
+}
+
+/* =========================================================
+   5. MOBILE TOGGLE & RESPONSIVE
+========================================================= */
+.menu-toggle,
+.sv-menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: var(--hdr-navy-950);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.menu-toggle:hover,
+.sv-menu-toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 991px) {
+  .top-bar .left-info,
+  .sv-topbar .left-info {
+    display: none;
+  }
+
+  .top-bar .wrap,
+  .sv-topbar .wrap,
+  .top-bar .top-bar-inner,
+  .sv-topbar .top-bar-inner,
+  .top-bar .container {
+    justify-content: flex-end;
+  }
+
+  .navbar,
+  .sv-navbar {
+    padding: 10px 16px;
+  }
+
+  .logo img,
+  .sv-logo img {
+    height: 42px;
+  }
+
+  .menu-toggle,
+  .sv-menu-toggle {
+    display: block;
+    order: 3;
+  }
+
+  .call-btn,
+  .sv-call-btn {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+    order: 2;
+  }
+
+  .nav-links,
+  .sv-nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px 20px;
+    gap: 6px;
+    display: none;
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid var(--hdr-line);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .nav-links.open,
+  .nav-links.active,
+  .sv-nav-links.open,
+  .sv-nav-links.active {
+    display: flex;
+  }
+
+  .nav-links > li > a,
+  .sv-nav-links > li > a {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    justify-content: space-between;
+  }
+
+  .dropdown-menu,
+  .sv-dropdown-menu {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    border-left: 2px solid var(--hdr-indigo);
+    background: #f8fafc;
+    border-radius: 0 8px 8px 0;
+    margin: 4px 0 8px 16px;
+    padding: 4px 8px;
+    display: none;
+  }
+
+  .dropdown.active .dropdown-menu,
+  .dropdown.active .sv-dropdown-menu {
+    display: block;
+  }
+}
+
+@media (max-width: 576px) {
+  .call-btn span,
+  .sv-call-btn span {
+    display: none;
+  }
+
+  .call-btn,
+  .sv-call-btn {
+    padding: 9px 12px !important;
+    border-radius: 50% !important;
+    width: 38px;
+    height: 38px;
+  }
+}

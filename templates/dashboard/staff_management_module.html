@@ -1,0 +1,2423 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Staff Management — Super Admin Panel{% endblock %}
+{% block page_title %}Staff Users{% endblock %}
+{% block breadcrumb_title %}Users &amp; Roles / Staff Users{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js for Interactive Visual Analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  :root {
+    --primary-blue: #2563EB;
+    --primary-hover: #1D4ED8;
+    --border-color: #E2E8F0;
+    --text-dark: #0F172A;
+    --text-muted: #64748B;
+    --bg-light: #F8FAFC;
+  }
+
+  /* Robust, Self-contained Admin Button System (Cannot be overridden by .svg-admin button:not(.btn)) */
+  .btn.btn-sky,
+  .btn-sky,
+  button.btn.btn-sky {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 7px 15px !important;
+    border-radius: 20px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+    outline: none !important;
+  }
+  .btn.btn-sky:hover,
+  .btn-sky:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  }
+
+  .btn.btn-sky-primary,
+  .btn-sky-primary,
+  button.btn.btn-sky-primary {
+    background: #2563EB !important;
+    background-color: #2563EB !important;
+    color: #FFFFFF !important;
+    border: 1px solid #2563EB !important;
+    box-shadow: 0 2px 6px rgba(37,99,235,0.28) !important;
+  }
+  .btn.btn-sky-primary:hover,
+  .btn-sky-primary:hover {
+    background: #1D4ED8 !important;
+    background-color: #1D4ED8 !important;
+    border-color: #1D4ED8 !important;
+    color: #FFFFFF !important;
+  }
+
+  .btn.btn-sky-soft,
+  .btn-sky-soft,
+  button.btn.btn-sky-soft {
+    background: #EFF6FF !important;
+    background-color: #EFF6FF !important;
+    color: #1D4ED8 !important;
+    border: 1px solid #BFDBFE !important;
+  }
+  .btn.btn-sky-soft:hover,
+  .btn-sky-soft:hover {
+    background: #DBEAFE !important;
+    background-color: #DBEAFE !important;
+    color: #1E40AF !important;
+  }
+
+  .btn.btn-sky-outline,
+  .btn-sky-outline,
+  button.btn.btn-sky-outline {
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    color: #334155 !important;
+    border: 1px solid #CBD5E1 !important;
+  }
+  .btn.btn-sky-outline:hover,
+  .btn-sky-outline:hover {
+    background: #F1F5F9 !important;
+    background-color: #F1F5F9 !important;
+    color: #0F172A !important;
+    border-color: #94A3B8 !important;
+  }
+
+  .btn.btn-sky-danger,
+  .btn-sky-danger,
+  button.btn.btn-sky-danger {
+    background: #DC2626 !important;
+    background-color: #DC2626 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #DC2626 !important;
+  }
+  .btn.btn-sky-danger:hover,
+  .btn-sky-danger:hover {
+    background: #B91C1C !important;
+    background-color: #B91C1C !important;
+  }
+
+  .btn.btn-sky-success,
+  .btn-sky-success,
+  button.btn.btn-sky-success {
+    background: #10B981 !important;
+    background-color: #10B981 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #10B981 !important;
+  }
+  .btn.btn-sky-success:hover,
+  .btn-sky-success:hover {
+    background: #059669 !important;
+    background-color: #059669 !important;
+  }
+
+  /* Top Header Card */
+  .staff-header-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    padding: 14px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .staff-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .staff-header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #EFF6FF;
+    color: var(--primary-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .staff-header-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 0;
+  }
+  .staff-header-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 2px 0 0 0;
+  }
+  .staff-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Top 4 KPI Cards Grid */
+  .staff-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 1200px) {
+    .staff-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .staff-kpi-grid { grid-template-columns: 1fr; }
+  }
+
+  .staff-kpi-card {
+    border-radius: 12px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .staff-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+  }
+  .staff-kpi-card.card-blue { background: #EFF6FF; border-color: #DBEAFE; }
+  .staff-kpi-card.card-green { background: #ECFDF5; border-color: #A7F3D0; }
+  .staff-kpi-card.card-purple { background: #F5F3FF; border-color: #DDD6FE; }
+  .staff-kpi-card.card-orange { background: #FFFBEB; border-color: #FDE68A; }
+
+  .staff-kpi-icon-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    flex-shrink: 0;
+  }
+  .card-blue .staff-kpi-icon-wrap { background: #2563EB; color: #FFFFFF; }
+  .card-green .staff-kpi-icon-wrap { background: #10B981; color: #FFFFFF; }
+  .card-purple .staff-kpi-icon-wrap { background: #8B5CF6; color: #FFFFFF; }
+  .card-orange .staff-kpi-icon-wrap { background: #F59E0B; color: #FFFFFF; }
+
+  .staff-kpi-info {
+    flex: 1;
+    margin-left: 14px;
+  }
+  .staff-kpi-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1.1;
+  }
+  .staff-kpi-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+  .staff-kpi-trend {
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .trend-up { color: #10B981; }
+  .trend-down { color: #EF4444; }
+
+  .staff-kpi-bg-icon {
+    position: absolute;
+    right: -8px;
+    bottom: -8px;
+    font-size: 64px;
+    opacity: 0.1;
+    pointer-events: none;
+  }
+  .card-blue .staff-kpi-bg-icon { color: #2563EB; }
+  .card-green .staff-kpi-bg-icon { color: #10B981; }
+  .card-purple .staff-kpi-bg-icon { color: #8B5CF6; }
+  .card-orange .staff-kpi-bg-icon { color: #F59E0B; }
+
+  /* Advance Salary Info Banner */
+  .advance-summary-bar {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 8px 16px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .advance-badge {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  /* 3 Visual Analytics Cards Row */
+  .staff-charts-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1.05fr 1.15fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 1100px) {
+    .staff-charts-grid { grid-template-columns: 1fr; }
+  }
+
+  .staff-chart-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    min-height: 230px;
+  }
+  .staff-chart-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .staff-chart-icon {
+    font-size: 16px;
+    color: var(--primary-blue);
+  }
+  .staff-chart-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+  }
+
+  .donut-chart-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+  .donut-canvas-wrap {
+    position: relative;
+    width: 105px;
+    height: 105px;
+    flex-shrink: 0;
+  }
+  .donut-center-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+  .donut-center-num {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1;
+  }
+  .donut-center-sub {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  /* Donut Legend (Staff by Profession) */
+  .donut-legend-list {
+    flex: 1;
+    min-width: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .donut-legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 11px;
+    padding: 2px 0;
+    border-bottom: 1px dashed #F1F5F9;
+  }
+  .donut-legend-item:last-child {
+    border-bottom: none;
+  }
+  .donut-legend-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #334155;
+    font-weight: 600;
+    min-width: 0;
+    flex: 1;
+  }
+  .legend-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .legend-dot {
+    width: 7.5px;
+    height: 7.5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .donut-legend-val {
+    font-weight: 700;
+    color: #0F172A;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-align: right;
+    font-size: 11px;
+  }
+  .legend-pct {
+    color: #64748B;
+    font-weight: 500;
+    font-size: 10px;
+    margin-left: 2px;
+  }
+
+  /* Payment Status Structured Mini-Card Legend */
+  .payment-legend-container {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .payment-stat-row {
+    background: #F8FAFC;
+    border: 1px solid #F1F5F9;
+    border-radius: 6px;
+    padding: 3.5px 7px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .payment-stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+  .payment-stat-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    color: #334155;
+  }
+  .payment-stat-pct {
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 10px;
+  }
+  .payment-stat-pct.badge-paid {
+    background: #DCFCE7;
+    color: #15803D;
+  }
+  .payment-stat-pct.badge-advance {
+    background: #DBEAFE;
+    color: #1D4ED8;
+  }
+  .payment-stat-pct.badge-pending {
+    background: #FEF3C7;
+    color: #B45309;
+  }
+  .payment-stat-amount {
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+    padding-left: 12px;
+  }
+
+  .bar-chart-container {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    min-height: 150px;
+  }
+
+  /* Compact Staff Details Table (Optimized to fit on all screens) */
+  .staff-table-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .staff-table-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .staff-table-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .staff-table-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 0;
+  }
+
+  .staff-filters-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .staff-filter-select {
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: #FFFFFF;
+    outline: none;
+    cursor: pointer;
+  }
+  .staff-search-input-wrap {
+    position: relative;
+    width: 180px;
+  }
+  .staff-search-input-wrap i {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    font-size: 13px;
+  }
+  .staff-search-input {
+    width: 100%;
+    padding: 5px 10px 5px 28px;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    outline: none;
+    background: #FFFFFF;
+    box-sizing: border-box;
+  }
+  .staff-search-input:focus, .staff-filter-select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+  }
+
+  /* Compact Responsive Table (Tight spacing so all columns fit on screen together) */
+  .staff-table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .svg-admin table.staff-data-table,
+  table.staff-data-table,
+  .staff-data-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    font-size: 11.5px !important;
+    margin: 0 !important;
+  }
+  .svg-admin table.staff-data-table th,
+  table.staff-data-table th,
+  .staff-data-table th {
+    background: #F8FAFC !important;
+    color: #475569 !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    padding: 7px 5px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    box-sizing: border-box !important;
+  }
+  .svg-admin table.staff-data-table td,
+  table.staff-data-table td,
+  .staff-data-table td {
+    padding: 6px 5px !important;
+    border-bottom: 1px solid #F1F5F9 !important;
+    font-size: 11.5px !important;
+    color: #334155 !important;
+    vertical-align: middle !important;
+    line-height: 1.25 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .staff-data-table tbody tr:hover {
+    background-color: #F8FAFC !important;
+  }
+
+  /* Avatar styling */
+  .staff-avatar-wrap {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    font-weight: 700;
+    font-size: 10px;
+    flex-shrink: 0;
+    border: 1px solid #DBEAFE;
+    margin: 0 auto;
+  }
+  .staff-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .status-badge.active { background: #DCFCE7; color: #15803D; }
+  .status-badge.on-leave { background: #FEF3C7; color: #B45309; }
+  .status-badge.inactive { background: #F1F5F9; color: #64748B; }
+
+  /* Action Three Dots Dropdown */
+  .action-dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  .btn.btn-three-dots,
+  .btn-three-dots,
+  button.btn-three-dots {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 26px !important;
+    height: 26px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+    border: 1px solid #CBD5E1 !important;
+    background-color: #FFFFFF !important;
+    color: #475569 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    outline: none !important;
+  }
+  .btn-three-dots:hover,
+  .btn-three-dots:focus {
+    background-color: #EFF6FF !important;
+    border-color: #93C5FD !important;
+    color: #1D4ED8 !important;
+    box-shadow: 0 1px 4px rgba(37,99,235,0.18) !important;
+  }
+
+  .dropdown-menu-popup {
+    display: none;
+    background-color: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1) !important;
+    padding: 5px !important;
+    min-width: 195px !important;
+    z-index: 999999 !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+  }
+  .dropdown-menu-popup.show {
+    display: flex !important;
+  }
+  .dropdown-item-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    width: 100% !important;
+    padding: 7px 11px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    text-align: left !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+    white-space: nowrap !important;
+  }
+  .dropdown-item-btn i {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .dropdown-item-btn:hover {
+    background-color: #F8FAFC !important;
+    color: #0F172A !important;
+  }
+  .dropdown-item-btn.text-danger {
+    color: #DC2626 !important;
+  }
+  .dropdown-item-btn.text-danger:hover {
+    background-color: #FEF2F2 !important;
+    color: #B91C1C !important;
+  }
+
+  /* Compact Action Buttons Column */
+  .action-btn-group {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    justify-content: center !important;
+  }
+  .btn.btn-action-icon,
+  .btn-action-icon,
+  button.btn.btn-action-icon {
+    width: 27px !important;
+    height: 27px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    border: 1px solid transparent !important;
+    transition: all 0.15s ease !important;
+    text-decoration: none !important;
+    line-height: 1 !important;
+  }
+  .btn.btn-action-icon:hover,
+  .btn-action-icon:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+  }
+
+  /* 1. View / History Button */
+  .btn.btn-action-view,
+  .btn-action-view {
+    background: #EFF6FF !important;
+    background-color: #EFF6FF !important;
+    color: #2563EB !important;
+    border: 1px solid #BFDBFE !important;
+  }
+  .btn.btn-action-view:hover,
+  .btn-action-view:hover {
+    background: #2563EB !important;
+    background-color: #2563EB !important;
+    color: #FFFFFF !important;
+  }
+
+  /* 2. Record Pay Button */
+  .btn.btn-action-pay,
+  .btn-action-pay {
+    background: #ECFDF5 !important;
+    background-color: #ECFDF5 !important;
+    color: #059669 !important;
+    border: 1px solid #A7F3D0 !important;
+  }
+  .btn.btn-action-pay:hover,
+  .btn-action-pay:hover {
+    background: #059669 !important;
+    background-color: #059669 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* 3. Edit Details Button */
+  .btn.btn-action-edit,
+  .btn-action-edit {
+    background: #E0F2FE !important;
+    background-color: #E0F2FE !important;
+    color: #0284C7 !important;
+    border: 1px solid #BAE6FD !important;
+  }
+  .btn.btn-action-edit:hover,
+  .btn-action-edit:hover {
+    background: #0284C7 !important;
+    background-color: #0284C7 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* 4. Delete Staff Button */
+  .btn.btn-action-del,
+  .btn-action-del {
+    background: #FEF2F2 !important;
+    background-color: #FEF2F2 !important;
+    color: #DC2626 !important;
+    border: 1px solid #FECACA !important;
+  }
+  .btn.btn-action-del:hover,
+  .btn-action-del:hover {
+    background: #DC2626 !important;
+    background-color: #DC2626 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Table Footer & Pagination */
+  .staff-table-footer {
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #FFFFFF;
+    border-top: 1px solid #F1F5F9;
+  }
+  .staff-footer-info {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .pagination-pills {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+  }
+  .page-pill {
+    padding: 4px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: #FFFFFF;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .page-pill:hover { background: #F1F5F9; }
+  .page-pill.active {
+    background: var(--primary-blue);
+    color: #FFFFFF;
+    border-color: var(--primary-blue);
+  }
+  .page-pill.disabled { pointer-events: none; opacity: 0.5; }
+
+  /* ========================================================================= */
+  /* NATIVE MODAL DIALOGS (Fixed Pinned Header & Footer + Scrolling Body) */
+  /* ========================================================================= */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(3px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-dialog-box {
+    background: #FFFFFF;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 660px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    transform: translateY(12px) scale(0.97);
+    transition: transform 0.2s ease;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-overlay.open .modal-dialog-box {
+    transform: translateY(0) scale(1);
+  }
+
+  /* Form inside modal must take full available height so header & footer stay pinned */
+  .modal-dialog-box form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    margin: 0;
+  }
+
+  .modal-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #F8FAFC;
+    flex-shrink: 0;
+  }
+  .modal-title-text {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0F172A;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+  .modal-close-btn {
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    color: #64748B;
+    cursor: pointer;
+    line-height: 1;
+    border-radius: 6px;
+    padding: 2px 6px;
+  }
+  .modal-close-btn:hover {
+    color: #0F172A;
+    background: #E2E8F0;
+  }
+  .modal-body {
+    padding: 16px 20px;
+    overflow-y: auto !important;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .modal-foot {
+    padding: 12px 20px;
+    border-top: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #F8FAFC;
+    flex-shrink: 0 !important;
+  }
+
+  /* Form Elements */
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .form-grid-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 640px) {
+    .form-grid-2, .form-grid-3, .form-grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .form-group-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #334155;
+  }
+  .form-control-input {
+    width: 100%;
+    padding: 6.5px 10px;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    font-size: 12.5px;
+    outline: none;
+    color: #0F172A;
+    background: #FFFFFF;
+    box-sizing: border-box;
+  }
+  .form-control-input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header Card with Interactive Buttons & Popups -->
+<div class="staff-header-card">
+  <div class="staff-header-left">
+    <div class="staff-header-icon">
+      <i class="ti ti-user-cog"></i>
+    </div>
+    <div>
+      <h4 class="staff-header-title">Staff Users</h4>
+      <p class="staff-header-subtitle">Overview &amp; Management Hub — Salaries, Advances, and Department Allocations</p>
+    </div>
+  </div>
+  
+  <!-- Action Buttons (Popup Triggers) -->
+  <div class="staff-header-actions">
+    <!-- Refresh Button -->
+    <button type="button" class="btn btn-sky btn-sky-outline" onclick="window.location.reload()" title="Refresh Page">
+      <i class="ti ti-refresh"></i> <span>Refresh</span>
+    </button>
+    
+    <!-- Export CSV -->
+    <a href="/api/admin/staff/export/" class="btn btn-sky btn-sky-outline" title="Export Staff CSV">
+      <i class="ti ti-download"></i> <span>Export</span>
+    </a>
+
+    <!-- Staff Profile & Payment History (Directory Popup) -->
+    <button type="button" class="btn btn-sky btn-sky-soft" onclick="openStaffDirectoryPopup()" title="View Staff Profile &amp; Payment History">
+      <i class="ti ti-id-badge-2"></i> <span>Staff Profile &amp; Payment History</span>
+    </button>
+
+    <!-- Add New Staff Member (Popup) -->
+    <button type="button" class="btn btn-sky btn-sky-primary" onclick="openAddStaffModal()" title="Add New Staff Member">
+      <i class="ti ti-plus"></i> <span>+ Add Staff Member</span>
+    </button>
+  </div>
+</div>
+
+<!-- Top 4 KPI Cards Grid (Matching Image 1) -->
+<div class="staff-kpi-grid">
+  <!-- Card 1: Total Staff -->
+  <div class="staff-kpi-card card-blue">
+    <div class="staff-kpi-icon-wrap">
+      <i class="ti ti-users"></i>
+    </div>
+    <div class="staff-kpi-info">
+      <div class="staff-kpi-val">{{ kpi.total_staff_fmt }}</div>
+      <div class="staff-kpi-label">Total Staff</div>
+      <div class="staff-kpi-trend trend-up">
+        <i class="ti ti-check"></i> {{ kpi.active_staff }} Active &bull; {{ kpi.on_leave_staff }} On Leave
+      </div>
+    </div>
+    <i class="ti ti-users staff-kpi-bg-icon"></i>
+  </div>
+
+  <!-- Card 2: Total Monthly Salary -->
+  <div class="staff-kpi-card card-green">
+    <div class="staff-kpi-icon-wrap">
+      <span style="font-weight: 800; font-size: 19px;">₹</span>
+    </div>
+    <div class="staff-kpi-info">
+      <div class="staff-kpi-val">{% if is_super_admin or "staff.view_salary" in perms %}{{ kpi.total_monthly_salary }}{% else %}••••••{% endif %}</div>
+      <div class="staff-kpi-label">Total Monthly Salary</div>
+      <div class="staff-kpi-trend trend-up">
+        <i class="ti ti-chart-bar"></i> Avg: {{ kpi.avg_salary_fmt }} / staff
+      </div>
+    </div>
+    <i class="ti ti-wallet staff-kpi-bg-icon"></i>
+  </div>
+
+  <!-- Card 3: Total Paid -->
+  <div class="staff-kpi-card card-purple">
+    <div class="staff-kpi-icon-wrap">
+      <i class="ti ti-circle-check"></i>
+    </div>
+    <div class="staff-kpi-info">
+      <div class="staff-kpi-val">{% if is_super_admin or "staff.view_salary" in perms %}{{ kpi.total_paid }}{% else %}••••••{% endif %}</div>
+      <div class="staff-kpi-label">Total Paid</div>
+      <div class="staff-kpi-trend trend-up">
+        <i class="ti ti-percentage"></i> {{ kpi.paid_pct }}% Paid
+      </div>
+    </div>
+    <i class="ti ti-clipboard-check staff-kpi-bg-icon"></i>
+  </div>
+
+  <!-- Card 4: Total Pending -->
+  <div class="staff-kpi-card card-orange">
+    <div class="staff-kpi-icon-wrap">
+      <i class="ti ti-hourglass"></i>
+    </div>
+    <div class="staff-kpi-info">
+      <div class="staff-kpi-val">{% if is_super_admin or "staff.view_salary" in perms %}{{ kpi.total_pending }}{% else %}••••••{% endif %}</div>
+      <div class="staff-kpi-label">Total Pending</div>
+      <div class="staff-kpi-trend {% if kpi.pending_staff_count > 0 %}trend-down{% else %}trend-up{% endif %}">
+        <i class="ti ti-clock"></i> {{ kpi.pending_pct }}% Pending ({{ kpi.pending_staff_count }} Staff)
+      </div>
+    </div>
+    <i class="ti ti-hourglass-empty staff-kpi-bg-icon"></i>
+  </div>
+</div>
+
+<!-- Advance Salary Highlight Banner -->
+<div class="advance-summary-bar">
+  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+    <span class="advance-badge"><i class="ti ti-coin"></i> Advance Disbursed: {% if is_super_admin or "staff.view_salary" in perms %}{{ kpi.total_advance }}{% else %}••••••{% endif %}</span>
+    <span><strong>{{ kpi.active_staff }}</strong> Active</span>
+    <span>&bull;</span>
+    <span><strong>{{ kpi.on_leave_staff }}</strong> On Leave</span>
+    <span>&bull;</span>
+    <span><strong>{{ kpi.inactive_staff }}</strong> Inactive</span>
+  </div>
+  <div style="font-size: 11.5px;">
+    <i class="ti ti-shield-lock" style="color: #2563EB;"></i> Confidential Admin Portal &bull; Restricted Access
+  </div>
+</div>
+
+<!-- 3 Visual Analytics Cards (Charts Row - Matching Image 1) -->
+<div class="staff-charts-grid">
+  <!-- Chart 1: Staff by Profession / Department -->
+  <div class="staff-chart-card">
+    <div class="staff-chart-header">
+      <i class="ti ti-briefcase staff-chart-icon"></i>
+      <h5 class="staff-chart-title">Staff by Profession</h5>
+    </div>
+    <div class="donut-chart-container">
+      <div class="donut-canvas-wrap">
+        <canvas id="staffDeptChart"></canvas>
+        <div class="donut-center-label">
+          <div class="donut-center-num">{{ kpi.total_staff }}</div>
+          <div class="donut-center-sub">Staff</div>
+        </div>
+      </div>
+      <ul class="donut-legend-list">
+        {% for leg in chart_dept_legends|slice:":5" %}
+        <li class="donut-legend-item">
+          <div class="donut-legend-left">
+            <span class="legend-dot" style="background: {{ leg.color }};"></span>
+            <span class="legend-name" title="{{ leg.name }}">{{ leg.name }}</span>
+          </div>
+          <div class="donut-legend-val">
+            <span>{{ leg.count }}</span>
+            <span class="legend-pct">({{ leg.pct }}%)</span>
+          </div>
+        </li>
+        {% empty %}
+        <li class="donut-legend-item" style="color: #94A3B8;">No department data</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Chart 2: Salary by Department (Bar Chart) -->
+  <div class="staff-chart-card">
+    <div class="staff-chart-header">
+      <i class="ti ti-chart-bar staff-chart-icon"></i>
+      <h5 class="staff-chart-title">Salary by Department</h5>
+    </div>
+    <div class="bar-chart-container">
+      <canvas id="salaryDeptChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Chart 3: Payment Status -->
+  <div class="staff-chart-card">
+    <div class="staff-chart-header">
+      <i class="ti ti-credit-card staff-chart-icon"></i>
+      <h5 class="staff-chart-title">Payment Status</h5>
+    </div>
+    <div class="donut-chart-container">
+      <div class="donut-canvas-wrap">
+        <canvas id="paymentStatusChart"></canvas>
+        <div class="donut-center-label">
+          <div class="donut-center-num" style="font-size: 15px; color: #10B981;">{{ kpi.paid_pct }}%</div>
+          <div class="donut-center-sub">Paid</div>
+        </div>
+      </div>
+      <div class="payment-legend-container">
+        <!-- Paid -->
+        <div class="payment-stat-row">
+          <div class="payment-stat-header">
+            <div class="payment-stat-label">
+              <span class="legend-dot" style="background: #10B981;"></span>
+              <span>Paid</span>
+            </div>
+            <span class="payment-stat-pct badge-paid">{{ kpi.paid_pct }}%</span>
+          </div>
+          <div class="payment-stat-amount" style="color: #059669;">{{ kpi.total_paid }}</div>
+        </div>
+
+        <!-- Advance -->
+        <div class="payment-stat-row">
+          <div class="payment-stat-header">
+            <div class="payment-stat-label">
+              <span class="legend-dot" style="background: #3B82F6;"></span>
+              <span>Advance</span>
+            </div>
+            <span class="payment-stat-pct badge-advance">{{ kpi.adv_pct }}%</span>
+          </div>
+          <div class="payment-stat-amount" style="color: #2563EB;">{{ kpi.total_advance }}</div>
+        </div>
+
+        <!-- Pending -->
+        <div class="payment-stat-row">
+          <div class="payment-stat-header">
+            <div class="payment-stat-label">
+              <span class="legend-dot" style="background: #F59E0B;"></span>
+              <span>Pending</span>
+            </div>
+            <span class="payment-stat-pct badge-pending">{{ kpi.pending_pct }}%</span>
+          </div>
+          <div class="payment-stat-amount" style="color: #D97706;">{{ kpi.total_pending }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Staff Details Table Section (Compact & Fits All Columns Without Overflow) -->
+<div class="staff-table-card">
+  <div class="staff-table-header">
+    <div class="staff-table-title-wrap">
+      <i class="ti ti-users-group" style="color: #2563EB; font-size: 18px;"></i>
+      <h5 class="staff-table-title">Staff Details</h5>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="GET" action="/admin-panel/users/staff/" class="staff-filters-wrap" id="filterForm">
+      <!-- Department Filter -->
+      <select name="dept" class="staff-filter-select" onchange="document.getElementById('filterForm').submit()">
+        <option value="">All Departments</option>
+        {% for d in dept_options %}
+        <option value="{{ d }}" {% if dept_filter == d %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- Designation Filter -->
+      <select name="desig" class="staff-filter-select" onchange="document.getElementById('filterForm').submit()">
+        <option value="">All Designations</option>
+        {% for dg in desig_options %}
+        <option value="{{ dg }}" {% if desig_filter == dg %}selected{% endif %}>{{ dg }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- Status Filter -->
+      <select name="status" class="staff-filter-select" onchange="document.getElementById('filterForm').submit()">
+        <option value="">All Status</option>
+        <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+        <option value="On Leave" {% if status_filter == 'On Leave' %}selected{% endif %}>On Leave</option>
+        <option value="Inactive" {% if status_filter == 'Inactive' %}selected{% endif %}>Inactive</option>
+      </select>
+
+      <!-- Search Input -->
+      <div class="staff-search-input-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" name="q" class="staff-search-input" placeholder="Search Staff..." value="{{ search_q }}">
+      </div>
+
+      {% if dept_filter or desig_filter or status_filter or search_q %}
+      <a href="/admin-panel/users/staff/" style="color: #DC2626; font-size: 11.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="Clear Filters">
+        <i class="ti ti-x"></i> Clear
+      </a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Data Table (Compact Sizing, Fits Screen Perfectly) -->
+  <div class="staff-table-responsive">
+    <table class="staff-data-table">
+      <colgroup>
+        <col style="width: 3%;">
+        <col style="width: 4%;">
+        <col style="width: 19%;">
+        <col style="width: 9.5%;">
+        <col style="width: 13.5%;">
+        <col style="width: 8.5%;">
+        <col style="width: 8.5%;">
+        <col style="width: 8%;">
+        <col style="width: 8%;">
+        <col style="width: 12%;">
+        <col style="width: 5%;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th style="text-align: center;">#</th>
+          <th style="text-align: center;" title="Profile Photo"><i class="ti ti-photo" style="font-size: 13px;"></i></th>
+          <th>Name</th>
+          <th style="text-align: center;">Department</th>
+          <th>Designation</th>
+          <th style="text-align: right; padding-right: 8px !important;">Monthly</th>
+          <th style="text-align: right; padding-right: 8px !important;">Paid</th>
+          <th style="text-align: right; padding-right: 8px !important;">Advance</th>
+          <th style="text-align: right; padding-right: 8px !important;">Pending</th>
+          <th style="text-align: center;">Status</th>
+          <th style="text-align: center;" title="Actions"><i class="ti ti-settings" style="font-size: 13px;"></i></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in staff_list %}
+        <tr>
+          <td style="text-align: center; color: #64748B; font-weight: 600;">{{ forloop.counter }}</td>
+          <td style="text-align: center;">
+            <div class="staff-avatar-wrap">
+              {% if s.photo %}
+              <img src="{{ s.photo }}" alt="{{ s.full_name }}" class="staff-avatar-img" onerror="this.onerror=null; this.parentElement.innerHTML='{{ s.full_name|slice:':2'|upper }}'">
+              {% else %}
+              <span>{{ s.full_name|slice:":2"|upper }}</span>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div style="font-weight: 700; color: #0F172A; font-size: 12px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ s.full_name }}</div>
+            {% if s.email %}<div style="color: #64748B; font-size: 10px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ s.email }}</div>{% endif %}
+          </td>
+          <td style="text-align: center;">
+            <span style="background: #F1F5F9; color: #334155; border: 1px solid #E2E8F0; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 600; display: inline-block; white-space: nowrap;">{{ s.department }}</span>
+          </td>
+          <td>
+            <span style="font-weight: 600; color: #334155; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">{{ s.designation }}</span>
+          </td>
+          <td style="font-weight: 800; color: #0F172A; text-align: right; padding-right: 8px !important;">{% if is_super_admin or "staff.view_salary" in perms %}₹{{ s.monthly_salary_inr }}{% else %}••••••{% endif %}</td>
+          <td style="font-weight: 800; color: #059669; text-align: right; padding-right: 8px !important;">{% if is_super_admin or "staff.view_salary" in perms %}₹{{ s.total_paid_inr }}{% else %}••••••{% endif %}</td>
+          <td style="font-weight: 800; color: #2563EB; text-align: right; padding-right: 8px !important;">{% if is_super_admin or "staff.view_salary" in perms %}₹{{ s.advance_salary_inr }}{% else %}••••••{% endif %}</td>
+          <td style="font-weight: 800; text-align: right; padding-right: 8px !important; {% if s.pending_salary > 0 %}color: #D97706;{% else %}color: #94A3B8;{% endif %}">
+            {% if is_super_admin or "staff.view_salary" in perms %}₹{{ s.pending_salary_inr }}{% else %}••••••{% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if s.status == 'Active' %}
+            <span class="status-badge active"><i class="ti ti-check" style="margin-right: 2px;"></i> Active</span>
+            {% elif s.status == 'On Leave' %}
+            <span class="status-badge on-leave"><i class="ti ti-clock" style="margin-right: 2px;"></i> On Leave</span>
+            {% else %}
+            <span class="status-badge inactive"><i class="ti ti-ban" style="margin-right: 2px;"></i> Inactive</span>
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            <!-- Three Dots Action Dropdown -->
+            <div class="action-dropdown-wrapper">
+              <button type="button" class="btn btn-three-dots" title="Actions Menu" onclick="toggleStaffDropdown(event, this)">
+                <i class="ti ti-dots-vertical"></i>
+              </button>
+              <div class="dropdown-menu-popup">
+                <!-- 1. Staff Profile & Payment History -->
+                <button type="button" class="btn dropdown-item-btn" onclick="closeAllStaffDropdowns(); viewStaffDetails({{ s.id }});" style="color: #2563EB;">
+                  <i class="ti ti-eye"></i> <span>Profile &amp; History</span>
+                </button>
+
+                <!-- 2. Record Salary / Advance Payment -->
+                {% if is_super_admin or "staff.view_salary" in perms %}
+                <button type="button" class="btn dropdown-item-btn" onclick="closeAllStaffDropdowns(); openRecordPaymentModal({{ s.id }}, '{{ s.full_name|escapejs }}', {{ s.monthly_salary }}, {{ s.total_paid }}, {{ s.advance_salary }}, {{ s.pending_salary }});" style="color: #059669;">
+                  <i class="ti ti-coin"></i> <span>Pay Salary / Advance</span>
+                </button>
+                {% endif %}
+
+                <!-- 3. Edit Staff Details -->
+                <button type="button" class="btn dropdown-item-btn" onclick="closeAllStaffDropdowns(); openEditStaffModal({{ s.id }});" style="color: #0284C7;">
+                  <i class="ti ti-pencil"></i> <span>Edit Staff Details</span>
+                </button>
+
+                <div style="height: 1px; background: #E2E8F0; margin: 3px 0;"></div>
+
+                <!-- 4. Delete Staff Member -->
+                <button type="button" class="btn dropdown-item-btn text-danger" onclick="closeAllStaffDropdowns(); confirmDeleteStaff({{ s.id }}, '{{ s.full_name|escapejs }}');">
+                  <i class="ti ti-trash"></i> <span>Delete Staff Member</span>
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="11" style="text-align: center; padding: 36px 16px;">
+            <i class="ti ti-users-group" style="font-size: 38px; color: #94A3B8; display: block; margin-bottom: 6px;"></i>
+            <h6 style="font-weight: 700; color: #0F172A; margin: 0 0 4px 0;">No Staff Records Found</h6>
+            <p style="color: #64748B; font-size: 12px; margin: 0 0 14px 0;">No staff members match the selected filters or search query.</p>
+            <button type="button" class="btn btn-sky btn-sky-primary" onclick="openAddStaffModal()">
+              <i class="ti ti-plus"></i> Add New Staff Member
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Table Footer & Pagination -->
+  <div class="staff-table-footer">
+    <div class="staff-footer-info">
+      Showing {{ page_obj.start_index|default:0 }} to {{ page_obj.end_index|default:0 }} of {{ page_obj.paginator.count|default:0 }} staff
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination-pills">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&amp;dept={{ dept_filter }}&amp;desig={{ desig_filter }}&amp;status={{ status_filter }}&amp;q={{ search_q }}" class="page-pill">&lt;</a>
+      {% else %}
+      <span class="page-pill disabled">&lt;</span>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="page-pill active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}&amp;dept={{ dept_filter }}&amp;desig={{ desig_filter }}&amp;status={{ status_filter }}&amp;q={{ search_q }}" class="page-pill">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&amp;dept={{ dept_filter }}&amp;desig={{ desig_filter }}&amp;status={{ status_filter }}&amp;q={{ search_q }}" class="page-pill">&gt;</a>
+      {% else %}
+      <span class="page-pill disabled">&gt;</span>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 1: ADD NEW STAFF MEMBER (Popup with Fixed Header & Save Footer) -->
+<!-- ========================================================================= -->
+<div class="modal-overlay" id="addStaffModalOverlay">
+  <div class="modal-dialog-box">
+    <div class="modal-head">
+      <div class="modal-title-text">
+        <i class="ti ti-user-plus" style="color: #2563EB;"></i>
+        <span>Add New Staff Member</span>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('addStaffModalOverlay')">&times;</button>
+    </div>
+    <form id="addStaffForm" onsubmit="submitAddStaff(event)">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-group-label">Full Name <span style="color: #DC2626;">*</span></label>
+            <input type="text" name="full_name" class="form-control-input" required placeholder="e.g. Harilal Kumar">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Email Address</label>
+            <input type="email" name="email" class="form-control-input" placeholder="staff@skyvisiongroup.in">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-group-label">Mobile Number</label>
+            <input type="text" name="phone" class="form-control-input" placeholder="+91 9876543210">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Department <span style="color: #DC2626;">*</span></label>
+            <input type="text" name="department" class="form-control-input" list="addDeptList" required placeholder="e.g. IT, HR, Marketing">
+            <datalist id="addDeptList">
+              <option value="IT">
+              <option value="HR">
+              <option value="Marketing">
+              <option value="Finance">
+              <option value="Operations">
+              <option value="Recruitment">
+            </datalist>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-group-label">Designation / Post <span style="color: #DC2626;">*</span></label>
+            <input type="text" name="designation" class="form-control-input" required placeholder="e.g. Software Developer, HR Executive">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Employment Status</label>
+            <select name="status" class="form-control-input">
+              <option value="Active" selected>Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-4">
+          <div class="form-group">
+            <label class="form-group-label">Monthly Salary (₹) <span style="color: #DC2626;">*</span></label>
+            <input type="number" step="0.01" name="monthly_salary" id="addMonthlySalary" class="form-control-input" required placeholder="50000" oninput="calcAddPending()">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Already Paid (₹)</label>
+            <input type="number" step="0.01" name="total_paid" id="addTotalPaid" class="form-control-input" value="0" oninput="calcAddPending()">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Advance Salary (₹)</label>
+            <input type="number" step="0.01" name="advance_salary" id="addAdvanceSalary" class="form-control-input" value="0" oninput="calcAddPending()">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Pending Salary (₹)</label>
+            <input type="number" step="0.01" name="pending_salary" id="addPendingSalary" class="form-control-input" value="0">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-group-label">Date of Joining</label>
+            <input type="date" name="joining_date" class="form-control-input">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Profile Photo</label>
+            <input type="file" name="photo" class="form-control-input" accept="image/*">
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-group-label">Bank Name</label>
+            <input type="text" name="bank_name" class="form-control-input" placeholder="e.g. SBI, HDFC">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Account Number</label>
+            <input type="text" name="bank_account_no" class="form-control-input" placeholder="30987654321">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">IFSC Code</label>
+            <input type="text" name="ifsc_code" class="form-control-input" placeholder="SBIN0001234">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-group-label">Residential Address</label>
+          <input type="text" name="address" class="form-control-input" placeholder="Full postal address...">
+        </div>
+      </div>
+      <!-- Fixed Pinned Footer with Save Button -->
+      <div class="modal-foot">
+        <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('addStaffModalOverlay')">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-sky btn-sky-primary" id="btnAddStaffSubmit" style="padding: 9px 24px !important; font-size: 13px !important;">
+          <i class="ti ti-device-floppy"></i> Save Staff Member
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 2: EDIT STAFF DETAILS (Popup with Fixed Header & Update Footer) -->
+<!-- ========================================================================= -->
+<div class="modal-overlay" id="editStaffModalOverlay">
+  <div class="modal-dialog-box">
+    <div class="modal-head">
+      <div class="modal-title-text">
+        <i class="ti ti-pencil" style="color: #0284C7;"></i>
+        <span>Edit Staff Details</span>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('editStaffModalOverlay')">&times;</button>
+    </div>
+    <form id="editStaffForm" onsubmit="submitEditStaff(event)">
+      {% csrf_token %}
+      <input type="hidden" name="staff_id" id="editStaffId">
+      <div class="modal-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-group-label">Full Name <span style="color: #DC2626;">*</span></label>
+            <input type="text" name="full_name" id="editFullName" class="form-control-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Email Address</label>
+            <input type="email" name="email" id="editEmail" class="form-control-input">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-group-label">Mobile Number</label>
+            <input type="text" name="phone" id="editPhone" class="form-control-input">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Department <span style="color: #DC2626;">*</span></label>
+            <input type="text" name="department" id="editDepartment" class="form-control-input" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-group-label">Designation / Post <span style="color: #DC2626;">*</span></label>
+            <input type="text" name="designation" id="editDesignation" class="form-control-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Employment Status</label>
+            <select name="status" id="editStatus" class="form-control-input">
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-4">
+          <div class="form-group">
+            <label class="form-group-label">Monthly Salary (₹) <span style="color: #DC2626;">*</span></label>
+            <input type="number" step="0.01" name="monthly_salary" id="editMonthlySalary" class="form-control-input" required oninput="calcEditPending()">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Total Paid (₹)</label>
+            <input type="number" step="0.01" name="total_paid" id="editTotalPaid" class="form-control-input" oninput="calcEditPending()">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Advance Salary (₹)</label>
+            <input type="number" step="0.01" name="advance_salary" id="editAdvanceSalary" class="form-control-input" oninput="calcEditPending()">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Pending Salary (₹)</label>
+            <input type="number" step="0.01" name="pending_salary" id="editPendingSalary" class="form-control-input">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-group-label">Date of Joining</label>
+            <input type="date" name="joining_date" id="editJoiningDate" class="form-control-input">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Change Photo (optional)</label>
+            <input type="file" name="photo" class="form-control-input" accept="image/*">
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-group-label">Bank Name</label>
+            <input type="text" name="bank_name" id="editBankName" class="form-control-input">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Account Number</label>
+            <input type="text" name="bank_account_no" id="editAccountNo" class="form-control-input">
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">IFSC Code</label>
+            <input type="text" name="ifsc_code" id="editIfsc" class="form-control-input">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-group-label">Address</label>
+          <input type="text" name="address" id="editAddress" class="form-control-input">
+        </div>
+      </div>
+      <!-- Fixed Pinned Footer with Update Button -->
+      <div class="modal-foot">
+        <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('editStaffModalOverlay')">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-sky btn-sky-primary" id="btnEditStaffSubmit" style="padding: 9px 24px !important; font-size: 13px !important;">
+          <i class="ti ti-device-floppy"></i> Update Staff Details
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 3: STAFF PROFILE & PAYMENT HISTORY (Popup) -->
+<!-- ========================================================================= -->
+<div class="modal-overlay" id="viewStaffModalOverlay">
+  <div class="modal-dialog-box" style="max-width: 720px;">
+    <div class="modal-head">
+      <div class="modal-title-text">
+        <i class="ti ti-id-badge-2" style="color: #2563EB;"></i>
+        <span>Staff Profile &amp; Payment History</span>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('viewStaffModalOverlay')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="viewStaffLoading" style="text-align: center; padding: 36px 0;">
+        <i class="ti ti-loader" style="font-size: 26px; color: #2563EB;"></i>
+        <div style="color: #64748B; font-size: 12px; margin-top: 6px;">Loading staff profile &amp; payment records...</div>
+      </div>
+
+      <div id="viewStaffContent" style="display: none;">
+        <!-- Employee Header Badge -->
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="staff-avatar-wrap" style="width: 46px; height: 46px; font-size: 16px; margin: 0;" id="viewAvatar"></div>
+            <div>
+              <h5 style="margin: 0; font-weight: 800; color: #0F172A; font-size: 15px;" id="viewName">Staff Name</h5>
+              <div style="color: #64748B; font-size: 12px; margin-top: 2px;" id="viewDesignationDept">Designation &bull; Department</div>
+              <div id="viewStatusBadge" style="margin-top: 3px;"></div>
+            </div>
+          </div>
+          <div>
+            <button type="button" class="btn btn-sky btn-sky-success" id="viewPayBtn" style="padding: 6px 14px !important; font-size: 12px !important;">
+              <i class="ti ti-coin"></i> Record Payment
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Metric Cards Breakdown -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; text-align: center;">
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 6px;">
+            <div style="font-size: 10.5px; font-weight: 600; color: #64748B;">Monthly Salary</div>
+            <div style="font-size: 14px; font-weight: 800; color: #0F172A; margin-top: 2px;" id="viewMonthlySalary">₹0</div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 6px;">
+            <div style="font-size: 10.5px; font-weight: 600; color: #64748B;">Total Paid</div>
+            <div style="font-size: 14px; font-weight: 800; color: #059669; margin-top: 2px;" id="viewTotalPaid">₹0</div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 6px;">
+            <div style="font-size: 10.5px; font-weight: 600; color: #64748B;">Advance Given</div>
+            <div style="font-size: 14px; font-weight: 800; color: #2563EB; margin-top: 2px;" id="viewAdvanceSalary">₹0</div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 6px;">
+            <div style="font-size: 10.5px; font-weight: 600; color: #64748B;">Pending Balance</div>
+            <div style="font-size: 14px; font-weight: 800; color: #D97706; margin-top: 2px;" id="viewPendingSalary">₹0</div>
+          </div>
+        </div>
+
+        <!-- Contact & Banking Info -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px;">
+            <div style="font-weight: 700; font-size: 12px; color: #0F172A; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+              <i class="ti ti-phone" style="color: #2563EB;"></i> Contact Details
+            </div>
+            <div style="font-size: 11.5px; color: #64748B; margin-bottom: 3px;">Email: <strong style="color: #0F172A;" id="viewEmail">—</strong></div>
+            <div style="font-size: 11.5px; color: #64748B; margin-bottom: 3px;">Phone: <strong style="color: #0F172A;" id="viewPhone">—</strong></div>
+            <div style="font-size: 11.5px; color: #64748B; margin-bottom: 3px;">Joined: <strong style="color: #0F172A;" id="viewJoiningDate">—</strong></div>
+            <div style="font-size: 11.5px; color: #64748B;">Address: <strong style="color: #0F172A;" id="viewAddress">—</strong></div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px;">
+            <div style="font-weight: 700; font-size: 12px; color: #0F172A; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+              <i class="ti ti-building-bank" style="color: #2563EB;"></i> Banking Information
+            </div>
+            <div style="font-size: 11.5px; color: #64748B; margin-bottom: 3px;">Bank: <strong style="color: #0F172A;" id="viewBankName">—</strong></div>
+            <div style="font-size: 11.5px; color: #64748B; margin-bottom: 3px;">Account: <strong style="color: #0F172A; font-family: monospace;" id="viewAccountNo">—</strong></div>
+            <div style="font-size: 11.5px; color: #64748B;">IFSC Code: <strong style="color: #0F172A; font-family: monospace;" id="viewIfsc">—</strong></div>
+          </div>
+        </div>
+
+        <!-- Payment History Table -->
+        <div style="font-weight: 700; font-size: 12.5px; color: #0F172A; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+          <i class="ti ti-receipt" style="color: #2563EB;"></i> Payment &amp; Advance History
+        </div>
+        <div style="border: 1px solid #E2E8F0; border-radius: 6px; overflow: hidden;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 11.5px;">
+            <thead>
+              <tr style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0; text-align: left;">
+                <th style="padding: 6px 10px; font-weight: 700; color: #475569;">Date</th>
+                <th style="padding: 6px 10px; font-weight: 700; color: #475569;">Amount</th>
+                <th style="padding: 6px 10px; font-weight: 700; color: #475569;">Type</th>
+                <th style="padding: 6px 10px; font-weight: 700; color: #475569;">Mode</th>
+                <th style="padding: 6px 10px; font-weight: 700; color: #475569;">Ref ID</th>
+                <th style="padding: 6px 10px; font-weight: 700; color: #475569;">Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="viewPaymentHistoryBody">
+              <!-- Inserted by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('viewStaffModalOverlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 4: RECORD SALARY / ADVANCE PAYMENT (Popup) -->
+<!-- ========================================================================= -->
+<div class="modal-overlay" id="recordPaymentModalOverlay">
+  <div class="modal-dialog-box" style="max-width: 480px;">
+    <div class="modal-head">
+      <div class="modal-title-text">
+        <i class="ti ti-coin" style="color: #10B981;"></i>
+        <span>Record Salary / Advance Payment</span>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('recordPaymentModalOverlay')">&times;</button>
+    </div>
+    <form id="recordPaymentForm" onsubmit="submitRecordPayment(event)">
+      {% csrf_token %}
+      <input type="hidden" name="staff_id" id="payStaffId">
+      <div class="modal-body">
+        <div style="background: #F1F5F9; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #334155; margin-bottom: 12px;" id="payStaffSummary">
+          <!-- Summary filled by JS -->
+        </div>
+
+        <div class="form-group">
+          <label class="form-group-label">Payment Type <span style="color: #DC2626;">*</span></label>
+          <select name="payment_type" id="payType" class="form-control-input" required>
+            <option value="salary">Salary Disbursement</option>
+            <option value="advance">Advance Salary</option>
+            <option value="bonus">Bonus / Incentive</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-group-label">Payment Amount (₹) <span style="color: #DC2626;">*</span></label>
+          <input type="number" step="0.01" name="amount" id="payAmount" class="form-control-input" required placeholder="e.g. 5000">
+        </div>
+
+        <div class="form-group">
+          <label class="form-group-label">Payment Date</label>
+          <input type="date" name="payment_date" id="payDate" class="form-control-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-group-label">Payment Mode</label>
+          <select name="payment_mode" class="form-control-input">
+            <option value="Bank Transfer" selected>Bank Transfer (NEFT/RTGS/IMPS)</option>
+            <option value="UPI">UPI / QR Code</option>
+            <option value="Cash">Cash</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-group-label">Transaction / Reference ID</label>
+          <input type="text" name="reference_id" class="form-control-input" placeholder="e.g. UTR987654321">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-group-label">Remarks / Note</label>
+          <input type="text" name="remarks" class="form-control-input" placeholder="e.g. Monthly salary payout">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('recordPaymentModalOverlay')">Cancel</button>
+        <button type="submit" class="btn btn-sky btn-sky-success" id="btnPaySubmit" style="padding: 8px 20px !important;">
+          <i class="ti ti-check"></i> Confirm &amp; Record Payment
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 5: DELETE STAFF MEMBER CONFIRMATION (Popup) -->
+<!-- ========================================================================= -->
+<div class="modal-overlay" id="deleteStaffModalOverlay">
+  <div class="modal-dialog-box" style="max-width: 400px;">
+    <div class="modal-head" style="background: #FEF2F2; border-bottom: 1px solid #FECACA;">
+      <div class="modal-title-text" style="color: #DC2626;">
+        <i class="ti ti-alert-triangle"></i>
+        <span>Delete Staff Member?</span>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('deleteStaffModalOverlay')">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align: center; padding: 20px 16px;">
+      <div style="width: 46px; height: 46px; border-radius: 50%; background: #FEE2E2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 10px auto;">
+        <i class="ti ti-trash"></i>
+      </div>
+      <h6 style="font-weight: 800; color: #0F172A; margin: 0 0 4px 0; font-size: 15px;">Are you sure?</h6>
+      <p style="color: #64748B; font-size: 12px; margin: 0 0 12px 0;">
+        You are about to delete <strong style="color: #0F172A;" id="deleteStaffName">this staff member</strong>. Their profile, salary history, and advances will be permanently removed.
+      </p>
+    </div>
+    <div class="modal-foot" style="background: #FEF2F2; border-top: 1px solid #FECACA;">
+      <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('deleteStaffModalOverlay')">Cancel</button>
+      <button type="button" class="btn btn-sky btn-sky-danger" id="btnConfirmDelete" onclick="executeDeleteStaff()" style="padding: 8px 18px !important;">
+        <i class="ti ti-trash"></i> Yes, Delete Staff
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 6: QUICK DIRECTORY SELECTOR (From Top Button) -->
+<!-- ========================================================================= -->
+<div class="modal-overlay" id="staffDirectoryModalOverlay">
+  <div class="modal-dialog-box" style="max-width: 600px;">
+    <div class="modal-head">
+      <div class="modal-title-text">
+        <i class="ti ti-id-badge-2" style="color: #2563EB;"></i>
+        <span>Select Staff Member to View Profile &amp; History</span>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('staffDirectoryModalOverlay')">&times;</button>
+    </div>
+    <div class="modal-body" style="padding: 14px 18px;">
+      <div style="margin-bottom: 10px; position: relative;">
+        <i class="ti ti-search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 13px;"></i>
+        <input type="text" id="quickStaffSearch" class="form-control-input" style="padding-left: 28px;" placeholder="Filter by staff name or department..." oninput="filterQuickStaffList(this.value)">
+      </div>
+      <div style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;" id="quickStaffList">
+        {% for s in staff_list %}
+        <div class="quick-staff-item" data-name="{{ s.full_name|lower }}" data-dept="{{ s.department|lower }}" style="padding: 8px 12px; border: 1px solid #E2E8F0; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #FFFFFF; transition: all 0.15s ease;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="staff-avatar-wrap" style="width: 28px; height: 28px; font-size: 10px; margin: 0;">
+              {% if s.photo %}
+              <img src="{{ s.photo }}" alt="{{ s.full_name }}" class="staff-avatar-img">
+              {% else %}
+              <span>{{ s.full_name|slice:":2"|upper }}</span>
+              {% endif %}
+            </div>
+            <div>
+              <div style="font-weight: 700; color: #0F172A; font-size: 12px;">{{ s.full_name }}</div>
+              <div style="font-size: 11px; color: #64748B;">{{ s.designation }} &bull; {{ s.department }}</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-weight: 700; font-size: 11.5px; color: #059669;">₹{{ s.monthly_salary|floatformat:0 }}</span>
+            <button type="button" class="btn btn-sky btn-sky-soft" style="padding: 3px 9px !important; font-size: 11px !important;" onclick="closeModal('staffDirectoryModalOverlay'); viewStaffDetails({{ s.id }});">
+              <i class="ti ti-eye"></i> View Profile
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-sky btn-sky-outline" onclick="closeModal('staffDirectoryModalOverlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // 1. Chart.js Data Initializer
+  const chartPayload = {{ chart_payload_json|safe }};
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initStaffDeptChart();
+    initSalaryDeptChart();
+    initPaymentStatusChart();
+  });
+
+  function initStaffDeptChart() {
+    const ctx = document.getElementById('staffDeptChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: chartPayload.dept_chart.labels,
+        datasets: [{
+          data: chartPayload.dept_chart.data,
+          backgroundColor: chartPayload.dept_chart.colors,
+          borderWidth: 2,
+          borderColor: '#FFFFFF',
+          hoverOffset: 3
+        }]
+      },
+      options: {
+        cutout: '72%',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = chartPayload.total_staff || 1;
+                const val = context.raw || 0;
+                const pct = ((val / total) * 100).toFixed(1);
+                return ` ${context.label}: ${val} staff (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function initSalaryDeptChart() {
+    const ctx = document.getElementById('salaryDeptChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartPayload.sal_chart.labels,
+        datasets: [{
+          data: chartPayload.sal_chart.data,
+          backgroundColor: chartPayload.sal_chart.colors,
+          borderRadius: 5,
+          barThickness: 22,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return ` Salary: ₹${Number(context.raw).toLocaleString('en-IN')}`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#F1F5F9' },
+            ticks: {
+              font: { size: 10 },
+              callback: function(value) {
+                if (value >= 100000) return (value / 100000) + 'L';
+                if (value >= 1000) return (value / 1000) + 'K';
+                return value;
+              }
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 10.5, weight: '600' } }
+          }
+        }
+      }
+    });
+  }
+
+  function initPaymentStatusChart() {
+    const ctx = document.getElementById('paymentStatusChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: chartPayload.payment_chart.labels,
+        datasets: [{
+          data: chartPayload.payment_chart.data,
+          backgroundColor: chartPayload.payment_chart.colors,
+          borderWidth: 2,
+          borderColor: '#FFFFFF',
+          hoverOffset: 3
+        }]
+      },
+      options: {
+        cutout: '72%',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return ` ${context.label}: ₹${Number(context.raw).toLocaleString('en-IN')}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // =========================================================================
+  // NATIVE MODAL OPEN / CLOSE CONTROLLERS
+  // =========================================================================
+
+  // Three Dots Action Dropdown Handler
+  window.toggleStaffDropdown = function(e, btn) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const wrapper = btn.closest('.action-dropdown-wrapper');
+    if (!wrapper) return;
+    const menu = wrapper.querySelector('.dropdown-menu-popup');
+    if (!menu) return;
+
+    const isOpen = menu.classList.contains('show');
+    closeAllStaffDropdowns();
+
+    if (!isOpen) {
+      menu.classList.add('show');
+      menu.style.display = 'flex';
+      menu.style.position = 'fixed';
+      menu.style.zIndex = '999999';
+
+      const rect = btn.getBoundingClientRect();
+      const menuHeight = menu.offsetHeight || 160;
+      const spaceBelow = window.innerHeight - rect.bottom;
+
+      menu.style.left = 'auto';
+      menu.style.right = Math.max(12, (window.innerWidth - rect.right)) + 'px';
+
+      if (spaceBelow < menuHeight && rect.top > menuHeight) {
+        menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+        menu.style.top = 'auto';
+      } else {
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.bottom = 'auto';
+      }
+    }
+  };
+
+  window.closeAllStaffDropdowns = function() {
+    document.querySelectorAll('.dropdown-menu-popup.show').forEach(m => {
+      m.classList.remove('show');
+      m.style.display = 'none';
+    });
+  };
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.action-dropdown-wrapper')) {
+      closeAllStaffDropdowns();
+    }
+  });
+
+  window.addEventListener('scroll', function() {
+    closeAllStaffDropdowns();
+  }, true);
+
+  function openModal(modalId) {
+    const el = document.getElementById(modalId);
+    if (el) el.classList.add('open');
+  }
+
+  function closeModal(modalId) {
+    const el = document.getElementById(modalId);
+    if (el) el.classList.remove('open');
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        overlay.classList.remove('open');
+      }
+    });
+  });
+
+  function calcAddPending() {
+    const sal = parseFloat(document.getElementById('addMonthlySalary').value) || 0;
+    const paid = parseFloat(document.getElementById('addTotalPaid').value) || 0;
+    const adv = parseFloat(document.getElementById('addAdvanceSalary').value) || 0;
+    const pend = Math.max(0, sal - (paid + adv));
+    const pendInput = document.getElementById('addPendingSalary');
+    if (pendInput) pendInput.value = pend;
+  }
+
+  function calcEditPending() {
+    const sal = parseFloat(document.getElementById('editMonthlySalary').value) || 0;
+    const paid = parseFloat(document.getElementById('editTotalPaid').value) || 0;
+    const adv = parseFloat(document.getElementById('editAdvanceSalary').value) || 0;
+    const pend = Math.max(0, sal - (paid + adv));
+    const pendInput = document.getElementById('editPendingSalary');
+    if (pendInput) pendInput.value = pend;
+  }
+
+  function reloadFreshPage() {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_t', Date.now());
+      window.location.href = url.toString();
+    } catch(e) {
+      window.location.reload();
+    }
+  }
+
+  function openAddStaffModal() {
+    document.getElementById('addStaffForm').reset();
+    calcAddPending();
+    openModal('addStaffModalOverlay');
+  }
+
+  function openStaffDirectoryPopup() {
+    document.getElementById('quickStaffSearch').value = '';
+    filterQuickStaffList('');
+    openModal('staffDirectoryModalOverlay');
+  }
+
+  function filterQuickStaffList(q) {
+    q = (q || '').toLowerCase().trim();
+    const items = document.querySelectorAll('.quick-staff-item');
+    items.forEach(it => {
+      const name = it.dataset.name || '';
+      const dept = it.dataset.dept || '';
+      if (!q || name.includes(q) || dept.includes(q)) {
+        it.style.display = 'flex';
+      } else {
+        it.style.display = 'none';
+      }
+    });
+  }
+
+  function submitAddStaff(e) {
+    e.preventDefault();
+    const form = document.getElementById('addStaffForm');
+    const formData = new FormData(form);
+    const btn = document.getElementById('btnAddStaffSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader"></i> Saving...';
+
+    fetch('/api/admin/staff/add/', {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save Staff Member';
+      if (data.status === 'success') {
+        closeModal('addStaffModalOverlay');
+        reloadFreshPage();
+      } else {
+        alert(data.message || 'Failed to add staff member.');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save Staff Member';
+      alert('Error: ' + err);
+    });
+  }
+
+  function openEditStaffModal(staffId) {
+    fetch(`/api/admin/staff/${staffId}/detail/`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const s = data.staff;
+          document.getElementById('editStaffId').value = s.id;
+          document.getElementById('editFullName').value = s.full_name;
+          document.getElementById('editEmail').value = s.email;
+          document.getElementById('editPhone').value = s.phone;
+          document.getElementById('editDepartment').value = s.department;
+          document.getElementById('editDesignation').value = s.designation;
+          document.getElementById('editStatus').value = s.status;
+          document.getElementById('editMonthlySalary').value = s.monthly_salary;
+          document.getElementById('editTotalPaid').value = s.total_paid;
+          document.getElementById('editAdvanceSalary').value = s.advance_salary;
+          document.getElementById('editPendingSalary').value = s.pending_salary;
+          document.getElementById('editJoiningDate').value = s.joining_date;
+          document.getElementById('editBankName').value = s.bank_name;
+          document.getElementById('editAccountNo').value = s.bank_account_no;
+          document.getElementById('editIfsc').value = s.ifsc_code;
+          document.getElementById('editAddress').value = s.address;
+
+          openModal('editStaffModalOverlay');
+        } else {
+          alert('Failed to load staff details: ' + data.message);
+        }
+      });
+  }
+
+  function submitEditStaff(e) {
+    e.preventDefault();
+    const form = document.getElementById('editStaffForm');
+    const staffId = document.getElementById('editStaffId').value;
+    const formData = new FormData(form);
+    const btn = document.getElementById('btnEditStaffSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader"></i> Updating...';
+
+    fetch(`/api/admin/staff/${staffId}/update/`, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-device-floppy"></i> Update Staff Details';
+      if (data.status === 'success') {
+        closeModal('editStaffModalOverlay');
+        reloadFreshPage();
+      } else {
+        alert(data.message || 'Failed to update staff member.');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-device-floppy"></i> Update Staff Details';
+      alert('Error updating staff: ' + err);
+    });
+  }
+
+  function viewStaffDetails(staffId) {
+    openModal('viewStaffModalOverlay');
+    document.getElementById('viewStaffLoading').style.display = 'block';
+    document.getElementById('viewStaffContent').style.display = 'none';
+
+    fetch(`/api/admin/staff/${staffId}/detail/`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('viewStaffLoading').style.display = 'none';
+        if (data.status === 'success') {
+          const s = data.staff;
+          document.getElementById('viewStaffContent').style.display = 'block';
+          document.getElementById('viewName').innerText = s.full_name;
+          document.getElementById('viewDesignationDept').innerText = `${s.designation} • ${s.department}`;
+
+          const av = document.getElementById('viewAvatar');
+          if (s.photo) {
+            av.innerHTML = `<img src="${s.photo}" alt="${s.full_name}" class="staff-avatar-img">`;
+          } else {
+            av.innerHTML = `<span>${s.full_name.slice(0, 2).toUpperCase()}</span>`;
+          }
+
+          document.getElementById('viewStatusBadge').innerHTML =
+            s.status === 'Active' ? '<span class="status-badge active"><i class="ti ti-check" style="margin-right:2px;"></i> Active</span>' :
+            s.status === 'On Leave' ? '<span class="status-badge on-leave"><i class="ti ti-clock" style="margin-right:2px;"></i> On Leave</span>' :
+            '<span class="status-badge inactive"><i class="ti ti-ban" style="margin-right:2px;"></i> Inactive</span>';
+
+          document.getElementById('viewMonthlySalary').innerText = s.monthly_salary_fmt;
+          document.getElementById('viewTotalPaid').innerText = s.total_paid_fmt;
+          document.getElementById('viewAdvanceSalary').innerText = s.advance_salary_fmt;
+          document.getElementById('viewPendingSalary').innerText = s.pending_salary_fmt;
+
+          document.getElementById('viewEmail').innerText = s.email || '—';
+          document.getElementById('viewPhone').innerText = s.phone || '—';
+          document.getElementById('viewJoiningDate').innerText = s.joining_date || '—';
+          document.getElementById('viewAddress').innerText = s.address || '—';
+
+          document.getElementById('viewBankName').innerText = s.bank_name || '—';
+          document.getElementById('viewAccountNo').innerText = s.bank_account_no || '—';
+          document.getElementById('viewIfsc').innerText = s.ifsc_code || '—';
+
+          document.getElementById('viewPayBtn').onclick = function() {
+            closeModal('viewStaffModalOverlay');
+            openRecordPaymentModal(s.id, s.full_name, s.monthly_salary, s.total_paid, s.advance_salary, s.pending_salary);
+          };
+
+          const tbody = document.getElementById('viewPaymentHistoryBody');
+          tbody.innerHTML = '';
+          if (s.payments && s.payments.length > 0) {
+            s.payments.forEach(p => {
+              const row = document.createElement('tr');
+              row.style.borderBottom = '1px solid #F1F5F9';
+              const typeBadge = p.payment_type === 'advance' ?
+                '<span style="background:#DBEAFE; color:#1D4ED8; padding:2px 6px; border-radius:10px; font-weight:700; font-size:10px;">Advance</span>' :
+                '<span style="background:#DCFCE7; color:#15803D; padding:2px 6px; border-radius:10px; font-weight:700; font-size:10px;">Salary</span>';
+              row.innerHTML = `
+                <td style="padding: 6px 10px;">${p.payment_date}</td>
+                <td style="padding: 6px 10px; font-weight: 700;">${p.amount_fmt}</td>
+                <td style="padding: 6px 10px;">${typeBadge}</td>
+                <td style="padding: 6px 10px;">${p.payment_mode}</td>
+                <td style="padding: 6px 10px; font-family: monospace; color: #64748B;">${p.reference_id || '—'}</td>
+                <td style="padding: 6px 10px; color: #64748B;">${p.remarks || '—'}</td>
+              `;
+              tbody.appendChild(row);
+            });
+          } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94A3B8; padding: 16px 10px;">No payments recorded yet.</td></tr>';
+          }
+        } else {
+          alert('Error loading profile: ' + data.message);
+        }
+      });
+  }
+
+  function openRecordPaymentModal(staffId, staffName, monthly, paid, advance, pending) {
+    document.getElementById('recordPaymentForm').reset();
+    document.getElementById('payStaffId').value = staffId;
+    document.getElementById('payDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('payStaffSummary').innerHTML = `
+      <div style="font-weight: 700; color: #0F172A; margin-bottom: 2px;">${staffName}</div>
+      <div style="font-size: 11.5px; color: #64748B;">
+        Monthly: <strong>₹${Number(monthly).toLocaleString('en-IN')}</strong> &bull;
+        Paid: <strong style="color: #059669;">₹${Number(paid).toLocaleString('en-IN')}</strong> &bull;
+        Advance: <strong style="color: #2563EB;">₹${Number(advance).toLocaleString('en-IN')}</strong> &bull;
+        Pending: <strong style="color: #D97706;">₹${Number(pending).toLocaleString('en-IN')}</strong>
+      </div>
+    `;
+
+    if (pending > 0) {
+      document.getElementById('payAmount').value = pending;
+    }
+
+    openModal('recordPaymentModalOverlay');
+  }
+
+  function submitRecordPayment(e) {
+    e.preventDefault();
+    const form = document.getElementById('recordPaymentForm');
+    const staffId = document.getElementById('payStaffId').value;
+    const formData = new FormData(form);
+    const btn = document.getElementById('btnPaySubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader"></i> Processing...';
+
+    fetch(`/api/admin/staff/${staffId}/record-payment/`, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-check"></i> Confirm &amp; Record Payment';
+      if (data.status === 'success') {
+        closeModal('recordPaymentModalOverlay');
+        reloadFreshPage();
+      } else {
+        alert(data.message || 'Payment recording failed.');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-check"></i> Confirm &amp; Record Payment';
+      alert('Error recording payment: ' + err);
+    });
+  }
+
+  let deleteTargetId = null;
+  function confirmDeleteStaff(staffId, staffName) {
+    deleteTargetId = staffId;
+    document.getElementById('deleteStaffName').innerText = staffName;
+    openModal('deleteStaffModalOverlay');
+  }
+
+  function executeDeleteStaff() {
+    if (!deleteTargetId) return;
+    const btn = document.getElementById('btnConfirmDelete');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader"></i> Deleting...';
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ?
+      document.querySelector('[name=csrfmiddlewaretoken]').value : '';
+
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', csrfToken);
+
+    fetch(`/api/admin/staff/${deleteTargetId}/delete/`, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-trash"></i> Yes, Delete Staff';
+      if (data.status === 'success') {
+        closeModal('deleteStaffModalOverlay');
+        reloadFreshPage();
+      } else {
+        alert(data.message || 'Deletion failed.');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-trash"></i> Yes, Delete Staff';
+      alert('Error deleting staff: ' + err);
+    });
+  }
+</script>
+{% endblock %}

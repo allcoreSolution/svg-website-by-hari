@@ -1,0 +1,101 @@
+{% extends 'candidate_portal/base_candidate.html' %}
+{% load static %}
+
+{% block title %}My Documents & Resume — Candidate Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">My Documents &amp; Resume</h3>
+    <p class="text-muted mb-0">Manage and view your uploaded resume and candidate documents.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+          <i class="ti ti-file-text"></i>
+        </div>
+        <div>
+          <h5 class="fw-bold mb-0">Candidate Resume</h5>
+          <span class="text-muted small">PDF, DOC, or DOCX file</span>
+        </div>
+      </div>
+
+      {% if candidate.resume %}
+        <div class="alert alert-light border rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2 text-truncate">
+            <i class="ti ti-paperclip text-primary fs-5"></i>
+            <span class="fw-semibold text-dark text-truncate">{{ candidate.resume }}</span>
+          </div>
+          <a href="/media/uploads/resumes/{{ candidate.resume }}" target="_blank" class="btn btn-primary btn-sm rounded-pill px-3">
+            <i class="ti ti-download me-1"></i> Download
+          </a>
+        </div>
+      {% else %}
+        <div class="alert alert-warning border-0 rounded-3 p-3 mb-3">
+          <i class="ti ti-alert-circle me-1"></i> No resume uploaded yet. Update your resume in your profile.
+        </div>
+      {% endif %}
+
+      <div class="mt-auto pt-3 border-top">
+        <a href="/candidate/profile/" class="btn btn-outline-primary btn-sm rounded-pill w-100"><i class="ti ti-upload me-1"></i> Update Resume in Profile</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="stat-icon bg-success bg-opacity-10 text-success">
+          <i class="ti ti-shield-check"></i>
+        </div>
+        <div>
+          <h5 class="fw-bold mb-0">Account Verification</h5>
+          <span class="text-muted small">Admin Approval Status</span>
+        </div>
+      </div>
+
+      <div class="p-3 bg-light rounded-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small">Status:</span>
+          {% if candidate.approval_status == 'approved' %}
+            <span class="badge bg-success badge-status">Approved</span>
+          {% else %}
+            <span class="badge bg-warning badge-status">Pending Approval</span>
+          {% endif %}
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted small">Registered Email:</span>
+          <span class="fw-bold small">{{ candidate.email }}</span>
+        </div>
+      </div>
+
+      <div class="mt-auto pt-3 border-top">
+        <a href="/candidate/internships/" class="btn btn-outline-primary btn-sm rounded-pill w-100"><i class="ti ti-school me-1"></i> View Applied Internships &amp; Status</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 mt-4">
+    <div class="card border-0 shadow-sm rounded-4 p-4" style="background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%); border-left: 4px solid #2563eb !important;">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon bg-primary text-white" style="width: 50px; height: 50px; border-radius: 14px;">
+            <i class="ti ti-school"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1 text-dark">Internship Applications &amp; Status Tracking</h5>
+            <p class="text-muted small mb-0">Check the real-time review progress and selection results of all your applied internship programs.</p>
+          </div>
+        </div>
+        <a href="/candidate/internships/" class="btn btn-primary rounded-pill px-4">
+          <i class="ti ti-eye me-1"></i> Check Internship Status
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

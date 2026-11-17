@@ -1,0 +1,40 @@
+{% extends 'dashboard/base_admin.html' %}
+{% block title %}Access Denied — 403 Forbidden | SVG Admin{% endblock %}
+{% block page_title %}Access Denied{% endblock %}
+
+{% block content %}
+<div style="min-height: 65vh; display: flex; align-items: center; justify-content: center; padding: 24px;">
+  <div style="max-width: 520px; width: 100%; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 36px 28px; text-align: center; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);">
+    
+    <!-- Lock Icon Badge -->
+    <div style="width: 72px; height: 72px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 34px; margin: 0 auto 18px auto; border: 2px solid #FEE2E2;">
+      <i class="ti ti-shield-lock"></i>
+    </div>
+
+    <!-- Title & Explanation -->
+    <h3 style="font-size: 20px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">403 — Access Denied</h3>
+    <p style="font-size: 13.5px; color: #64748B; margin: 0 0 18px 0; line-height: 1.5;">
+      You do not have sufficient permissions to view or perform operations on this section.
+    </p>
+
+    <!-- Details Box -->
+    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px 14px; text-align: left; font-size: 12px; margin-bottom: 22px;">
+      <div style="color: #475569; margin-bottom: 4px;"><strong>Your Current Role:</strong> <span class="badge bg-primary text-white" style="padding: 2px 8px; border-radius: 10px;">{{ admin_user.role.name|default:"No Role Assigned" }}</span></div>
+      <div style="color: #475569; margin-bottom: 4px;"><strong>Required Privilege:</strong> <code style="color: #DC2626; background: #FEF2F2; padding: 2px 6px; border-radius: 4px;">{{ required_perm }}</code></div>
+      <div style="color: #64748B; font-size: 11px;">If you believe this is an error or require access, please reach out to the Super Admin.</div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button type="button" class="btn btn-sky btn-sky-outline" onclick="window.history.back()">
+        <i class="ti ti-arrow-left"></i> Go Back
+      </button>
+      <a href="/admin-panel/dashboard/" class="btn btn-sky btn-sky-primary">
+        <i class="ti ti-layout-dashboard"></i> Back to Dashboard
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
