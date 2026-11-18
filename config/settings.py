@@ -173,6 +173,14 @@ else:
         }
     }
 
+# Ensure directory exists for SQLite database
+if DATABASES.get('default', {}).get('ENGINE') == 'django.db.backends.sqlite3':
+    db_file_path = DATABASES['default'].get('NAME')
+    if db_file_path and isinstance(db_file_path, (str, Path)):
+        db_folder = os.path.dirname(os.path.abspath(str(db_file_path)))
+        if db_folder and not os.path.exists(db_folder):
+            os.makedirs(db_folder, exist_ok=True)
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},

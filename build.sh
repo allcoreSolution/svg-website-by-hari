@@ -5,6 +5,9 @@ set -o errexit
 # Install Python dependencies
 pip install -r requirements.txt
 
+# Ensure database directory exists for SQLite fallback
+mkdir -p database
+
 # Collect all static files for WhiteNoise
 python manage.py collectstatic --noinput
 
