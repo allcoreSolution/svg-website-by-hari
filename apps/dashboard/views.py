@@ -22485,62 +22485,18 @@ def api_admin_job_status(request, job_id):
 
 
         data = {}
-
-
-
-
-
-
-
-        if request.body:
-
-
-
-
-
-
-
+        if request.content_type and 'application/json' in request.content_type:
             try:
-
-
-
-
-
-
-
                 data = json.loads(request.body.decode('utf-8'))
-
-
-
-
-
-
-
             except Exception:
-
-
-
-
-
-
-
-                data = request.POST
-
-
-
-
-
-
-
+                data = {}
         else:
-
-
-
-
-
-
-
             data = request.POST
+            if not data:
+                try:
+                    data = json.loads(request.body.decode('utf-8'))
+                except Exception:
+                    data = {}
 
 
 
@@ -24749,62 +24705,18 @@ def api_admin_category_status(request, cat_id):
 
 
         data = {}
-
-
-
-
-
-
-
-        if request.body:
-
-
-
-
-
-
-
+        if request.content_type and 'application/json' in request.content_type:
             try:
-
-
-
-
-
-
-
                 data = json.loads(request.body.decode('utf-8'))
-
-
-
-
-
-
-
             except Exception:
-
-
-
-
-
-
-
-                data = request.POST
-
-
-
-
-
-
-
+                data = {}
         else:
-
-
-
-
-
-
-
             data = request.POST
+            if not data:
+                try:
+                    data = json.loads(request.body.decode('utf-8'))
+                except Exception:
+                    data = {}
 
 
 
@@ -68316,62 +68228,18 @@ def api_admin_toggle_repeater_visible(request):
 
 
     data = {}
-
-
-
-
-
-
-
-    if request.body:
-
-
-
-
-
-
-
+    if request.content_type and 'application/json' in request.content_type:
         try:
-
-
-
-
-
-
-
             data = json.loads(request.body.decode('utf-8'))
-
-
-
-
-
-
-
         except Exception:
-
-
-
-
-
-
-
-            data = request.POST
-
-
-
-
-
-
-
+            data = {}
     else:
-
-
-
-
-
-
-
         data = request.POST
+        if not data:
+            try:
+                data = json.loads(request.body.decode('utf-8'))
+            except Exception:
+                data = {}
 
 
 

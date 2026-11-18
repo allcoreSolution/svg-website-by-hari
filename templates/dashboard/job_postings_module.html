@@ -1659,16 +1659,14 @@
 
   // Update Status directly from 3-dots menu
   async function updateJobStatus(jobId, newStatus) {
-    const formData = new FormData();
-    formData.append('status', newStatus);
-
     try {
       const res = await fetch(`/api/admin/jobs/${jobId}/status/`, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'X-CSRFToken': getCookie('csrftoken') || ''
         },
-        body: formData
+        body: JSON.stringify({ status: newStatus })
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
