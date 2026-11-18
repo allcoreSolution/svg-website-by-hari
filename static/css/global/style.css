@@ -814,6 +814,16 @@ h4 {
     animation-play-state: paused;
 }
 
+.marquee-content.is-static {
+    animation: none;
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 20px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
 .job-pill {
     display: flex;
     align-items: center;

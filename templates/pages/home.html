@@ -128,7 +128,7 @@
     {% if home_settings.job_pills_visible %}
     <section class="job-pills-section">
       <div class="marquee">
-        <div class="marquee-content">
+        <div class="marquee-content{% if not job_pills or job_pills|length < 5 %} is-static{% endif %}">
 
           <!-- First Set -->
           {% for pill in job_pills %}
@@ -147,15 +147,17 @@
           </a>
           {% endfor %}
 
-          <!-- Duplicate Set for Infinite Loop -->
+          {% if job_pills|length >= 5 %}
+          <!-- Duplicate Set for Seamless Infinite Loop (Only when 5+ pills exist) -->
           {% for pill in job_pills %}
-          <a class="job-pill" href="{{ pill.get_link }}">
+          <a class="job-pill" href="{{ pill.get_link }}" aria-hidden="true" tabindex="-1">
             <i class="{{ pill.icon }}"></i>
             <div class="job-content">
               <h4>{{ pill.name }}</h4><span>{{ pill.get_count_display }}</span>
             </div>
           </a>
           {% endfor %}
+          {% endif %}
 
         </div>
       </div>
