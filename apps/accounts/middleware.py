@@ -12,6 +12,8 @@ EXEMPT_PREFIXES = (
     '/api/admin/logout',
     '/api/admin/forgot-password',
     '/api/admin/reset-password',
+    '/api/admin/files/download',
+    '/api/files/download',
     '/django-admin',
     '/static/',
 )

@@ -13485,6 +13485,12 @@ def admin_file_download(request, name):
 
 
             is_visible_resume = visible_apps.filter(models.Q(resume=safe_name) | models.Q(resume__icontains=safe_name)).exists()
+            if not is_visible_resume:
+                direct_apps = Applicant.objects.filter(
+                    models.Q(job__employer=emp) | models.Q(employer=emp) |
+                    (models.Q(job__company=emp.company) if getattr(emp, 'company', None) else models.Q(pk__in=[]))
+                )
+                is_visible_resume = direct_apps.filter(models.Q(resume=safe_name) | models.Q(resume__icontains=safe_name)).exists()
 
 
 
@@ -13773,14 +13779,22 @@ def admin_file_download(request, name):
 
 
     download = request.GET.get('download') == '1'
+    import mimetypes
+    content_type, _ = mimetypes.guess_type(safe_name)
+    if not content_type:
+        if safe_name.lower().endswith('.pdf'):
+            content_type = 'application/pdf'
+        elif safe_name.lower().endswith(('.jpg', '.jpeg')):
+            content_type = 'image/jpeg'
+        elif safe_name.lower().endswith('.png'):
+            content_type = 'image/png'
+        else:
+            content_type = 'application/octet-stream'
 
-
-
-
-
-
-
-    return FileResponse(open(file_path, 'rb'), as_attachment=download, filename=safe_name)
+    response = FileResponse(open(file_path, 'rb'), as_attachment=download, filename=safe_name, content_type=content_type)
+    if not download and content_type == 'application/pdf':
+        response['Content-Disposition'] = f'inline; filename="{safe_name}"'
+    return response
 
 
 
