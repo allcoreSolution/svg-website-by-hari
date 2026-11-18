@@ -156,7 +156,12 @@ if database_url:
             conn_health_checks=True,
         )
         if parsed_db:
-            DATABASES['default'] = parsed_db
+            # PostgreSQL requires a non-empty database NAME. If missing, fall back safely to SQLite.
+            if parsed_db.get('ENGINE') == 'django.db.backends.postgresql' and not parsed_db.get('NAME'):
+                import logging
+                logging.getLogger(__name__).warning("DATABASE_URL is missing database NAME (%s). Falling back to SQLite.", database_url)
+            else:
+                DATABASES['default'] = parsed_db
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning("Failed to parse DATABASE_URL (%s). Falling back to SQLite: %s", database_url, e)
