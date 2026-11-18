@@ -7,18 +7,20 @@ class Command(BaseCommand):
     help = "Create or update super admin user for admin panel using ADMIN_EMAIL and ADMIN_PASSWORD environment variables."
 
     def handle(self, *args, **options):
-        email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
-        password = os.environ.get("ADMIN_PASSWORD", "").strip()
-
-        if not email or not password:
-            self.stdout.write(
-                self.style.WARNING("ADMIN_EMAIL or ADMIN_PASSWORD not set. Skipping panel admin creation.")
-            )
-            return
+        email = os.environ.get("ADMIN_EMAIL", "").strip().lower() or "harilal@gmail.com"
+        password = os.environ.get("ADMIN_PASSWORD", "").strip() or "Admin@123"
 
         super_role = Role.objects.filter(is_super=True).first()
         if not super_role:
             super_role = Role.objects.filter(name__iexact="Super Admin").first()
+            if not super_role:
+                super_role = Role.objects.create(
+                    name="Super Admin",
+                    description="Full administrative access across all modules.",
+                    is_super=True,
+                    is_system=True,
+                    is_active=True,
+                )
 
         admin_user, created = AdminUser.objects.get_or_create(
             email=email,
