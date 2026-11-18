@@ -127,51 +127,53 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
+# Database
 # Supports DATABASE_URL (e.g. Render PostgreSQL) with automatic local SQLite fallback
-database_url = env('DATABASE_URL', default=None)
+raw_db_url = env('DATABASE_URL', default=None)
+database_url = str(raw_db_url).strip().strip("'").strip('"') if raw_db_url else None
+
+# Auto-fix common copy-paste errors for Render PostgreSQL URL (e.g. missing 'postgres' prefix)
+if database_url:
+    if database_url.startswith('://'):
+        database_url = f'postgres{database_url}'
+    elif not any(database_url.startswith(scheme) for scheme in ('postgres://', 'postgresql://', 'sqlite://', 'mysql://')):
+        if '@' in database_url or 'dpg-' in database_url:
+            database_url = f'postgres://{database_url.lstrip("/")}'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'database', 'database.db'),
+    }
+}
+
 if database_url:
     try:
         import dj_database_url
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=database_url,
-                conn_max_age=600,
-                conn_health_checks=True,
-            )
-        }
-    except ImportError:
+        parsed_db = dj_database_url.parse(
+            database_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+        if parsed_db:
+            DATABASES['default'] = parsed_db
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Failed to parse DATABASE_URL (%s). Falling back to SQLite: %s", database_url, e)
         if database_url.startswith('sqlite:////'):
             db_path = database_url.replace('sqlite:////', '/')
             import tempfile
             if not os.path.exists(os.path.dirname(db_path)) and os.name == 'nt':
                 db_path = os.path.join(tempfile.gettempdir(), os.path.basename(db_path))
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': db_path,
-                }
+            DATABASES['default'] = {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': db_path,
             }
         elif database_url.startswith('sqlite:///'):
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': database_url.replace('sqlite:///', ''),
-                }
+            DATABASES['default'] = {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': database_url.replace('sqlite:///', ''),
             }
-        else:
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': os.path.join(BASE_DIR, 'database', 'database.db'),
-                }
-            }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'database', 'database.db'),
-        }
-    }
 
 # Ensure directory exists for SQLite database
 if DATABASES.get('default', {}).get('ENGINE') == 'django.db.backends.sqlite3':
