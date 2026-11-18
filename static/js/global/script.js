@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    const apiBase = (window.location.port === "8000" || window.location.port === "5000") ? window.location.origin : "http://127.0.0.1:8000";
+    const apiBase = window.location.origin;
 
 
 
@@ -1582,7 +1582,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-    const apiBase = (window.location.port === "8000" || window.location.port === "5000") ? window.location.origin : "http://127.0.0.1:8000";
+    const apiBase = window.location.origin;
 
     try {
 
@@ -1614,7 +1614,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function promptLogin() {
 
-    const apiBase = (window.location.port === "8000" || window.location.port === "5000") ? window.location.origin : "http://127.0.0.1:8000";
+    const apiBase = window.location.origin;
 
     if (confirm("Job apply karne ke liye please Candidate Register ya Login karein.\n\nKya aap Candidate Login page par jana chahte hain?")) {
 
@@ -1646,7 +1646,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
 
-      const apiBase = (window.location.port === "8000" || window.location.port === "5000") ? window.location.origin : "http://127.0.0.1:8000";
+      const apiBase = window.location.origin;
 
       fetch(`${apiBase}/api/candidate/me/`, { credentials: "include" })
 
@@ -1776,7 +1776,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
 
-      const apiBase = (window.location.port === "8000" || window.location.port === "5000") ? window.location.origin : "http://127.0.0.1:8000";
+      const apiBase = window.location.origin;
 
       fetch(`${apiBase}/api/candidate/me/`, { credentials: "include" })
 
