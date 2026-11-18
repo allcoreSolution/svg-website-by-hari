@@ -173,9 +173,24 @@ def save_resume_file(uploaded_file):
     os.makedirs(upload_dir, exist_ok=True)
     
     file_path = os.path.join(upload_dir, stored_name)
+    file_bytes = b"".join(chunk for chunk in uploaded_file.chunks())
     with open(file_path, 'wb+') as destination:
-        for chunk in uploaded_file.chunks():
-            destination.write(chunk)
+        destination.write(file_bytes)
+
+    try:
+        from apps.candidates.models import UploadedFile
+        ctype = getattr(uploaded_file, 'content_type', '') or 'application/pdf'
+        UploadedFile.objects.update_or_create(
+            name=stored_name,
+            defaults={
+                'file_data': file_bytes,
+                'content_type': ctype,
+                'file_size': len(file_bytes),
+                'original_name': filename,
+            }
+        )
+    except Exception:
+        pass
             
     return stored_name
 
@@ -197,9 +212,24 @@ def save_employer_document_file(uploaded_file):
     os.makedirs(upload_dir, exist_ok=True)
     
     file_path = os.path.join(upload_dir, stored_name)
+    file_bytes = b"".join(chunk for chunk in uploaded_file.chunks())
     with open(file_path, 'wb+') as destination:
-        for chunk in uploaded_file.chunks():
-            destination.write(chunk)
+        destination.write(file_bytes)
+
+    try:
+        from apps.candidates.models import UploadedFile
+        ctype = getattr(uploaded_file, 'content_type', '') or 'application/pdf'
+        UploadedFile.objects.update_or_create(
+            name=stored_name,
+            defaults={
+                'file_data': file_bytes,
+                'content_type': ctype,
+                'file_size': len(file_bytes),
+                'original_name': filename,
+            }
+        )
+    except Exception:
+        pass
             
     return stored_name
 
@@ -221,9 +251,24 @@ def save_offer_letter_file(uploaded_file):
     os.makedirs(upload_dir, exist_ok=True)
     
     file_path = os.path.join(upload_dir, stored_name)
+    file_bytes = b"".join(chunk for chunk in uploaded_file.chunks())
     with open(file_path, 'wb+') as destination:
-        for chunk in uploaded_file.chunks():
-            destination.write(chunk)
+        destination.write(file_bytes)
+
+    try:
+        from apps.candidates.models import UploadedFile
+        ctype = getattr(uploaded_file, 'content_type', '') or 'application/pdf'
+        UploadedFile.objects.update_or_create(
+            name=stored_name,
+            defaults={
+                'file_data': file_bytes,
+                'content_type': ctype,
+                'file_size': len(file_bytes),
+                'original_name': filename,
+            }
+        )
+    except Exception:
+        pass
             
     return stored_name
 
@@ -234,6 +279,11 @@ def delete_resume_file(stored_filename):
     if os.path.exists(file_path):
         try:
             os.remove(file_path)
-        except Exception:
+        except OSError:
             pass
+    try:
+        from apps.candidates.models import UploadedFile
+        UploadedFile.objects.filter(name=stored_filename).delete()
+    except Exception:
+        pass
 

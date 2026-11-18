@@ -244,3 +244,23 @@ class Interview(models.Model):
     def __str__(self):
         return f"Interview: {self.candidate_name} ({self.interview_date} {self.interview_time})"
 
+
+class UploadedFile(models.Model):
+    """
+    Persistent binary storage in PostgreSQL/database for uploaded files.
+    Survives ephemeral container restarts and redeployments on Render.
+    """
+    name = models.CharField(max_length=255, unique=True, db_index=True)
+    original_name = models.CharField(max_length=255, blank=True, default="")
+    content_type = models.CharField(max_length=100, blank=True, default="application/pdf")
+    file_size = models.PositiveIntegerField(default=0)
+    file_data = models.BinaryField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'uploaded_files'
+
+    def __str__(self):
+        return f"{self.name} ({self.original_name})"
+
+

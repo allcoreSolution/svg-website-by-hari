@@ -13755,14 +13755,62 @@ def admin_file_download(request, name):
 
 
     if not file_path:
+        # Check database persistent storage
+        try:
+            from apps.candidates.models import UploadedFile
+            db_file = UploadedFile.objects.filter(name=safe_name).first()
+            if db_file and db_file.file_data:
+                cache_dir = os.path.join(settings.MEDIA_ROOT, "uploads", "resumes")
+                os.makedirs(cache_dir, exist_ok=True)
+                cache_path = os.path.join(cache_dir, safe_name)
+                try:
+                    with open(cache_path, 'wb') as cf:
+                        cf.write(bytes(db_file.file_data))
+                    file_path = cache_path
+                except Exception:
+                    pass
+                if not file_path:
+                    import mimetypes
+                    content_type = db_file.content_type or mimetypes.guess_type(safe_name)[0] or 'application/pdf'
+                    from django.http import HttpResponse
+                    resp = HttpResponse(bytes(db_file.file_data), content_type=content_type)
+                    disp = 'attachment' if request.GET.get('download') == '1' else 'inline'
+                    resp['Content-Disposition'] = f'{disp}; filename="{safe_name}"'
+                    return resp
+        except Exception:
+            pass
 
-
-
-
-
-
-
-        raise Http404("File not found.")
+    if not file_path:
+        from django.http import HttpResponse
+        error_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Resume File Not Available - Sky Vision</title>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }}
+        .card {{ background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 520px; text-align: center; border: 1px solid #e2e8f0; }}
+        .icon {{ font-size: 52px; margin-bottom: 16px; }}
+        h2 {{ color: #1e293b; margin: 0 0 12px 0; font-size: 22px; }}
+        p {{ color: #64748b; line-height: 1.6; font-size: 14px; margin-bottom: 24px; }}
+        .badge {{ background: #fef2f2; color: #ef4444; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 16px; border: 1px solid #fecaca; }}
+        .btn {{ background: #2563eb; color: white; padding: 10px 24px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-block; border: none; cursor: pointer; }}
+        .btn:hover {{ background: #1d4ed8; }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">📄⚠️</div>
+        <div class="badge">{safe_name}</div>
+        <h2>Resume File Not Found on Server</h2>
+        <p>Yeh resume file server restart hone ki wajah se server temporary disk se remove ho chuki hai.<br><br>
+        Naye system me ab database persistent storage enable ho chuka hai, isliye ab se upload hone wali saari files permanently save rahengi.<br><br>
+        <strong>Solution:</strong> Candidate se resume dubara upload karne ya email par bhejne ke liye kahein.</p>
+        <button class="btn" onclick="window.close()">Close Window</button>
+    </div>
+</body>
+</html>"""
+        return HttpResponse(error_html, status=404, content_type='text/html; charset=utf-8')
 
 
 
