@@ -1,11 +1,20 @@
 import logging
 import html
+import threading
 from django.core.mail import EmailMultiAlternatives
 from django.core.cache import cache
 from django.conf import settings
 from apps.enquiries.models import log_activity
 
 logger = logging.getLogger(__name__)
+
+def _send_email_async(msg):
+    def _runner():
+        try:
+            msg.send(fail_silently=True)
+        except Exception as e:
+            logger.warning(f'Async email sending error: {e}')
+    threading.Thread(target=_runner, daemon=True).start()
 
 
 def _wrap_email_html(title, content_html, site_url):
@@ -133,7 +142,7 @@ def notify_candidate_registered(candidate):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[candidate.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Sent candidate registration confirmation to {candidate.email}")
         return True
     except Exception as e:
@@ -246,7 +255,7 @@ def notify_candidate_approved(candidate):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[candidate.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Successfully sent candidate approval email to {candidate.email}")
         log_activity(
             action_type="Email Sent",
@@ -311,7 +320,7 @@ def notify_candidate_rejected(candidate, reason=""):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[candidate.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Sent candidate rejection email to {candidate.email}")
         return True
     except Exception as e:
@@ -370,7 +379,7 @@ def notify_applicant_status_change(applicant, old_status, new_status, notes=""):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[applicant.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Sent applicant status update email to {applicant.email}")
         return True
     except Exception as e:
@@ -438,7 +447,7 @@ def notify_interview_scheduled(interview):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[interview.candidate_email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Sent interview scheduled email to {interview.candidate_email}")
         return True
     except Exception as e:

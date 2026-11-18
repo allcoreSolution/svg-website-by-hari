@@ -1,11 +1,20 @@
 import logging
 import html
+import threading
 from django.core.mail import EmailMultiAlternatives
 from django.core.cache import cache
 from django.conf import settings
 from apps.enquiries.models import log_activity
 
 logger = logging.getLogger(__name__)
+
+def _send_email_async(msg):
+    def _runner():
+        try:
+            msg.send(fail_silently=True)
+        except Exception as e:
+            logger.warning(f"Async email sending error: {e}")
+    threading.Thread(target=_runner, daemon=True).start()
 
 
 def _wrap_email_html(title, content_html, site_url):
@@ -126,8 +135,8 @@ def notify_employer_registered(employer):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[employer.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
-        logger.info(f"Sent employer registration confirmation to {employer.email}")
+        _send_email_async(msg)
+        logger.info(f"Queued employer registration confirmation to {employer.email}")
         return True
     except Exception as e:
         logger.error(f"Failed to send employer registration email to {employer.email}: {e}")
@@ -242,7 +251,7 @@ def notify_employer_approved(employer):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[employer.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Successfully sent employer approval email to {employer.email}")
         log_activity(
             action_type="Email Sent",
@@ -307,7 +316,7 @@ def notify_employer_rejected(employer, reason=""):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[employer.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Sent employer rejection email to {employer.email}")
         return True
     except Exception as e:
@@ -367,7 +376,7 @@ def notify_employer_suspended(employer, reason=""):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[employer.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Sent employer suspension email to {employer.email}")
         return True
     except Exception as e:
@@ -424,7 +433,7 @@ def notify_job_status_change(job, old_status, new_status, reason=""):
     try:
         msg = EmailMultiAlternatives(subject=subject, body=plain_message, from_email=from_email, to=[job.employer.email])
         msg.attach_alternative(html_message, "text/html")
-        msg.send(fail_silently=False)
+        _send_email_async(msg)
         logger.info(f"Sent job status update email to {job.employer.email}")
         return True
     except Exception as e:
