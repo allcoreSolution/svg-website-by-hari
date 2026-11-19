@@ -8471,47 +8471,209 @@ def educational_consultancy(request):
 
 
 
+def seed_initial_payroll_outsourcing_data(force=False):
+    from apps.core.models import (
+        PayrollOutsourcingSettings,
+        PoServiceCard,
+        PoIndustryItem,
+        PoWhyChooseItem,
+        PoProcessStep,
+        PoEmployerBenefit,
+        PoEmployeeBenefit,
+        PoFaqItem,
+    )
+
+    if force:
+        PoServiceCard.objects.all().delete()
+        PoIndustryItem.objects.all().delete()
+        PoWhyChooseItem.objects.all().delete()
+        PoProcessStep.objects.all().delete()
+        PoEmployerBenefit.objects.all().delete()
+        PoEmployeeBenefit.objects.all().delete()
+        PoFaqItem.objects.all().delete()
+
+    po = PayrollOutsourcingSettings.get_settings()
+    po.hero_visible = True
+    po.about_visible = True
+    po.services_visible = True
+    po.panel_visible = True
+    po.compare_visible = True
+    po.faq_visible = True
+    po.cta_visible = True
+
+    if not po.hero_eyebrow:
+        po.hero_eyebrow = "Payroll & Outsourcing"
+    if not po.hero_title:
+        po.hero_title = "Payroll & Outsourcing Services"
+    if not po.hero_subtitle:
+        po.hero_subtitle = "Streamline your payroll operations, ensure compliance, and manage your workforce efficiently with our expert payroll & outsourcing solutions."
+    if not po.hero_primary_btn_text:
+        po.hero_primary_btn_text = "Get Free Consultation"
+    if not po.hero_primary_btn_url:
+        po.hero_primary_btn_url = "#contact"
+    if not po.hero_secondary_btn_text:
+        po.hero_secondary_btn_text = "Contact Us"
+    if not po.hero_secondary_btn_url:
+        po.hero_secondary_btn_url = "/contact/"
+    if not po.about_tag:
+        po.about_tag = "About Our Services"
+    if not po.about_title:
+        po.about_title = "Complete Payroll & HR Outsourcing Solutions"
+    if not po.about_description:
+        po.about_description = "We provide end-to-end payroll and outsourcing services that help businesses reduce operational burden, ensure accuracy, and stay 100% compliant with statutory regulations."
+    if not po.services_title:
+        po.services_title = "Our Payroll & Outsourcing Services"
+    if not po.industries_tag:
+        po.industries_tag = "Industries We Serve"
+    if not po.why_choose_tag:
+        po.why_choose_tag = "Why Choose Us?"
+    if not po.process_tag:
+        po.process_tag = "Our Payroll Process"
+    if not po.employers_badge:
+        po.employers_badge = "For Employers"
+    if not po.employees_badge:
+        po.employees_badge = "For Employees"
+    if not po.faq_title:
+        po.faq_title = "Frequently Asked Questions"
+    if not po.cta_title:
+        po.cta_title = "Focus On Growing Your Business We'll Handle Your Payroll!"
+    if not po.cta_subtitle:
+        po.cta_subtitle = "Partner with us for secure, compliant and hassle-free payroll & outsourcing services."
+    if not po.cta_primary_btn_text:
+        po.cta_primary_btn_text = "Get Free Consultation"
+    if not po.cta_primary_btn_url:
+        po.cta_primary_btn_url = "#contact"
+    if not po.cta_secondary_btn_text:
+        po.cta_secondary_btn_text = "Contact Our Team"
+    if not po.cta_secondary_btn_url:
+        po.cta_secondary_btn_url = "/contact/"
+    po.save()
+
+    if not PoServiceCard.objects.exists():
+        services = [
+            ("Payroll Processing", "Accurate salary calculation, payslip generation, and timely salary disbursement.", "fa-solid fa-file-invoice", "navy", 1),
+            ("Attendance Management", "Track attendance, leaves, shifts, overtime and employee working hours.", "fa-regular fa-calendar-days", "amber", 2),
+            ("PF & ESI Management", "Complete PF, ESI registration, contribution, returns and compliance management.", "fa-solid fa-people-group", "navy", 3),
+            ("Compliance Management", "Ensure compliance with labour laws and statutory regulations.", "fa-solid fa-shield-halved", "amber", 4),
+            ("Employee Records", "Maintain employee data, documents, contracts and HR records securely.", "fa-solid fa-folder-open", "navy", 5),
+            ("HR Outsourcing", "End-to-end HR support including recruitment, onboarding & support.", "fa-solid fa-people-group", "amber", 6),
+        ]
+        for title, desc, icon, theme, order in services:
+            PoServiceCard.objects.create(
+                title=title,
+                description=desc,
+                icon_class=icon,
+                badge_theme=theme,
+                order=order,
+                is_visible=True,
+            )
+
+    if not PoIndustryItem.objects.exists():
+        industries = [
+            ("Manufacturing", 1),
+            ("Retail", 2),
+            ("IT & Software", 3),
+            ("Construction", 4),
+            ("BPO & Call Centers", 5),
+            ("Hospitality", 6),
+            ("Logistics & Warehousing", 7),
+            ("Education", 8),
+            ("Healthcare", 9),
+            ("Banking & Finance", 10),
+        ]
+        for name, order in industries:
+            PoIndustryItem.objects.create(name=name, order=order, is_visible=True)
+
+    if not PoWhyChooseItem.objects.exists():
+        why_choose = [
+            ("Accurate Payroll Processing", 1),
+            ("100% Statutory Compliance", 2),
+            ("Experienced Professionals", 3),
+            ("Confidential & Secure Data", 4),
+            ("Cost-Effective Solutions", 5),
+            ("Timely Salary Processing", 6),
+            ("Dedicated HR Support", 7),
+            ("PAN India Services", 8),
+        ]
+        for title, order in why_choose:
+            PoWhyChooseItem.objects.create(title=title, order=order, is_visible=True)
+
+    if not PoProcessStep.objects.exists():
+        process_steps = [
+            ("01", "Employee Data Collection", "fa-solid fa-database", 1),
+            ("02", "Attendance Verification", "fa-solid fa-user-check", 2),
+            ("03", "Salary Calculation", "fa-solid fa-calculator", 3),
+            ("04", "PF, ESI & Tax Processing", "fa-solid fa-file-invoice-dollar", 4),
+            ("05", "Salary Disbursement", "fa-solid fa-money-bill-transfer", 5),
+            ("06", "Payslip Generation", "fa-solid fa-receipt", 6),
+            ("07", "Compliance Reporting", "fa-solid fa-clipboard-check", 7),
+        ]
+        for step, title, icon, order in process_steps:
+            PoProcessStep.objects.create(
+                step_number=step,
+                title=title,
+                icon_class=icon,
+                order=order,
+                is_visible=True,
+            )
+
+    if not PoEmployerBenefit.objects.exists():
+        employer_benefits = [
+            ("Reduced HR Workload", 1),
+            ("Error-Free Payroll", 2),
+            ("Legal Compliance", 3),
+            ("Lower Administrative Cost", 4),
+            ("Secure Employee Records", 5),
+        ]
+        for title, order in employer_benefits:
+            PoEmployerBenefit.objects.create(title=title, order=order, is_visible=True)
+
+    if not PoEmployeeBenefit.objects.exists():
+        employee_benefits = [
+            ("Accurate Salary", 1),
+            ("Timely Payments", 2),
+            ("Digital Payslips", 3),
+            ("PF & ESI Benefits", 4),
+            ("Better HR Support", 5),
+        ]
+        for title, order in employee_benefits:
+            PoEmployeeBenefit.objects.create(title=title, order=order, is_visible=True)
+
+    if not PoFaqItem.objects.exists():
+        faqs = [
+            ("How often is payroll processed?", "Payroll is typically processed monthly, though custom cycles can be arranged.", 1),
+            ("Is employee information secure?", "Yes, we follow strict data confidentiality and security protocols.", 2),
+            ("Do you manage PF & ESI compliance?", "Yes, we handle complete PF, ESI registration, contribution and compliance filing.", 3),
+            ("Can you manage payroll for multiple branches?", "Yes, we manage multi-location and multi-branch payroll seamlessly.", 4),
+        ]
+        for q, a, order in faqs:
+            PoFaqItem.objects.create(question=q, answer=a, order=order, is_visible=True)
+
+
 def get_payroll_outsourcing_context():
-
-
-
-
-
-
-
     cached_ctx = cache.get(PAYROLL_OUTSOURCING_CACHE_KEY)
-
-
-
-
-
-
-
-    if cached_ctx:
-
-
-
-
-
-
-
+    if cached_ctx and cached_ctx.get('po_industries') and cached_ctx.get('po_services'):
         return cached_ctx
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    if not PoServiceCard.objects.exists() or not PoIndustryItem.objects.exists() or not PoWhyChooseItem.objects.exists():
+        seed_initial_payroll_outsourcing_data()
 
     po_settings = PayrollOutsourcingSettings.get_settings()
+    if not po_settings.hero_visible and not po_settings.about_visible and not po_settings.services_visible:
+        po_settings.hero_visible = True
+        po_settings.about_visible = True
+        po_settings.services_visible = True
+        po_settings.panel_visible = True
+        po_settings.compare_visible = True
+        po_settings.faq_visible = True
+        po_settings.cta_visible = True
+        try:
+            po_settings.save(update_fields=[
+                'hero_visible', 'about_visible', 'services_visible',
+                'panel_visible', 'compare_visible', 'faq_visible', 'cta_visible'
+            ])
+        except Exception:
+            po_settings.save()
 
 
 

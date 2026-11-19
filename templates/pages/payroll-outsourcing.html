@@ -17,18 +17,14 @@
       <div>
         {% if po_settings.hero_eyebrow %}
         <span class="cs-eyebrow-chip"><i class="fa-solid fa-file-invoice-dollar"></i> {{ po_settings.hero_eyebrow }}</span>
+        {% else %}
+        <span class="cs-eyebrow-chip"><i class="fa-solid fa-file-invoice-dollar"></i> Payroll &amp; Outsourcing</span>
         {% endif %}
-        <h1>{{ po_settings.formatted_hero_title|safe }}</h1>
-        {% if po_settings.hero_subtitle %}
-        <p class="lead">{{ po_settings.hero_subtitle }}</p>
-        {% endif %}
+        <h1>{{ po_settings.formatted_hero_title|default:"Payroll &amp; Outsourcing <em>Services</em>"|safe }}</h1>
+        <p class="lead">{{ po_settings.hero_subtitle|default:"Streamline your payroll operations, ensure compliance, and manage your workforce efficiently with our expert payroll & outsourcing solutions." }}</p>
         <div class="sv-hero-actions">
-          {% if po_settings.hero_primary_btn_text %}
-          <a href="{{ po_settings.hero_primary_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> {{ po_settings.hero_primary_btn_text }}</a>
-          {% endif %}
-          {% if po_settings.hero_secondary_btn_text %}
-          <a href="{{ po_settings.hero_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ po_settings.hero_secondary_btn_text }} <i class="fa-solid fa-arrow-right"></i></a>
-          {% endif %}
+          <a href="{{ po_settings.hero_primary_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> {{ po_settings.hero_primary_btn_text|default:"Get Free Consultation" }}</a>
+          <a href="{{ po_settings.hero_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ po_settings.hero_secondary_btn_text|default:"Contact Us" }} <i class="fa-solid fa-arrow-right"></i></a>
         </div>
       </div>
       <div class="ms-hero-visual">
@@ -43,14 +39,10 @@
   <section class="ms-about">
     <div class="wrap po-about-grid">
       <div class="cs-about-copy">
-        {% if po_settings.about_tag %}
-        <span class="sv-tag">{{ po_settings.about_tag }}</span>
+        <span class="sv-tag">{{ po_settings.about_tag|default:"About Our Services" }}</span>
         <span class="cs-underline"></span>
-        {% endif %}
-        <h2>{{ po_settings.about_title }}</h2>
-        {% if po_settings.about_description %}
-        <p>{{ po_settings.about_description }}</p>
-        {% endif %}
+        <h2>{{ po_settings.about_title|default:"Complete Payroll & HR Outsourcing Solutions" }}</h2>
+        <p>{{ po_settings.about_description|default:"We provide end-to-end payroll and outsourcing services that help businesses reduce operational burden, ensure accuracy, and stay 100% compliant with statutory regulations." }}</p>
       </div>
       <div class="po-about-visual">
         <img src="{{ po_settings.get_about_image }}" alt="{{ po_settings.about_title|default:'Payroll calculation' }}">
@@ -63,17 +55,46 @@
   <!-- ============ SERVICES GRID ============ -->
   <section class="ms-services">
     <div class="wrap">
-      {% if po_settings.services_title %}
       <div class="sv-section-head">
-        <h2>{{ po_settings.services_title }}</h2>
+        <h2>{{ po_settings.services_title|default:"Our Payroll & Outsourcing Services" }}</h2>
       </div>
-      {% endif %}
       <div class="po-services-grid">
         {% for item in po_services %}
         <div class="sv-service-card po-card">
           <div class="po-icon {{ item.badge_theme|default:'navy' }}"><i class="{{ item.icon_class|default:'fa-solid fa-file-invoice' }}"></i></div>
           <h3>{{ item.title }}</h3>
           <p>{{ item.description }}</p>
+        </div>
+        {% empty %}
+        <div class="sv-service-card po-card">
+          <div class="po-icon navy"><i class="fa-solid fa-file-invoice"></i></div>
+          <h3>Payroll Processing</h3>
+          <p>Accurate salary calculation, payslip generation, and timely salary disbursement.</p>
+        </div>
+        <div class="sv-service-card po-card">
+          <div class="po-icon amber"><i class="fa-regular fa-calendar-days"></i></div>
+          <h3>Attendance Management</h3>
+          <p>Track attendance, leaves, shifts, overtime and employee working hours.</p>
+        </div>
+        <div class="sv-service-card po-card">
+          <div class="po-icon navy"><i class="fa-solid fa-people-group"></i></div>
+          <h3>PF &amp; ESI Management</h3>
+          <p>Complete PF, ESI registration, contribution, returns and compliance management.</p>
+        </div>
+        <div class="sv-service-card po-card">
+          <div class="po-icon amber"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>Compliance Management</h3>
+          <p>Ensure compliance with labour laws and statutory regulations.</p>
+        </div>
+        <div class="sv-service-card po-card">
+          <div class="po-icon navy"><i class="fa-solid fa-folder-open"></i></div>
+          <h3>Employee Records</h3>
+          <p>Maintain employee data, documents, contracts and HR records securely.</p>
+        </div>
+        <div class="sv-service-card po-card">
+          <div class="po-icon amber"><i class="fa-solid fa-people-group"></i></div>
+          <h3>HR Outsourcing</h3>
+          <p>End-to-end HR support including recruitment, onboarding &amp; support.</p>
         </div>
         {% endfor %}
       </div>
@@ -91,6 +112,17 @@
         <ul class="po-industry-list">
           {% for item in po_industries %}
           <li><i class="fa-solid fa-circle"></i> {{ item.name }}</li>
+          {% empty %}
+          <li><i class="fa-solid fa-circle"></i> Manufacturing</li>
+          <li><i class="fa-solid fa-circle"></i> Retail</li>
+          <li><i class="fa-solid fa-circle"></i> IT &amp; Software</li>
+          <li><i class="fa-solid fa-circle"></i> Construction</li>
+          <li><i class="fa-solid fa-circle"></i> BPO &amp; Call Centers</li>
+          <li><i class="fa-solid fa-circle"></i> Hospitality</li>
+          <li><i class="fa-solid fa-circle"></i> Logistics &amp; Warehousing</li>
+          <li><i class="fa-solid fa-circle"></i> Education</li>
+          <li><i class="fa-solid fa-circle"></i> Healthcare</li>
+          <li><i class="fa-solid fa-circle"></i> Banking &amp; Finance</li>
           {% endfor %}
         </ul>
       </div>
@@ -100,6 +132,15 @@
         <ul>
           {% for item in po_why_choose %}
           <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+          {% empty %}
+          <li><i class="fa-solid fa-circle-check"></i> Accurate Payroll Processing</li>
+          <li><i class="fa-solid fa-circle-check"></i> 100% Statutory Compliance</li>
+          <li><i class="fa-solid fa-circle-check"></i> Experienced Professionals</li>
+          <li><i class="fa-solid fa-circle-check"></i> Confidential &amp; Secure Data</li>
+          <li><i class="fa-solid fa-circle-check"></i> Cost-Effective Solutions</li>
+          <li><i class="fa-solid fa-circle-check"></i> Timely Salary Processing</li>
+          <li><i class="fa-solid fa-circle-check"></i> Dedicated HR Support</li>
+          <li><i class="fa-solid fa-circle-check"></i> PAN India Services</li>
           {% endfor %}
         </ul>
       </div>
@@ -113,6 +154,14 @@
               <p>{{ item.title }}</p>
             </div>
           </div>
+          {% empty %}
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-database"></i></span><div><b>01</b><p>Employee Data Collection</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-user-check"></i></span><div><b>02</b><p>Attendance Verification</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-calculator"></i></span><div><b>03</b><p>Salary Calculation</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-file-invoice-dollar"></i></span><div><b>04</b><p>PF, ESI &amp; Tax Processing</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-money-bill-transfer"></i></span><div><b>05</b><p>Salary Disbursement</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-receipt"></i></span><div><b>06</b><p>Payslip Generation</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-clipboard-check"></i></span><div><b>07</b><p>Compliance Reporting</p></div></div>
           {% endfor %}
         </div>
       </div>
@@ -131,6 +180,12 @@
           <ul>
             {% for item in po_employer_benefits %}
             <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+            {% empty %}
+            <li><i class="fa-solid fa-circle-check"></i> Reduced HR Workload</li>
+            <li><i class="fa-solid fa-circle-check"></i> Error-Free Payroll</li>
+            <li><i class="fa-solid fa-circle-check"></i> Legal Compliance</li>
+            <li><i class="fa-solid fa-circle-check"></i> Lower Administrative Cost</li>
+            <li><i class="fa-solid fa-circle-check"></i> Secure Employee Records</li>
             {% endfor %}
           </ul>
         </div>
@@ -140,6 +195,12 @@
           <ul>
             {% for item in po_employee_benefits %}
             <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+            {% empty %}
+            <li><i class="fa-solid fa-circle-check"></i> Accurate Salary</li>
+            <li><i class="fa-solid fa-circle-check"></i> Timely Payments</li>
+            <li><i class="fa-solid fa-circle-check"></i> Digital Payslips</li>
+            <li><i class="fa-solid fa-circle-check"></i> PF &amp; ESI Benefits</li>
+            <li><i class="fa-solid fa-circle-check"></i> Better HR Support</li>
             {% endfor %}
           </ul>
         </div>
@@ -160,6 +221,31 @@
         <button class="sv-faq-q" type="button">{{ item.question }} <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
         <div class="sv-faq-a">
           <p>{{ item.answer }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <div class="sv-faq-item">
+        <button class="sv-faq-q" type="button">How often is payroll processed? <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+        <div class="sv-faq-a">
+          <p>Payroll is typically processed monthly, though custom cycles can be arranged.</p>
+        </div>
+      </div>
+      <div class="sv-faq-item">
+        <button class="sv-faq-q" type="button">Is employee information secure? <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+        <div class="sv-faq-a">
+          <p>Yes, we follow strict data confidentiality and security protocols.</p>
+        </div>
+      </div>
+      <div class="sv-faq-item">
+        <button class="sv-faq-q" type="button">Do you manage PF &amp; ESI compliance? <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+        <div class="sv-faq-a">
+          <p>Yes, we handle complete PF, ESI registration, contribution and compliance filing.</p>
+        </div>
+      </div>
+      <div class="sv-faq-item">
+        <button class="sv-faq-q" type="button">Can you manage payroll for multiple branches? <span class="plus"><i class="fa-solid fa-plus"></i></span></button>
+        <div class="sv-faq-a">
+          <p>Yes, we manage multi-location and multi-branch payroll seamlessly.</p>
         </div>
       </div>
       {% endfor %}
