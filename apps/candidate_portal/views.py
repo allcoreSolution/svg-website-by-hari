@@ -290,16 +290,243 @@ def api_candidate_reset_password(request):
 @candidate_required
 def candidate_dashboard_view(request):
     candidate = request.candidate_user
+    
+    # Query live jobs (posted by admin or approved employers)
+    live_jobs_qs = Job.objects.filter(status__in=Job.LIVE_STATUSES).select_related('company', 'employer').order_by('-id')
+
+    # Get applied job IDs for this candidate
+    applied_job_ids = set(
+        Applicant.objects.filter(candidate_account=candidate, job__isnull=False).values_list('job_id', flat=True)
+    )
+
+    # Get saved job IDs for this candidate
+    saved_job_ids = set(
+        CandidateSavedJob.objects.filter(candidate_account=candidate, job__isnull=False).values_list('job_id', flat=True)
+    )
+
+    jobs_data = []
+    for j in live_jobs_qs:
+        company_display = ""
+        if j.company and j.company.name:
+            company_display = j.company.name
+        elif j.employer and j.employer.company_name:
+            company_display = j.employer.company_name
+        else:
+            company_display = "Sky Vision Partner"
+
+        jobs_data.append({
+            "id": j.id,
+            "title": j.title,
+            "company_name": company_display,
+            "location": j.location or "Lucknow, Uttar Pradesh",
+            "employment_type": j.employment_type or "Full Time",
+            "experience": j.experience or "Fresher / Experienced",
+            "salary": j.salary or "Best in Industry",
+            "vacancies": j.vacancies or "1",
+            "qualification": j.qualification or "Any Graduate / Relevant Skills",
+            "description": j.description or "",
+            "requirements": j.requirements or "",
+            "deadline": j.deadline or "",
+            "created_at": j.created_at.strftime("%d %b %Y") if j.created_at else "",
+            "is_applied": j.id in applied_job_ids,
+            "is_saved": j.id in saved_job_ids,
+        })
+
+    # Candidate stats
+    app_count = Applicant.objects.filter(candidate_account=candidate).count()
+    app_ids = list(Applicant.objects.filter(candidate_account=candidate).values_list('id', flat=True))
+    interview_count = Interview.objects.filter(applicant_id__in=app_ids).count()
+    offer_count = JobOffer.objects.filter(applicant_id__in=app_ids).count()
+    saved_count = len(saved_job_ids)
+
     from apps.communication.models import MessageRecipient
     recent_messages = MessageRecipient.objects.filter(
         candidate_account=candidate,
         channel='dashboard',
         delivery_status='Sent'
     ).select_related('bulk_message').order_by('-id')[:5]
+
     return render(request, 'candidate_portal/dashboard.html', {
         'candidate': candidate,
+        'jobs': jobs_data,
+        'jobs_json': json.dumps(jobs_data),
+        'applied_job_ids': list(applied_job_ids),
+        'saved_job_ids': list(saved_job_ids),
+        'stats': {
+            'applied': app_count,
+            'interviews': interview_count,
+            'offers': offer_count,
+            'saved': saved_count
+        },
         'recent_messages': recent_messages
     })
+
+
+@candidate_required
+def api_candidate_jobs(request):
+    """Returns live jobs with filter by query / location and candidate-specific applied/saved flags."""
+    candidate = request.candidate_user
+    q = (request.GET.get('q') or '').strip().lower()
+    loc = (request.GET.get('location') or '').strip().lower()
+
+    qs = Job.objects.filter(status__in=Job.LIVE_STATUSES).select_related('company', 'employer').order_by('-id')
+
+    if q:
+        qs = qs.filter(
+            models.Q(title__icontains=q) |
+            models.Q(category__icontains=q) |
+            models.Q(department__icontains=q) |
+            models.Q(description__icontains=q) |
+            models.Q(company__name__icontains=q) |
+            models.Q(employer__company_name__icontains=q)
+        )
+
+    if loc:
+        loc_parts = [p.strip() for p in loc.split(',') if p.strip()]
+        loc_filter = models.Q()
+        for lp in loc_parts:
+            loc_filter |= models.Q(location__icontains=lp)
+        qs = qs.filter(loc_filter)
+
+    applied_job_ids = set(
+        Applicant.objects.filter(candidate_account=candidate, job__isnull=False).values_list('job_id', flat=True)
+    )
+    saved_job_ids = set(
+        CandidateSavedJob.objects.filter(candidate_account=candidate, job__isnull=False).values_list('job_id', flat=True)
+    )
+
+    jobs_data = []
+    for j in qs:
+        company_display = ""
+        if j.company and j.company.name:
+            company_display = j.company.name
+        elif j.employer and j.employer.company_name:
+            company_display = j.employer.company_name
+        else:
+            company_display = "Sky Vision Partner"
+
+        jobs_data.append({
+            "id": j.id,
+            "title": j.title,
+            "company_name": company_display,
+            "location": j.location or "Lucknow, Uttar Pradesh",
+            "employment_type": j.employment_type or "Full Time",
+            "experience": j.experience or "Fresher / Experienced",
+            "salary": j.salary or "Best in Industry",
+            "vacancies": j.vacancies or "1",
+            "qualification": j.qualification or "Any Graduate / Relevant Skills",
+            "description": j.description or "",
+            "requirements": j.requirements or "",
+            "deadline": j.deadline or "",
+            "created_at": j.created_at.strftime("%d %b %Y") if j.created_at else "",
+            "is_applied": j.id in applied_job_ids,
+            "is_saved": j.id in saved_job_ids,
+        })
+
+    return JsonResponse({
+        "status": "success",
+        "jobs": jobs_data,
+        "count": len(jobs_data)
+    })
+
+
+@candidate_required
+@require_http_methods(["POST"])
+def api_candidate_apply_job(request):
+    """Directly applies to a job from the candidate dashboard."""
+    try:
+        candidate = request.candidate_user
+
+        if not candidate.is_approved or candidate.approval_status != 'approved':
+            return JsonResponse({
+                "status": "error",
+                "message": "Your account is pending admin approval. You cannot apply for jobs until approved."
+            }, status=403)
+
+        if request.content_type == 'application/json':
+            data = json.loads(request.body.decode('utf-8'))
+            file_obj = None
+        else:
+            data = request.POST.dict()
+            file_obj = request.FILES.get('resume')
+
+        job_id = data.get('job_id')
+        if not job_id:
+            return JsonResponse({"status": "error", "message": "Job ID is required."}, status=400)
+
+        job = Job.objects.filter(id=job_id).select_related('company', 'employer').first()
+        if not job:
+            return JsonResponse({"status": "error", "message": "The selected job does not exist."}, status=404)
+
+        if job.status not in Job.LIVE_STATUSES:
+            return JsonResponse({"status": "error", "message": "This job posting is not active."}, status=400)
+
+        # Check duplicate application
+        if Applicant.objects.filter(candidate_account=candidate, job=job).exists():
+            return JsonResponse({
+                "status": "error",
+                "message": "You have already applied for this job."
+            }, status=400)
+
+        # Resume handling
+        resume_filename = candidate.resume or ""
+        if file_obj:
+            try:
+                resume_filename = save_resume_file(file_obj)
+            except ValueError as ve:
+                return JsonResponse({"status": "error", "message": str(ve)}, status=400)
+
+        if not resume_filename:
+            return JsonResponse({
+                "status": "error",
+                "message": "Please upload a resume in your profile or with your application to apply."
+            }, status=400)
+
+        target_employer = job.employer
+        target_company = job.company or (target_employer.company if target_employer else None)
+
+        applicant = Applicant.objects.create(
+            candidate_account=candidate,
+            job=job,
+            employer=target_employer,
+            company=target_company,
+            full_name=candidate.full_name,
+            email=candidate.email,
+            phone=candidate.phone,
+            city=candidate.city or job.location or "Lucknow",
+            state=candidate.state or "Uttar Pradesh",
+            job_title=job.title,
+            qualification=candidate.qualification or job.qualification or "",
+            experience=candidate.experience or 0,
+            skills=candidate.skills or "",
+            current_company=candidate.current_company or "",
+            current_salary=candidate.current_salary or "",
+            expected_salary=candidate.expected_salary or "",
+            availability=candidate.availability or "Immediate Joiner",
+            cover_letter=(data.get('cover_letter') or '').strip(),
+            resume=resume_filename,
+            status="Application Submitted",
+            approval_status="Pending",
+            flow_step=2
+        )
+
+        from apps.candidates.status_helpers import set_applicant_status
+        set_applicant_status(
+            applicant,
+            "Application Submitted",
+            changed_by="candidate",
+            notes="Application submitted by candidate via Candidate Dashboard. Awaiting Super Admin approval."
+        )
+
+        return JsonResponse({
+            "status": "success",
+            "message": "Application submitted successfully! Your application is under review.",
+            "applicant_id": applicant.id,
+            "job_id": job.id
+        })
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Server error: {str(e)}"}, status=500)
 
 @ensure_csrf_cookie
 @candidate_required

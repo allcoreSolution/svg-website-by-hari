@@ -328,3 +328,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(seed_hr_support_and_internship_data, unseed_data),
     ]
+

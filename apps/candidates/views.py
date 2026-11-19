@@ -90,11 +90,8 @@ def apply_job(request):
             "message": "This job posting is not currently live or active."
         }, status=400)
 
-    if not target_job.employer:
-        return JsonResponse({
-            "status": "error",
-            "message": "This job posting does not have an assigned owner employer."
-        }, status=400)
+    target_employer = target_job.employer
+    target_company = target_job.company or (target_employer.company if target_employer else None)
 
     # 3. Prevent duplicate applications (same candidate_account + job)
     if Applicant.objects.filter(candidate_account=candidate_account, job=target_job).exists():
@@ -134,7 +131,7 @@ def apply_job(request):
 
     applied_title = target_job.title or job_title or "General Applicant"
     target_employer = target_job.employer
-    target_company = target_job.company or target_employer.company
+    target_company = target_job.company or (target_employer.company if target_employer else None)
 
     applicant = Applicant.objects.create(
         candidate_account=candidate_account,

@@ -34,6 +34,12 @@ urlpatterns = [
     path('candidate/applied-internships/', views.candidate_internships_view),
 
     # Candidate portal protected APIs (with & without trailing slash)
+    path('api/candidate/jobs/', views.api_candidate_jobs, name='api_candidate_jobs'),
+    path('api/candidate/jobs', views.api_candidate_jobs),
+    path('api/candidate/apply-job/', views.api_candidate_apply_job, name='api_candidate_apply_job'),
+    path('api/candidate/apply-job', views.api_candidate_apply_job),
+    path('api/candidate/apply/', views.api_candidate_apply_job),
+    path('api/candidate/apply', views.api_candidate_apply_job),
     path('api/candidate/internships/', views.api_candidate_internships, name='api_candidate_internships'),
     path('api/candidate/internships', views.api_candidate_internships),
     path('api/candidate/me/', views.api_candidate_me, name='api_candidate_me'),
