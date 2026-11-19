@@ -4656,7 +4656,7 @@ class RecruitmentPlacementSettings(models.Model):
 
     hero_hire_btn_text = models.CharField(max_length=100, default="Hire Talent", blank=True)
 
-    hero_hire_btn_url = models.CharField(max_length=255, default="#contact", blank=True)
+    hero_hire_btn_url = models.CharField(max_length=255, default="/employer/hire-talent/", blank=True)
 
     hero_jobs_btn_text = models.CharField(max_length=100, default="Find Jobs", blank=True)
 

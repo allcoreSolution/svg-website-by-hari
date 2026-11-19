@@ -20,7 +20,7 @@
         <p class="lead">{{ rp_settings.hero_subtitle|default:"We help businesses build high-performing teams and help job seekers find the right opportunities — with a process built for speed, fit and follow-through." }}</p>
 
         <div class="sv-hero-actions">
-          <a href="{{ rp_settings.hero_hire_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-solid fa-users"></i> {{ rp_settings.hero_hire_btn_text|default:"Hire Talent" }}</a>
+          <a href="{% if rp_settings.hero_hire_btn_url and rp_settings.hero_hire_btn_url != '#contact' and rp_settings.hero_hire_btn_url != '#' %}{{ rp_settings.hero_hire_btn_url }}{% else %}/employer/hire-talent/{% endif %}" class="btn btn-primary"><i class="fa-solid fa-users"></i> {{ rp_settings.hero_hire_btn_text|default:"Hire Talent" }}</a>
           <a href="{{ rp_settings.hero_jobs_btn_url|default:'/jobs/' }}" class="btn btn-outline"><i class="fa-solid fa-briefcase"></i> {{ rp_settings.hero_jobs_btn_text|default:"Find Jobs" }}</a>
         </div>
 

@@ -57715,7 +57715,7 @@ def handle_recruitment_placement_save(request, admin_user):
 
 
 
-            rp.hero_hire_btn_url = raw_h_hire_url or '#contact'
+            rp.hero_hire_btn_url = raw_h_hire_url or '/employer/hire-talent/'
 
 
 
