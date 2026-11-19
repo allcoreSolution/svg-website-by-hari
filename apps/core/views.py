@@ -8905,27 +8905,199 @@ def payroll_outsourcing(request):
 
 
 
+def seed_initial_hr_support_data(force=False):
+    from apps.core.models import (
+        HrSupportSettings,
+        HrFeatureItem,
+        HrServiceCard,
+        HrAdditionalServiceItem,
+        HrWhyChooseItem,
+        HrProcessStep,
+        HrEmployerBenefit,
+        HrEmployeeBenefit,
+    )
+
+    if force:
+        HrFeatureItem.objects.all().delete()
+        HrServiceCard.objects.all().delete()
+        HrAdditionalServiceItem.objects.all().delete()
+        HrWhyChooseItem.objects.all().delete()
+        HrProcessStep.objects.all().delete()
+        HrEmployerBenefit.objects.all().delete()
+        HrEmployeeBenefit.objects.all().delete()
+
+    hr = HrSupportSettings.get_settings()
+    hr.hero_visible = True
+    hr.about_visible = True
+    hr.services_visible = True
+    hr.additional_visible = True
+    hr.why_choose_visible = True
+    hr.process_visible = True
+    hr.benefits_visible = True
+    hr.cta_visible = True
+
+    if not hr.hero_eyebrow or "Updated" in hr.hero_eyebrow:
+        hr.hero_eyebrow = "HR Support Services"
+    if not hr.hero_title:
+        hr.hero_title = "Empowering People. Strengthening Organizations."
+    if not hr.hero_subtitle or "Test" in hr.hero_subtitle:
+        hr.hero_subtitle = "We provide end-to-end HR support to help businesses build a motivated workforce, ensure compliance, and create a positive work environment."
+    if not hr.about_title:
+        hr.about_title = "Complete HR Solutions for Your Business"
+    if not hr.about_description or "Test" in hr.about_description:
+        hr.about_description = "Our HR experts help you streamline HR operations, develop effective policies, engage employees, manage performance, and maintain accurate documentation."
+    if not hr.services_title:
+        hr.services_title = "Our HR Support Services"
+    if not hr.additional_title:
+        hr.additional_title = "Additional HR Services"
+    if not hr.why_choose_tag:
+        hr.why_choose_tag = "Why Choose Us?"
+    if not hr.process_tag:
+        hr.process_tag = "Our HR Support Process"
+    if not hr.benefits_tag or "Benefits1" in hr.benefits_tag:
+        hr.benefits_tag = "Benefits"
+    if not hr.employers_badge:
+        hr.employers_badge = "For Employers"
+    if not hr.employees_badge:
+        hr.employees_badge = "For Employees"
+    if not hr.cta_title or "TEST" in hr.cta_title:
+        hr.cta_title = "Build a Stronger Workforce with Professional HR Support"
+    if not hr.cta_subtitle:
+        hr.cta_subtitle = "Let us handle your HR processes while you focus on growing your business."
+    if not hr.cta_primary_btn_text:
+        hr.cta_primary_btn_text = "Schedule HR Consultation"
+    if not hr.cta_primary_btn_url:
+        hr.cta_primary_btn_url = "/contact/"
+    if not hr.cta_secondary_btn_text:
+        hr.cta_secondary_btn_text = "Contact Our HR Team"
+    if not hr.cta_secondary_btn_url:
+        hr.cta_secondary_btn_url = "/contact/"
+    hr.save()
+
+    # Clean dummy test data
+    HrServiceCard.objects.filter(title__icontains="(TEST)").delete()
+    HrServiceCard.objects.filter(title="qqqq").delete()
+    HrFeatureItem.objects.filter(title="sss").delete()
+    HrAdditionalServiceItem.objects.filter(title__icontains="(TEST)").delete()
+    HrAdditionalServiceItem.objects.filter(title="www").delete()
+    HrWhyChooseItem.objects.filter(title__icontains="(TEST)").delete()
+    HrProcessStep.objects.filter(title__icontains="(TEST)").delete()
+    HrProcessStep.objects.filter(title="rrr").delete()
+    HrEmployerBenefit.objects.filter(title__icontains="(TEST)").delete()
+    HrEmployerBenefit.objects.filter(title="ttttt").delete()
+    HrEmployeeBenefit.objects.filter(title__icontains="(TEST)").delete()
+    HrEmployeeBenefit.objects.filter(title="TTTT").delete()
+
+    if HrFeatureItem.objects.count() < 3:
+        features = [
+            ("100% Statutory Compliance", "fa-solid fa-shield-halved", 1),
+            ("Tailored HR Policies", "fa-solid fa-file-contract", 2),
+            ("Dedicated HR Advisor", "fa-solid fa-user-tie", 3),
+        ]
+        for title, icon, order in features:
+            if not HrFeatureItem.objects.filter(title=title).exists():
+                HrFeatureItem.objects.create(title=title, icon_class=icon, order=order, is_visible=True)
+
+    if not HrServiceCard.objects.exists() or HrServiceCard.objects.count() < 3:
+        services = [
+            ("HR Policy Formulation", "Drafting employee handbooks, code of conduct, and workplace policies compliant with labor laws.", "fa-solid fa-file-contract", 1),
+            ("Employee Onboarding & Induction", "Structured joining experience with document verification, induction kits, and orientation programs.", "fa-solid fa-user-plus", 2),
+            ("Performance Management System", "KPI setting, goal tracking, appraisal frameworks, and performance improvement plans.", "fa-solid fa-chart-line", 3),
+            ("Statutory Compliance & Audits", "Ensuring full adherence to labor laws, PF, ESI, Gratuity, Bonus, and shop & establishment acts.", "fa-solid fa-shield-halved", 4),
+            ("Employee Relations & Grievance", "Conflict resolution, grievance redressal, disciplinary procedures, and workplace counseling.", "fa-solid fa-handshake", 5),
+            ("Exit Management & F&F Settlement", "Exit interviews, clearance workflows, resignation handovers, and timely full & final settlements.", "fa-solid fa-door-open", 6),
+        ]
+        for title, desc, icon, order in services:
+            if not HrServiceCard.objects.filter(title=title).exists():
+                HrServiceCard.objects.create(title=title, description=desc, icon_class=icon, order=order, is_visible=True)
+
+    if not HrAdditionalServiceItem.objects.exists() or HrAdditionalServiceItem.objects.count() < 3:
+        additionals = [
+            ("Training & Development", "fa-solid fa-graduation-cap", 1),
+            ("POSH Compliance & Training", "fa-solid fa-shield-halved", 2),
+            ("HR Operations & Records", "fa-solid fa-folder-open", 3),
+            ("Compensation & Benefits Benchmarking", "fa-solid fa-coins", 4),
+            ("Employee Engagement Activities", "fa-solid fa-people-group", 5),
+        ]
+        for title, icon, order in additionals:
+            if not HrAdditionalServiceItem.objects.filter(title=title).exists():
+                HrAdditionalServiceItem.objects.create(title=title, icon_class=icon, order=order, is_visible=True)
+
+    if not HrWhyChooseItem.objects.exists() or HrWhyChooseItem.objects.count() < 3:
+        why_choose = [
+            ("Certified HR Professionals", 1),
+            ("100% Legal & Labor Law Compliance", 2),
+            ("Customized HR Frameworks for SMEs & Corporates", 3),
+            ("Confidential Employee Data Management", 4),
+            ("Cost-Effective HR Outsourcing", 5),
+            ("PAN India Support & Fast Turnaround", 6),
+        ]
+        for title, order in why_choose:
+            if not HrWhyChooseItem.objects.filter(title=title).exists():
+                HrWhyChooseItem.objects.create(title=title, order=order, is_visible=True)
+
+    if not HrProcessStep.objects.exists() or HrProcessStep.objects.count() < 3:
+        steps = [
+            ("Step 1", "HR Audit & Gap Analysis", "fa-solid fa-magnifying-glass", 1),
+            ("Step 2", "Strategy & Policy Framework Design", "fa-solid fa-pen-ruler", 2),
+            ("Step 3", "System Implementation & Training", "fa-solid fa-gears", 3),
+            ("Step 4", "Ongoing Support & Periodic Review", "fa-solid fa-clipboard-check", 4),
+        ]
+        for step, title, icon, order in steps:
+            if not HrProcessStep.objects.filter(title=title).exists():
+                HrProcessStep.objects.create(step_number=step, title=title, icon_class=icon, order=order, is_visible=True)
+
+    if not HrEmployerBenefit.objects.exists() or HrEmployerBenefit.objects.count() < 3:
+        emp_benefits = [
+            ("Reduced Legal Liabilities & Risks", 1),
+            ("Lower Employee Turnover Rates", 2),
+            ("Streamlined & Automated HR Operations", 3),
+            ("More Time for Core Business Growth", 4),
+            ("High-Performance Workplace Culture", 5),
+        ]
+        for title, order in emp_benefits:
+            if not HrEmployerBenefit.objects.filter(title=title).exists():
+                HrEmployerBenefit.objects.create(title=title, order=order, is_visible=True)
+
+    if not HrEmployeeBenefit.objects.exists() or HrEmployeeBenefit.objects.count() < 3:
+        employee_benefits = [
+            ("Clear & Transparent Workplace Policies", 1),
+            ("Fair & Timely Grievance Redressal", 2),
+            ("Objective & Structured Appraisals", 3),
+            ("Smooth Onboarding & Documentation", 4),
+            ("Safe & Inclusive Work Environment", 5),
+        ]
+        for title, order in employee_benefits:
+            if not HrEmployeeBenefit.objects.filter(title=title).exists():
+                HrEmployeeBenefit.objects.create(title=title, order=order, is_visible=True)
+
+
 def get_hr_support_context():
-
-
-
     cached_ctx = cache.get(HR_SUPPORT_CACHE_KEY)
-
-
-
-    if cached_ctx:
-
-
-
+    if cached_ctx and cached_ctx.get('hr_services') and cached_ctx.get('hr_features'):
         return cached_ctx
 
-
-
-
-
-
+    if HrFeatureItem.objects.count() < 3 or HrServiceCard.objects.count() < 3 or HrAdditionalServiceItem.objects.count() < 3:
+        seed_initial_hr_support_data()
 
     hr_settings = HrSupportSettings.get_settings()
+    if not hr_settings.hero_visible and not hr_settings.about_visible and not hr_settings.services_visible:
+        hr_settings.hero_visible = True
+        hr_settings.about_visible = True
+        hr_settings.services_visible = True
+        hr_settings.additional_visible = True
+        hr_settings.why_choose_visible = True
+        hr_settings.process_visible = True
+        hr_settings.benefits_visible = True
+        hr_settings.cta_visible = True
+        try:
+            hr_settings.save(update_fields=[
+                'hero_visible', 'about_visible', 'services_visible',
+                'additional_visible', 'why_choose_visible', 'process_visible',
+                'benefits_visible', 'cta_visible'
+            ])
+        except Exception:
+            hr_settings.save()
 
 
 

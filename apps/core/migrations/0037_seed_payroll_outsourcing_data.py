@@ -209,3 +209,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(seed_payroll_outsourcing_data, unseed_payroll_outsourcing_data),
     ]
+

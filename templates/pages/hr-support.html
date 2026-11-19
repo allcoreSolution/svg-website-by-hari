@@ -14,15 +14,11 @@
     <div class="wrap ms-hero-grid">
       <div>
         <span class="cs-eyebrow-chip"><i class="fa-solid fa-people-arrows"></i> {{ hr_settings.hero_eyebrow|default:"HR Support Services" }}</span>
-        <h1>{{ hr_settings.formatted_hero_title|safe }}</h1>
-        <p class="lead">{{ hr_settings.hero_subtitle }}</p>
+        <h1>{{ hr_settings.formatted_hero_title|default:"Empowering People.<br><em>Strengthening Organizations.</em>"|safe }}</h1>
+        <p class="lead">{{ hr_settings.hero_subtitle|default:"We provide end-to-end HR support to help businesses build a motivated workforce, ensure compliance, and create a positive work environment." }}</p>
         <div class="sv-hero-actions">
-          {% if hr_settings.hero_primary_btn_text %}
-          <a href="{{ hr_settings.hero_primary_btn_url|default:'#contact' }}" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> {{ hr_settings.hero_primary_btn_text }}</a>
-          {% endif %}
-          {% if hr_settings.hero_secondary_btn_text %}
-          <a href="{{ hr_settings.hero_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ hr_settings.hero_secondary_btn_text }} <i class="fa-solid fa-arrow-right"></i></a>
-          {% endif %}
+          <a href="{{ hr_settings.hero_primary_btn_url|default:'/contact/' }}" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> {{ hr_settings.hero_primary_btn_text|default:"Get Free Consultation" }}</a>
+          <a href="{{ hr_settings.hero_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ hr_settings.hero_secondary_btn_text|default:"Contact Us" }} <i class="fa-solid fa-arrow-right"></i></a>
         </div>
       </div>
       <div class="ms-hero-visual">
@@ -40,11 +36,15 @@
         <span class="sv-tag">{{ hr_settings.about_tag|default:"About HR Support Services" }}</span>
         <span class="cs-underline"></span>
         <h2>{{ hr_settings.about_title|default:"Complete HR Solutions for Your Business" }}</h2>
-        <p>{{ hr_settings.about_description }}</p>
+        <p>{{ hr_settings.about_description|default:"Our HR experts help you streamline HR operations, develop effective policies, engage employees, manage performance, and maintain accurate documentation." }}</p>
       </div>
       <div class="hr-feature-row">
         {% for feat in hr_features %}
         <div class="hr-feature"><i class="{{ feat.icon_class|default:'fa-solid fa-check' }}"></i><span>{{ feat.title }}</span></div>
+        {% empty %}
+        <div class="hr-feature"><i class="fa-solid fa-shield-halved"></i><span>100% Statutory Compliance</span></div>
+        <div class="hr-feature"><i class="fa-solid fa-file-contract"></i><span>Tailored HR Policies</span></div>
+        <div class="hr-feature"><i class="fa-solid fa-user-tie"></i><span>Dedicated HR Advisor</span></div>
         {% endfor %}
       </div>
     </div>
@@ -66,6 +66,37 @@
           <h3>{{ card.title }}</h3>
           <p>{{ card.description }}</p>
         </div>
+        {% empty %}
+        <div class="sv-service-card hr-card">
+          <div class="hr-icon"><i class="fa-solid fa-file-contract"></i></div>
+          <h3>HR Policy Formulation</h3>
+          <p>Drafting employee handbooks, code of conduct, and workplace policies compliant with labor laws.</p>
+        </div>
+        <div class="sv-service-card hr-card">
+          <div class="hr-icon"><i class="fa-solid fa-user-plus"></i></div>
+          <h3>Employee Onboarding &amp; Induction</h3>
+          <p>Structured joining experience with document verification, induction kits, and orientation programs.</p>
+        </div>
+        <div class="sv-service-card hr-card">
+          <div class="hr-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>Performance Management System</h3>
+          <p>KPI setting, goal tracking, appraisal frameworks, and performance improvement plans.</p>
+        </div>
+        <div class="sv-service-card hr-card">
+          <div class="hr-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>Statutory Compliance &amp; Audits</h3>
+          <p>Ensuring full adherence to labor laws, PF, ESI, Gratuity, Bonus, and shop &amp; establishment acts.</p>
+        </div>
+        <div class="sv-service-card hr-card">
+          <div class="hr-icon"><i class="fa-solid fa-handshake"></i></div>
+          <h3>Employee Relations &amp; Grievance</h3>
+          <p>Conflict resolution, grievance redressal, disciplinary procedures, and workplace counseling.</p>
+        </div>
+        <div class="sv-service-card hr-card">
+          <div class="hr-icon"><i class="fa-solid fa-door-open"></i></div>
+          <h3>Exit Management &amp; F&amp;F Settlement</h3>
+          <p>Exit interviews, clearance workflows, resignation handovers, and timely full &amp; final settlements.</p>
+        </div>
         {% endfor %}
       </div>
     </div>
@@ -80,6 +111,12 @@
       <div class="hr-strip-grid">
         {% for item in hr_additional %}
         <div class="hr-strip-item"><i class="{{ item.icon_class|default:'fa-solid fa-briefcase' }}"></i><span>{{ item.title }}</span></div>
+        {% empty %}
+        <div class="hr-strip-item"><i class="fa-solid fa-graduation-cap"></i><span>Training &amp; Development</span></div>
+        <div class="hr-strip-item"><i class="fa-solid fa-shield-halved"></i><span>POSH Compliance &amp; Training</span></div>
+        <div class="hr-strip-item"><i class="fa-solid fa-folder-open"></i><span>HR Operations &amp; Records</span></div>
+        <div class="hr-strip-item"><i class="fa-solid fa-coins"></i><span>Compensation &amp; Benefits Benchmarking</span></div>
+        <div class="hr-strip-item"><i class="fa-solid fa-people-group"></i><span>Employee Engagement Activities</span></div>
         {% endfor %}
       </div>
     </div>
@@ -97,6 +134,13 @@
         <ul class="cc-check-list">
           {% for item in hr_why_choose %}
           <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+          {% empty %}
+          <li><i class="fa-solid fa-circle-check"></i> Certified HR Professionals</li>
+          <li><i class="fa-solid fa-circle-check"></i> 100% Legal &amp; Labor Law Compliance</li>
+          <li><i class="fa-solid fa-circle-check"></i> Customized HR Frameworks for SMEs &amp; Corporates</li>
+          <li><i class="fa-solid fa-circle-check"></i> Confidential Employee Data Management</li>
+          <li><i class="fa-solid fa-circle-check"></i> Cost-Effective HR Outsourcing</li>
+          <li><i class="fa-solid fa-circle-check"></i> PAN India Support &amp; Fast Turnaround</li>
           {% endfor %}
         </ul>
         <div class="cc-panel-photo"><img src="{{ hr_settings.get_why_choose_image }}" alt="HR professional at work"></div>
@@ -113,6 +157,11 @@
               <p>{{ step.title }}</p>
             </div>
           </div>
+          {% empty %}
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-magnifying-glass"></i></span><div><b>Step 1</b><p>HR Audit &amp; Gap Analysis</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-pen-ruler"></i></span><div><b>Step 2</b><p>Strategy &amp; Policy Framework Design</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-gears"></i></span><div><b>Step 3</b><p>System Implementation &amp; Training</p></div></div>
+          <div class="cc-vstep"><span class="dot"><i class="fa-solid fa-clipboard-check"></i></span><div><b>Step 4</b><p>Ongoing Support &amp; Periodic Review</p></div></div>
           {% endfor %}
         </div>
       </div>
@@ -126,6 +175,12 @@
           <ul>
             {% for item in hr_employer_benefits %}
             <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+            {% empty %}
+            <li><i class="fa-solid fa-circle-check"></i> Reduced Legal Liabilities &amp; Risks</li>
+            <li><i class="fa-solid fa-circle-check"></i> Lower Employee Turnover Rates</li>
+            <li><i class="fa-solid fa-circle-check"></i> Streamlined &amp; Automated HR Operations</li>
+            <li><i class="fa-solid fa-circle-check"></i> More Time for Core Business Growth</li>
+            <li><i class="fa-solid fa-circle-check"></i> High-Performance Workplace Culture</li>
             {% endfor %}
           </ul>
         </div>
@@ -134,6 +189,12 @@
           <ul>
             {% for item in hr_employee_benefits %}
             <li><i class="fa-solid fa-circle-check"></i> {{ item.title }}</li>
+            {% empty %}
+            <li><i class="fa-solid fa-circle-check"></i> Clear &amp; Transparent Workplace Policies</li>
+            <li><i class="fa-solid fa-circle-check"></i> Fair &amp; Timely Grievance Redressal</li>
+            <li><i class="fa-solid fa-circle-check"></i> Objective &amp; Structured Appraisals</li>
+            <li><i class="fa-solid fa-circle-check"></i> Smooth Onboarding &amp; Documentation</li>
+            <li><i class="fa-solid fa-circle-check"></i> Safe &amp; Inclusive Work Environment</li>
             {% endfor %}
           </ul>
         </div>
@@ -149,18 +210,12 @@
   <section class="sv-cta" id="contact">
     <div class="sv-cta-inner">
       <div>
-        <h2>{{ hr_settings.formatted_cta_title|safe }}</h2>
-        {% if hr_settings.cta_subtitle %}
-        <p>{{ hr_settings.cta_subtitle }}</p>
-        {% endif %}
+        <h2>{{ hr_settings.formatted_cta_title|default:"Build a Stronger Workforce <span class='cc-accent'>with Professional HR Support</span>"|safe }}</h2>
+        <p>{{ hr_settings.cta_subtitle|default:"Let us handle your HR processes while you focus on growing your business." }}</p>
       </div>
       <div class="cs-cta-actions">
-        {% if hr_settings.cta_primary_btn_text %}
-        <a href="{{ hr_settings.cta_primary_btn_url|default:'/contact/' }}" class="btn btn-primary"><i class="fa-regular fa-calendar-check"></i> {{ hr_settings.cta_primary_btn_text }}</a>
-        {% endif %}
-        {% if hr_settings.cta_secondary_btn_text %}
-        <a href="{{ hr_settings.cta_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ hr_settings.cta_secondary_btn_text }} <i class="fa-solid fa-arrow-right"></i></a>
-        {% endif %}
+        <a href="{{ hr_settings.cta_primary_btn_url|default:'/contact/' }}" class="btn btn-primary"><i class="fa-regular fa-calendar-check"></i> {{ hr_settings.cta_primary_btn_text|default:"Schedule HR Consultation" }}</a>
+        <a href="{{ hr_settings.cta_secondary_btn_url|default:'/contact/' }}" class="btn btn-outline">{{ hr_settings.cta_secondary_btn_text|default:"Contact Our HR Team" }} <i class="fa-solid fa-arrow-right"></i></a>
       </div>
     </div>
   </section>
