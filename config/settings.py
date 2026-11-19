@@ -35,34 +35,57 @@ raw_allowed_hosts = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost',
 if 'testserver' not in raw_allowed_hosts:
     raw_allowed_hosts.append('testserver')
 
+# Production custom domains & wildcard domains
+custom_hosts = [
+    'svgconsultancy.com',
+    'www.svgconsultancy.com',
+    '.svgconsultancy.com',
+    '.onrender.com',
+]
+for host_entry in custom_hosts:
+    if host_entry not in raw_allowed_hosts:
+        raw_allowed_hosts.append(host_entry)
+
 # Render.com automatic hostname detection
 render_host = env('RENDER_EXTERNAL_HOSTNAME', default=None)
 if render_host and render_host not in raw_allowed_hosts:
     raw_allowed_hosts.append(render_host)
-    raw_allowed_hosts.append(f'.onrender.com')
 
 ALLOWED_HOSTS = raw_allowed_hosts
 
-SITE_URL = env('SITE_URL', default=f'https://{render_host}' if render_host else 'http://127.0.0.1:8000')
+SITE_URL = env('SITE_URL', default=f'https://{render_host}' if render_host else 'https://www.svgconsultancy.com')
 
 # CSRF Trusted Origins
 raw_csrf = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+default_csrf_origins = [
+    'https://svgconsultancy.com',
+    'https://www.svgconsultancy.com',
+    'https://*.svgconsultancy.com',
+    'https://*.onrender.com',
+]
+for origin in default_csrf_origins:
+    if origin not in raw_csrf:
+        raw_csrf.append(origin)
+
 if render_host:
     https_url = f'https://{render_host}'
     if https_url not in raw_csrf:
         raw_csrf.append(https_url)
-    if 'https://*.onrender.com' not in raw_csrf:
-        raw_csrf.append('https://*.onrender.com')
 
 CSRF_TRUSTED_ORIGINS = raw_csrf
 
 # CORS Allowed Origins
-CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
+raw_cors = env.list('CORS_ALLOWED_ORIGINS', default=[
     'http://127.0.0.1:8000',
     'http://localhost:8000',
     'http://127.0.0.1:3000',
     'http://localhost:3000',
 ])
+for cors_origin in ['https://svgconsultancy.com', 'https://www.svgconsultancy.com']:
+    if cors_origin not in raw_cors:
+        raw_cors.append(cors_origin)
+
+CORS_ALLOWED_ORIGINS = raw_cors
 
 INSTALLED_APPS = [
     'django.contrib.admin',
