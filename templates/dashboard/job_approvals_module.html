@@ -672,7 +672,7 @@
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        alert(data.message || 'Job approved and published to website!');
+        try { sessionStorage.setItem('admin_flash_toast', data.message || 'Job approved and published to website!'); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Failed to approve job.');

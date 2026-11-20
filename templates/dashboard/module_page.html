@@ -2356,7 +2356,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(async res => {
       const data = await res.json().catch(() => null);
       if (res.ok && data && (data.status === 'success' || data.id)) {
-        alert(data.message || `✓ Status updated to "${newStatus}"!`);
+        try { sessionStorage.setItem('admin_flash_toast', data.message || `Status updated to "${newStatus}"!`); } catch (e) {}
         window.location.reload();
       } else {
         alert((data && data.message) ? data.message : `Error updating status (HTTP ${res.status}).`);
@@ -2430,7 +2430,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert(data.message || `✓ Approved & published job opening for "${name}" successfully!`);
+          try { sessionStorage.setItem('admin_flash_toast', data.message || `Approved & published job opening for "${name}" successfully!`); } catch (e) {}
           window.location.reload();
         } else {
           alert(data.message || 'Error approving & publishing enquiry.');
@@ -2477,7 +2477,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' || data.id) {
-          alert(data.message || `✓ Requirement from "${name}" rejected.`);
+          try { sessionStorage.setItem('admin_flash_toast', data.message || `Requirement from "${name}" rejected.`); } catch (e) {}
           window.location.reload();
         } else {
           alert(data.message || 'Error rejecting requirement.');
@@ -2524,7 +2524,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(async res => {
         const data = await res.json().catch(() => null);
         if (res.ok && data && data.status === 'success') {
-          alert(data.message);
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Interview scheduled successfully!'); } catch (e) {}
           window.location.reload();
         } else {
           alert((data && data.message) ? data.message : `Error scheduling interview (${res.status} ${res.statusText}).`);
@@ -2604,7 +2604,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' || data.id) {
-          alert('Record updated successfully!');
+          try { sessionStorage.setItem('admin_flash_toast', 'Record updated successfully!'); } catch (e) {}
           window.location.reload();
         } else {
           alert(data.message || 'Error updating record.');
@@ -2650,7 +2650,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert(`✓ ${labelText.charAt(0).toUpperCase() + labelText.slice(1)} deleted successfully!`);
+          if (typeof window.showAdminToast === 'function') {
+            window.showAdminToast(`${labelText.charAt(0).toUpperCase() + labelText.slice(1)} deleted successfully!`, true);
+          }
           const row = btn.closest('tr');
           if (row) row.remove();
         } else {
@@ -2697,7 +2699,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' || data.success) {
-          alert('✓ Internship posted successfully!');
+          try { sessionStorage.setItem('admin_flash_toast', 'Internship posted successfully!'); } catch (e) {}
           window.location.href = '/admin-panel/internships/all/';
         } else {
           alert(data.message || 'Error posting internship.');
@@ -2755,7 +2757,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' || data.success) {
-          alert(isEdit ? '✓ Provider updated successfully!' : '✓ Provider added successfully!');
+          if (typeof window.showAdminToast === 'function') {
+            window.showAdminToast(isEdit ? 'Provider updated successfully!' : 'Provider added successfully!', true);
+          }
           document.getElementById('quickAddProviderModal').style.display = 'none';
 
           // If on Add Internship page, dynamically append to dropdown
@@ -2836,7 +2840,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert('✓ Company record created successfully!');
+          try { sessionStorage.setItem('admin_flash_toast', 'Company record created successfully!'); } catch (e) {}
           window.location.href = '/admin-panel/companies/all/';
         } else {
           alert(data.message || 'Error creating company record.');
@@ -2955,7 +2959,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert(`✓ Enquiry for "${name}" converted to company profile successfully!`);
+          try { sessionStorage.setItem('admin_flash_toast', `Enquiry for "${name}" converted to company profile successfully!`); } catch (e) {}
           window.location.reload();
         } else {
           alert(data.message || 'Error converting enquiry.');
@@ -2978,7 +2982,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert(`✓ Approved & published job opening for "${name}" successfully!`);
+          try { sessionStorage.setItem('admin_flash_toast', `Approved & published job opening for "${name}" successfully!`); } catch (e) {}
           window.location.reload();
         } else {
           alert(data.message || 'Error approving enquiry.');
@@ -2998,7 +3002,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert(data.message || '✓ Requirement published as public job opening!');
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Requirement published as public job opening!'); } catch (e) {}
           window.location.reload();
         } else alert(data.message || 'Error publishing requirement.');
       });
@@ -3015,7 +3019,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert(data.message || '✓ Requirement closed.');
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Requirement closed.'); } catch (e) {}
           window.location.reload();
         } else alert(data.message || 'Error closing requirement.');
       });
@@ -3032,7 +3036,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert(data.message || '✓ Requirement reopened.');
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Requirement reopened.'); } catch (e) {}
           window.location.reload();
         } else alert(data.message || 'Error reopening requirement.');
       });
@@ -3050,7 +3054,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          alert(data.message || '✓ Set as primary contact!');
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Set as primary contact!'); } catch (e) {}
           window.location.reload();
         } else alert(data.message || 'Error setting primary contact.');
       });
@@ -3109,7 +3113,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' || data.success) {
-          alert('✓ Internship details updated successfully!');
+          try { sessionStorage.setItem('admin_flash_toast', 'Internship details updated successfully!'); } catch (e) {}
           window.location.reload();
         } else {
           alert(data.message || 'Error updating internship.');
@@ -3138,7 +3142,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' || data.success) {
-          alert(`✓ Enquiry for "${name}" converted to application successfully!`);
+          try { sessionStorage.setItem('admin_flash_toast', `Enquiry for "${name}" converted to application successfully!`); } catch (e) {}
           window.location.reload();
         } else {
           alert(data.message || 'Error converting enquiry.');
@@ -3167,7 +3171,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' || data.success) {
-          alert(`✓ Application status updated to "${newStatus}"!`);
+          try { sessionStorage.setItem('admin_flash_toast', `Application status updated to "${newStatus}"!`); } catch (e) {}
           window.location.reload();
         } else {
           alert(data.message || 'Error updating application status.');
@@ -3279,7 +3283,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(async res => {
         const data = await res.json().catch(() => null);
         if (res.ok && data && data.status === 'success') {
-          alert(data.message || '✓ Interview rescheduled!');
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Interview rescheduled!'); } catch (e) {}
           window.location.reload();
         } else {
           alert((data && data.message) ? data.message : 'Error rescheduling interview.');
@@ -3326,7 +3330,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(async res => {
         const data = await res.json().catch(() => null);
         if (res.ok && data && data.status === 'success') {
-          alert(data.message || '✓ Interview marked as complete!');
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Interview marked as complete!'); } catch (e) {}
           window.location.reload();
         } else {
           alert((data && data.message) ? data.message : 'Error completing interview.');
@@ -3372,7 +3376,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(async res => {
         const data = await res.json().catch(() => null);
         if (res.ok && data && data.status === 'success') {
-          alert(data.message || '✓ Interview cancelled.');
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Interview cancelled.'); } catch (e) {}
           window.location.reload();
         } else {
           alert((data && data.message) ? data.message : 'Error cancelling interview.');
@@ -3527,7 +3531,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        alert(data.message);
+        try { sessionStorage.setItem('admin_flash_toast', data.message || 'Candidate approved successfully!'); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Approval failed.');
@@ -3567,7 +3571,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (res.ok && data.status === 'success') {
         closeRejectModal();
-        alert(data.message);
+        try { sessionStorage.setItem('admin_flash_toast', data.message || 'Candidate registration rejected.'); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Rejection failed.');
@@ -3587,7 +3591,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        alert(data.message || 'Employer approved successfully!');
+        try { sessionStorage.setItem('admin_flash_toast', data.message || 'Employer approved successfully!'); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Employer approval failed.');
@@ -3625,7 +3629,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (res.ok && data.status === 'success') {
         closeEmployerRejectModal();
-        alert(data.message || 'Employer registration rejected.');
+        try { sessionStorage.setItem('admin_flash_toast', data.message || 'Employer registration rejected.'); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Rejection failed.');
@@ -3663,7 +3667,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (res.ok && data.status === 'success') {
         closeEmployerSuspendModal();
-        alert(data.message || 'Employer account suspended.');
+        try { sessionStorage.setItem('admin_flash_toast', data.message || 'Employer account suspended.'); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Suspension failed.');
@@ -3837,7 +3841,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        alert(data.message || `✓ Candidate "${name}" approved successfully!`);
+        try { sessionStorage.setItem('admin_flash_toast', data.message || `Candidate "${name}" approved successfully!`); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Error approving application.');
@@ -3892,7 +3896,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        alert(data.message || '✓ Success!');
+        try { sessionStorage.setItem('admin_flash_toast', data.message || 'Success!'); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Error updating candidate.');
@@ -3931,7 +3935,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        alert(`✓ Application for "${name}" rejected.`);
+        try { sessionStorage.setItem('admin_flash_toast', `Application for "${name}" rejected.`); } catch (e) {}
         window.location.reload();
       } else {
         alert(data.message || 'Error rejecting application.');
@@ -4017,7 +4021,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const data = await res.json();
         if (res.ok && data.status === 'success') {
-          alert('✓ ' + (data.message || 'Offer letter issued successfully!'));
+          try { sessionStorage.setItem('admin_flash_toast', data.message || 'Offer letter issued successfully!'); } catch (e) {}
           closeAdminCreateOfferModal();
           window.location.reload();
         } else {
@@ -4115,7 +4119,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        alert('✓ ' + (data.message || 'Candidate successfully marked as Joined! Placement created.'));
+        try { sessionStorage.setItem('admin_flash_toast', data.message || 'Candidate successfully marked as Joined! Placement created.'); } catch (e) {}
         window.location.reload();
       } else {
         alert((data && data.message) ? data.message : 'Error confirming joining.');
