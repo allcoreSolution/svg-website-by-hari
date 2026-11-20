@@ -343,6 +343,33 @@
   </div>
 </div>
 
+<!-- ============ 2.6 CANDIDATE REGISTRATION / LOGIN REQUIRED MODAL ============ -->
+<div class="job-apply-overlay" id="candidateAuthPromptModal">
+  <div class="job-apply-modal" style="max-width: 460px; text-align: center; padding: 32px 24px; border-radius: 18px;">
+    <button class="job-apply-close" id="candidateAuthPromptClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="job-apply-logo" style="margin-bottom: 12px;">
+      <img src="{% static 'images/logo/logo.png' %}" alt="Sky Vision Group Consultancy" style="max-height: 42px;">
+    </div>
+    <div style="width: 56px; height: 56px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 14px;">
+      <i class="fa-solid fa-user-graduate"></i>
+    </div>
+    <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Candidate Registration Required</h3>
+    <p id="candidateAuthPromptSubtitle" style="font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 22px;">
+      Internship apply karne ke liye please pehle Candidate Registration karein ya apne account me Login karein.
+    </p>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <a href="/candidate/register/" id="candidateAuthPromptRegBtn" class="btn btn-primary" style="padding: 12px 20px; font-weight: 700; border-radius: 10px; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; background: #2563eb; color: #ffffff;">
+        <i class="fa-solid fa-user-plus"></i> Register as Candidate
+      </a>
+      <a href="/candidate/login/" id="candidateAuthPromptLoginBtn" class="btn btn-outline" style="padding: 12px 20px; font-weight: 600; border-radius: 10px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border: 1.5px solid #cbd5e1; color: #334155; background: #ffffff;">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> Already have an account? Login
+      </a>
+    </div>
+  </div>
+</div>
+
 <!-- ============ 3. HIRE TALENT MODAL ============ -->
 <div class="job-apply-overlay" id="hireTalentModalOverlay">
   <div class="job-apply-modal">

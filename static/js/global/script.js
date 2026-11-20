@@ -1560,69 +1560,91 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  if (!jobOverlay) return; // safety check — modal not present on this page
+  if (!jobOverlay && !document.getElementById("internshipApplyOverlay")) return; // safety check — modal not present on this page
 
 
 
   // ---- Reusable auth check helper ----
-
-  async function checkCandidateAuth() {
-
+  async function checkCandidateAuth(type = "job") {
     if (typeof window.IS_CANDIDATE_LOGGED_IN !== 'undefined') {
-
       if (!window.IS_CANDIDATE_LOGGED_IN) {
-
-        promptLogin();
-
+        promptLogin(type);
         return false;
-
       }
-
       return true;
-
     }
-
     const apiBase = window.location.origin;
-
     try {
-
       const res = await fetch(`${apiBase}/api/candidate/me/`, { credentials: "include" });
-
       if (res.ok) {
-
         const data = await res.json();
-
         if (data.status === "success" && data.candidate) {
-
           return true;
-
         }
-
       }
-
     } catch (e) {}
 
-
-
-    promptLogin();
-
+    promptLogin(type);
     return false;
-
   }
 
-
-
-  function promptLogin() {
-
+  function promptLogin(type = "job") {
     const apiBase = window.location.origin;
+    const isIntern = type === "internship";
 
-    if (confirm("Job apply karne ke liye please Candidate Register ya Login karein.\n\nKya aap Candidate Login page par jana chahte hain?")) {
+    const authModal = document.getElementById("candidateAuthPromptModal");
+    if (authModal) {
+      const modalSubtitle = document.getElementById("candidateAuthPromptSubtitle");
+      const regBtn = document.getElementById("candidateAuthPromptRegBtn");
+      const loginBtn = document.getElementById("candidateAuthPromptLoginBtn");
 
-      window.location.href = `${apiBase}/candidate/login/?next=` + encodeURIComponent(window.location.pathname);
+      if (modalSubtitle) {
+        modalSubtitle.textContent = isIntern
+          ? "Internship ke liye apply karne se pehle kripya Candidate Registration karein ya apne account me Login karein."
+          : "Job apply karne ke liye please pehle Candidate Registration karein ya apne account me Login karein.";
+      }
+      if (regBtn) {
+        regBtn.href = `/candidate/register/?next=` + encodeURIComponent(window.location.pathname);
+      }
+      if (loginBtn) {
+        loginBtn.href = `/candidate/login/?next=` + encodeURIComponent(window.location.pathname);
+      }
 
+      authModal.classList.add("active");
+      document.body.classList.add("popup-open");
+      return;
     }
 
+    const msg = isIntern
+      ? "Internship apply karne ke liye please pehle Candidate Registration karein ya Login karein.\n\nKya aap Candidate Registration page par jana chahte hain?"
+      : "Job apply karne ke liye please Candidate Register ya Login karein.\n\nKya aap Candidate Registration page par jana chahte hain?";
+
+    if (confirm(msg)) {
+      window.location.href = `${apiBase}/candidate/register/?next=` + encodeURIComponent(window.location.pathname);
+    }
   }
+
+  // Close handlers for Candidate Auth Prompt Modal
+  const authPromptOverlay = document.getElementById("candidateAuthPromptModal");
+  const authPromptClose = document.getElementById("candidateAuthPromptClose");
+  if (authPromptClose && authPromptOverlay) {
+    authPromptClose.addEventListener("click", () => {
+      authPromptOverlay.classList.remove("active");
+      document.body.classList.remove("popup-open");
+    });
+    authPromptOverlay.addEventListener("click", (e) => {
+      if (e.target === authPromptOverlay) {
+        authPromptOverlay.classList.remove("active");
+        document.body.classList.remove("popup-open");
+      }
+    });
+  }
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && authPromptOverlay && authPromptOverlay.classList.contains("active")) {
+      authPromptOverlay.classList.remove("active");
+      document.body.classList.remove("popup-open");
+    }
+  });
 
 
 
@@ -1630,7 +1652,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function openJobModal(jobTitle, jobId) {
 
-    const isAuthed = await checkCandidateAuth();
+    if (!jobOverlay) return;
+
+    const isAuthed = await checkCandidateAuth("job");
 
     if (!isAuthed) return;
 
@@ -1730,9 +1754,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  function openInternshipModal(internshipId, domainTitle) {
+  async function openInternshipModal(internshipId, domainTitle) {
 
     if (!internOverlay) return;
+
+    // Check candidate authentication first (Prompt to Register or Login)
+    const isAuthed = await checkCandidateAuth("internship");
+    if (!isAuthed) return;
 
     if (internIdInput) internIdInput.value = internshipId || "";
 
@@ -1832,7 +1860,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", async (e) => {
 
     const btn = e.target.closest(".js-internship-popup");
 
@@ -1844,7 +1872,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const domain = btn.getAttribute("data-internship-domain") || btn.getAttribute("data-job-title") || "";
 
-      openInternshipModal(internshipId, domain);
+      await openInternshipModal(internshipId, domain);
 
     }
 
