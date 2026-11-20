@@ -21485,6 +21485,202 @@ def admin_job_openings_view(request):
     return render(request, 'dashboard/job_postings_module.html', context)
 
 
+@admin_required
+def admin_employer_jobs_view(request, company_id=None):
+    """
+    Dedicated view for an Employer / Company:
+    Displays employer profile, KPI stat cards (Total Jobs, Live Jobs,
+    Hiring Active, Hiring Closed/Ended, Candidates Applied),
+    and the comprehensive jobs list with applicants details.
+    """
+    from django.db.models import Q
+    from apps.companies.models import Company
+    from apps.accounts.models import EmployerAccount, AdminUser
+    from apps.jobs.models import Job
+    from apps.candidates.models import Applicant
+
+    admin_user = getattr(request, 'admin_user', None)
+    if not admin_user:
+        admin_id = request.session.get('admin_id')
+        if admin_id:
+            admin_user = AdminUser.objects.filter(id=admin_id).first()
+
+    name_query = request.GET.get('name', '').strip()
+    id_param = request.GET.get('id', '').strip()
+    target_id = company_id or (int(id_param) if id_param.isdigit() else None)
+
+    company = None
+    employer_account = None
+
+    if target_id:
+        company = Company.objects.filter(id=target_id).first()
+        if not company:
+            employer_account = EmployerAccount.objects.filter(id=target_id).first()
+            if employer_account and employer_account.company:
+                company = employer_account.company
+
+    if not company and not employer_account and name_query:
+        company = Company.objects.filter(name__iexact=name_query).first()
+        if not company:
+            employer_account = EmployerAccount.objects.filter(company_name__iexact=name_query).first()
+            if employer_account and employer_account.company:
+                company = employer_account.company
+
+    if not company and not employer_account:
+        return redirect('/admin-panel/companies/all/')
+
+    # Gather associated employers and company
+    employers = []
+    if company:
+        employers = list(EmployerAccount.objects.filter(
+            Q(company=company) | Q(company_name__iexact=company.name)
+        ))
+        if not employer_account and employers:
+            employer_account = employers[0]
+    elif employer_account:
+        employers = [employer_account]
+        if employer_account.company:
+            company = employer_account.company
+
+    company_name = company.name if company else (employer_account.company_name if employer_account else "Unknown Employer")
+    primary_contact_name = ""
+    contact_phone = company.phone if company else (employer_account.phone if employer_account else "")
+    contact_email = company.email if company else (employer_account.email if employer_account else "")
+    city = company.city if company else (employer_account.city if employer_account else "Lucknow")
+    state = company.state if company else (employer_account.state if employer_account else "Uttar Pradesh")
+    industry = company.industry if company else "Corporate Employer"
+    website = company.website if company else (employer_account.website if employer_account else "")
+    gst_number = company.gst_number if company else (employer_account.gst_number if employer_account else "")
+
+    if company:
+        contacts = list(company.contacts.all())
+        primary_contact = next((c for c in contacts if c.is_primary), contacts[0] if contacts else None)
+        if primary_contact:
+            primary_contact_name = f"{primary_contact.name} ({primary_contact.designation or 'Primary Contact'})"
+            if not contact_phone:
+                contact_phone = primary_contact.phone
+            if not contact_email:
+                contact_email = primary_contact.email
+    elif employer_account:
+        primary_contact_name = employer_account.contact_name or "Employer Contact"
+
+    # Match all jobs posted by this employer/company
+    job_query = Q()
+    if company:
+        job_query |= Q(company=company)
+        job_query |= Q(requirement__company=company)
+    if employers:
+        job_query |= Q(employer__in=employers)
+    if company_name:
+        job_query |= Q(employer__company_name__iexact=company_name)
+        job_query |= Q(company__name__iexact=company_name)
+
+    jobs = Job.objects.filter(job_query).distinct().select_related('company', 'employer').order_by('-created_at', '-id')
+
+    jobs_list = []
+    total_jobs = jobs.count()
+    live_jobs_count = 0
+    hiring_active_count = 0
+    hiring_closed_count = 0
+    pending_approval_count = 0
+    total_applicants_count = 0
+
+    for job in jobs:
+        is_live = job.status in Job.LIVE_STATUSES
+        is_pending = job.status in Job.PENDING_STATUSES
+        is_closed = job.status in Job.CLOSED_STATUSES or job.status == 'REJECTED'
+
+        is_hiring_active = is_live
+
+        if is_live:
+            live_jobs_count += 1
+        if is_hiring_active:
+            hiring_active_count += 1
+        elif is_closed:
+            hiring_closed_count += 1
+        if is_pending:
+            pending_approval_count += 1
+
+        apps = Applicant.objects.filter(job=job).order_by('-applied_on', '-id')
+        app_count = apps.count()
+        total_applicants_count += app_count
+
+        applicants_data = []
+        for a in apps:
+            resume_val = str(a.resume or '').strip()
+            resume_url = ''
+            if resume_val:
+                if resume_val.startswith('http://') or resume_val.startswith('https://') or resume_val.startswith('/'):
+                    resume_url = resume_val
+                else:
+                    resume_url = f"/media/{resume_val}"
+
+            applied_dt_str = "Recent"
+            if a.applied_on:
+                applied_dt_str = a.applied_on.strftime("%d %b %Y")
+
+            applicants_data.append({
+                'id': f"APP-{a.id}",
+                'raw_id': a.id,
+                'name': a.full_name or "Applicant",
+                'email': a.email or "N/A",
+                'phone': a.phone or "N/A",
+                'experience': a.experience or "N/A",
+                'status': a.status or "Applied",
+                'applied_on': applied_dt_str,
+                'resume_url': resume_url,
+            })
+
+        jobs_list.append({
+            'id': job.id,
+            'ref_id': f"JOB-{job.id}",
+            'title': job.title,
+            'category': job.category or "General",
+            'department': job.department or "",
+            'location': job.location or f"{city}, {state}",
+            'employment_type': job.employment_type or "Full Time",
+            'salary': job.salary or "Negotiable",
+            'vacancies': job.vacancies or "1",
+            'experience': job.experience or "Fresher / Experienced",
+            'deadline': job.deadline or "Open Until Filled",
+            'status': job.status,
+            'is_live': is_live,
+            'is_pending': is_pending,
+            'is_closed': is_closed,
+            'is_hiring_active': is_hiring_active,
+            'created_at': job.created_at.strftime("%d %b %Y") if job.created_at else "N/A",
+            'applicants_count': app_count,
+            'applicants': applicants_data,
+        })
+
+    context = {
+        'admin_user': admin_user,
+        'active_menu': 'companies',
+        'sub_active': 'companies_all',
+        'company': company,
+        'employer_account': employer_account,
+        'company_id': target_id or (company.id if company else (employer_account.id if employer_account else 0)),
+        'company_name': company_name,
+        'city': city,
+        'state': state,
+        'industry': industry,
+        'email': contact_email,
+        'phone': contact_phone,
+        'primary_contact_name': primary_contact_name,
+        'website': website,
+        'gst_number': gst_number,
+        'total_jobs': total_jobs,
+        'live_jobs_count': live_jobs_count,
+        'hiring_active_count': hiring_active_count,
+        'hiring_closed_count': hiring_closed_count,
+        'pending_approval_count': pending_approval_count,
+        'total_applicants_count': total_applicants_count,
+        'jobs': jobs_list,
+    }
+
+    return render(request, 'dashboard/employer_jobs_detail.html', context)
+
+
 
 
 

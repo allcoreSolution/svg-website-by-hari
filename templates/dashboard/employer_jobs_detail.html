@@ -1,0 +1,963 @@
+{% extends 'dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ company_name }} — Posted Jobs & Hiring Status{% endblock %}
+{% block page_title %}{{ company_name }} — Jobs & Hiring Overview{% endblock %}
+{% block breadcrumb_title %}Users & Management / <a href="/admin-panel/companies/all/" style="color:#2563eb; text-decoration:none;">Employers</a> / {{ company_name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Employer Profile Hero Banner */
+  .emp-hero-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .emp-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .emp-avatar-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+    flex-shrink: 0;
+  }
+  .emp-hero-info h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .emp-meta-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+  }
+  .emp-meta-pills span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .emp-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* Metric KPI Cards Grid */
+  .emp-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 1200px) {
+    .emp-kpi-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 768px) {
+    .emp-kpi-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .emp-kpi-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .emp-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15,23,42,0.08);
+  }
+  .emp-kpi-card.active-tab {
+    border-color: #2563eb;
+    background: #f8fafc;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.22);
+  }
+  .emp-kpi-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .emp-kpi-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .emp-kpi-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .emp-kpi-num {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+  .emp-kpi-sub {
+    font-size: 11.5px;
+    color: #64748b;
+  }
+
+  /* Table Toolbar */
+  .jobs-table-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+    overflow: hidden;
+  }
+  .jobs-toolbar {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    background: #fafbfc;
+  }
+  .jobs-search-box {
+    position: relative;
+    width: 320px;
+    max-width: 100%;
+  }
+  .jobs-search-box i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 15px;
+  }
+  .jobs-search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 13.5px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .jobs-search-box input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  }
+  .jobs-filter-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .jobs-tab-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .jobs-tab-btn:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+  }
+  .jobs-tab-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+  }
+
+  /* Table styling */
+  .jobs-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .jobs-data-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .jobs-data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #1e293b;
+  }
+  .jobs-data-table tr.job-main-row:hover {
+    background-color: #f8fafc;
+  }
+
+  /* Badges */
+  .badge-hiring-active {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: 11.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .badge-hiring-closed {
+    background: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: 11.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .badge-live-status {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Expandable Applicants Drawer */
+  .applicants-drawer-row {
+    background: #f8fafc;
+  }
+  .applicants-drawer-cell {
+    padding: 16px 20px !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+  }
+  .applicants-inner-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+    overflow: hidden;
+  }
+  .applicants-inner-head {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .applicants-sub-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .applicants-sub-table th {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 9px 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .applicants-sub-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+  }
+  .applicants-sub-table tr:last-child td {
+    border-bottom: none;
+  }
+  .btn-view-resume {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-view-resume:hover {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area">
+
+  <!-- TOP BREADCRUMB & ACTION BAR -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a href="/admin-panel/companies/all/" class="btn-admin" style="background:#ffffff; color:#334155; border:1px solid #cbd5e1; font-size:13px; font-weight:700; padding:8px 16px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+        <i class="ti ti-arrow-left" style="font-size:16px;"></i> Back to All Employers
+      </a>
+      <span style="color:#94a3b8;">/</span>
+      <span style="font-size:14px; font-weight:700; color:#0f172a;">{{ company_name }}</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a href="javascript:void(0)" onclick="window.location.reload();" class="btn-admin" style="background:#ffffff; color:#475569; border:1px solid #cbd5e1; font-size:12.5px; font-weight:600; padding:8px 14px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-radius:8px;">
+        <i class="ti ti-refresh"></i> Refresh
+      </a>
+
+      <!-- Export Dropdown -->
+      <div style="position:relative; display:inline-block;">
+        <button type="button" class="btn-admin" id="btnExportEmployerJobs" onclick="toggleExportMenu(event)" style="background:#0f172a; color:#ffffff; font-size:12.5px; font-weight:600; padding:8px 16px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer;">
+          <i class="ti ti-download"></i> Export <i class="ti ti-chevron-down" style="font-size:12px;"></i>
+        </button>
+        <div id="exportMenuDropdown" style="display:none; position:absolute; right:0; top:calc(100% + 5px); background:#ffffff; min-width:180px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.15); border:1px solid #e2e8f0; z-index:100; overflow:hidden;">
+          <a href="javascript:void(0)" onclick="exportToExcel()" style="display:flex; align-items:center; gap:8px; padding:10px 14px; font-size:12.5px; font-weight:600; color:#1e293b; text-decoration:none; border-bottom:1px solid #f1f5f9;">
+            <i class="ti ti-file-spreadsheet" style="color:#10b981; font-size:16px;"></i> Export to Excel (.xlsx)
+          </a>
+          <a href="javascript:void(0)" onclick="exportToCSV()" style="display:flex; align-items:center; gap:8px; padding:10px 14px; font-size:12.5px; font-weight:600; color:#1e293b; text-decoration:none; border-bottom:1px solid #f1f5f9;">
+            <i class="ti ti-file-text" style="color:#2563eb; font-size:16px;"></i> Export to CSV (.csv)
+          </a>
+          <a href="javascript:void(0)" onclick="window.print()" style="display:flex; align-items:center; gap:8px; padding:10px 14px; font-size:12.5px; font-weight:600; color:#1e293b; text-decoration:none;">
+            <i class="ti ti-printer" style="color:#8b5cf6; font-size:16px;"></i> Print / Save as PDF
+          </a>
+        </div>
+      </div>
+
+      <a href="/admin-panel/companies/job-openings/" class="btn-admin" style="background:#2563eb; color:#ffffff; font-size:12.5px; font-weight:700; padding:8px 16px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-radius:8px; box-shadow:0 2px 6px rgba(37,99,235,0.3);">
+        <i class="ti ti-plus"></i> Post New Job
+      </a>
+    </div>
+  </div>
+
+  <!-- EMPLOYER PROFILE HERO CARD -->
+  <div class="emp-hero-card">
+    <div class="emp-hero-left">
+      <div class="emp-avatar-circle">
+        {{ company_name|slice:":1"|upper }}
+      </div>
+      <div class="emp-hero-info">
+        <h2>
+          {{ company_name }}
+          <span style="background:#dcfce7; color:#15803d; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; display:inline-flex; align-items:center; gap:4px;">
+            <i class="ti ti-circle-check"></i> Verified Employer
+          </span>
+        </h2>
+        <div class="emp-meta-pills">
+          <span><i class="ti ti-building" style="color:#2563eb;"></i> {{ industry }}</span>
+          <span><i class="ti ti-map-pin" style="color:#ef4444;"></i> {{ city }}{% if state %}, {{ state }}{% endif %}</span>
+          {% if email %}<span><i class="ti ti-mail" style="color:#0ea5e9;"></i> {{ email }}</span>{% endif %}
+          {% if phone %}<span><i class="ti ti-phone" style="color:#10b981;"></i> {{ phone }}</span>{% endif %}
+          {% if primary_contact_name %}<span><i class="ti ti-user" style="color:#8b5cf6;"></i> Contact: {{ primary_contact_name }}</span>{% endif %}
+          {% if gst_number %}<span><i class="ti ti-receipt" style="color:#f59e0b;"></i> GST: {{ gst_number }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 KPI SUMMARY CARDS (ANSWERING: Total Post, Live, End, Hiring Ongoing vs Closed) -->
+  <div class="emp-kpi-grid">
+    <!-- Card 1: Total Jobs Posted -->
+    <div class="emp-kpi-card active-tab" id="kpiCardAll" onclick="setJobFilter('all')">
+      <div class="emp-kpi-head">
+        <span class="emp-kpi-title">TOTAL JOBS POSTED</span>
+        <div class="emp-kpi-icon" style="background:#eff6ff; color:#2563eb;">
+          <i class="ti ti-briefcase"></i>
+        </div>
+      </div>
+      <div class="emp-kpi-num">{{ total_jobs }}</div>
+      <div class="emp-kpi-sub">Total jobs created by employer</div>
+    </div>
+
+    <!-- Card 2: Live on Portal -->
+    <div class="emp-kpi-card" id="kpiCardLive" onclick="setJobFilter('live')">
+      <div class="emp-kpi-head">
+        <span class="emp-kpi-title">LIVE &amp; ACTIVE</span>
+        <div class="emp-kpi-icon" style="background:#dcfce7; color:#16a34a;">
+          <i class="ti ti-broadcast"></i>
+        </div>
+      </div>
+      <div class="emp-kpi-num">{{ live_jobs_count }}</div>
+      <div class="emp-kpi-sub">Currently visible on website</div>
+    </div>
+
+    <!-- Card 3: Hiring Active -->
+    <div class="emp-kpi-card" id="kpiCardHiring" onclick="setJobFilter('hiring')">
+      <div class="emp-kpi-head">
+        <span class="emp-kpi-title">HIRING ACTIVE</span>
+        <div class="emp-kpi-icon" style="background:#ecfdf5; color:#059669;">
+          <i class="ti ti-user-plus"></i>
+        </div>
+      </div>
+      <div class="emp-kpi-num">{{ hiring_active_count }}</div>
+      <div class="emp-kpi-sub">🟢 Currently accepting candidates</div>
+    </div>
+
+    <!-- Card 4: Hiring Ended / Closed -->
+    <div class="emp-kpi-card" id="kpiCardClosed" onclick="setJobFilter('closed')">
+      <div class="emp-kpi-head">
+        <span class="emp-kpi-title">HIRING ENDED / CLOSED</span>
+        <div class="emp-kpi-icon" style="background:#fff1f2; color:#e11d48;">
+          <i class="ti ti-circle-x"></i>
+        </div>
+      </div>
+      <div class="emp-kpi-num">{{ hiring_closed_count }}</div>
+      <div class="emp-kpi-sub">🔴 Closed or expired openings</div>
+    </div>
+
+    <!-- Card 5: Total Candidates Applied -->
+    <div class="emp-kpi-card" id="kpiCardApps">
+      <div class="emp-kpi-head">
+        <span class="emp-kpi-title">CANDIDATES APPLIED</span>
+        <div class="emp-kpi-icon" style="background:#f3e8ff; color:#9333ea;">
+          <i class="ti ti-users"></i>
+        </div>
+      </div>
+      <div class="emp-kpi-num">{{ total_applicants_count }}</div>
+      <div class="emp-kpi-sub">Total applications received</div>
+    </div>
+  </div>
+
+  <!-- THE JOBS & APPLICANTS TABLE CARD -->
+  <div class="jobs-table-card">
+    <div class="jobs-toolbar">
+      <!-- Search Input -->
+      <div class="jobs-search-box">
+        <i class="ti ti-search"></i>
+        <input type="text" id="jobSearchInput" placeholder="Search by job title, location, category..." onkeyup="filterJobsTable()">
+      </div>
+
+      <!-- Quick Status Filter Tabs -->
+      <div class="jobs-filter-tabs">
+        <button type="button" class="jobs-tab-btn active" id="tabAll" onclick="setJobFilter('all')">
+          All Jobs ({{ total_jobs }})
+        </button>
+        <button type="button" class="jobs-tab-btn" id="tabLive" onclick="setJobFilter('live')">
+          Live ({{ live_jobs_count }})
+        </button>
+        <button type="button" class="jobs-tab-btn" id="tabHiring" onclick="setJobFilter('hiring')">
+          🟢 Hiring Ongoing ({{ hiring_active_count }})
+        </button>
+        <button type="button" class="jobs-tab-btn" id="tabClosed" onclick="setJobFilter('closed')">
+          🔴 Hiring Ended ({{ hiring_closed_count }})
+        </button>
+        {% if pending_approval_count > 0 %}
+        <button type="button" class="jobs-tab-btn" id="tabPending" onclick="setJobFilter('pending')">
+          Pending Approval ({{ pending_approval_count }})
+        </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div style="overflow-x:auto;">
+      <table class="jobs-data-table" id="employerJobsTable">
+        <thead>
+          <tr>
+            <th style="width:90px;">JOB ID</th>
+            <th>JOB TITLE &amp; DESIGNATION</th>
+            <th>LOCATION &amp; SALARY</th>
+            <th>LIVE STATUS</th>
+            <th>HIRING STATUS</th>
+            <th>CANDIDATES APPLIED</th>
+            <th>POSTED / DEADLINE</th>
+            <th style="text-align:right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody id="jobsTableBody">
+          {% for job in jobs %}
+          <tr class="job-main-row" 
+              id="jobRow_{{ job.id }}"
+              data-job-id="{{ job.id }}"
+              data-title="{{ job.title|lower }}"
+              data-category="{{ job.category|lower }}"
+              data-location="{{ job.location|lower }}"
+              data-status="{{ job.status|lower }}"
+              data-is-live="{{ job.is_live|yesno:'1,0' }}"
+              data-is-hiring="{{ job.is_hiring_active|yesno:'1,0' }}"
+              data-is-closed="{{ job.is_closed|yesno:'1,0' }}"
+              data-is-pending="{{ job.is_pending|yesno:'1,0' }}">
+            
+            <!-- Job ID -->
+            <td>
+              <strong style="font-size:12.5px; color:#475569;">#{{ job.ref_id }}</strong>
+            </td>
+
+            <!-- Job Title & Role -->
+            <td>
+              <div style="font-weight:700; color:#0f172a; font-size:14px; margin-bottom:3px;">
+                {{ job.title }}
+              </div>
+              <div style="font-size:12px; color:#64748b; display:flex; align-items:center; gap:8px;">
+                <span><i class="ti ti-category"></i> {{ job.category }}</span>
+                <span>•</span>
+                <span><i class="ti ti-clock"></i> {{ job.employment_type }}</span>
+                <span>•</span>
+                <span><i class="ti ti-briefcase"></i> {{ job.experience }}</span>
+              </div>
+            </td>
+
+            <!-- Location & Salary -->
+            <td>
+              <div style="color:#0f172a; font-weight:600; font-size:13px; display:flex; align-items:center; gap:5px;">
+                <i class="ti ti-map-pin" style="color:#ef4444; font-size:14px;"></i> {{ job.location }}
+              </div>
+              <div style="font-size:12px; color:#64748b; margin-top:2px;">
+                💰 {{ job.salary }} • 👥 {{ job.vacancies }} Vacancy
+              </div>
+            </td>
+
+            <!-- Live Status -->
+            <td>
+              {% if job.is_live %}
+                <span class="badge-live-status" style="background:#dcfce7; color:#15803d; border-color:#86efac;">
+                  <i class="ti ti-point-filled" style="color:#22c55e;"></i> Live
+                </span>
+              {% elif job.is_pending %}
+                <span class="badge-live-status" style="background:#fef3c7; color:#b45309; border-color:#fde68a;">
+                  <i class="ti ti-clock"></i> Pending Approval
+                </span>
+              {% elif job.is_closed %}
+                <span class="badge-live-status" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;">
+                  <i class="ti ti-lock"></i> Closed
+                </span>
+              {% else %}
+                <span class="badge-live-status" style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;">
+                  <i class="ti ti-alert-triangle"></i> {{ job.status }}
+                </span>
+              {% endif %}
+            </td>
+
+            <!-- Hiring Status (KAUN SA HIRING HO RAHA HAI KAUN SA END HO GYA HAI) -->
+            <td>
+              {% if job.is_hiring_active %}
+                <span class="badge-hiring-active" title="Hiring is actively open for this role">
+                  <i class="ti ti-circle-check" style="font-size:14px;"></i> 🟢 Hiring Active
+                </span>
+              {% else %}
+                <span class="badge-hiring-closed" title="Hiring has ended or closed for this role">
+                  <i class="ti ti-circle-x" style="font-size:14px;"></i> 🔴 Hiring Ended / Closed
+                </span>
+              {% endif %}
+            </td>
+
+            <!-- Candidates Applied -->
+            <td>
+              {% if job.applicants_count > 0 %}
+                <button type="button" 
+                        onclick="toggleApplicantsDrawer('{{ job.id }}')" 
+                        style="background:#eff6ff; color:#1d4ed8; border:1.5px solid #bfdbfe; font-weight:700; border-radius:8px; padding:6px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; transition:all 0.2s;"
+                        onmouseover="this.style.background='#dbeafe';"
+                        onmouseout="this.style.background='#eff6ff';">
+                  <i class="ti ti-users" style="font-size:15px;"></i>
+                  <span>{{ job.applicants_count }} Candidates</span>
+                  <i class="ti ti-chevron-down" id="drawerChev_{{ job.id }}" style="transition:transform 0.2s;"></i>
+                </button>
+              {% else %}
+                <span style="color:#94a3b8; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                  <i class="ti ti-users"></i> 0 Applied
+                </span>
+              {% endif %}
+            </td>
+
+            <!-- Posted & Deadline -->
+            <td>
+              <div style="font-size:12px; color:#475569; font-weight:600;">
+                Posted: {{ job.created_at }}
+              </div>
+              <div style="font-size:11.5px; color:#64748b; margin-top:2px;">
+                Deadline: {{ job.deadline }}
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td style="text-align:right; white-space:nowrap;">
+              <div style="display:inline-flex; align-items:center; gap:6px;">
+                <!-- Toggle Hiring / Status Button -->
+                {% if job.is_live %}
+                  <button type="button" 
+                          onclick="toggleJobLiveStatus('{{ job.id }}', 'CLOSED')" 
+                          title="Click to End Hiring / Close Job" 
+                          class="btn-admin" 
+                          style="background:#fff1f2; color:#e11d48; border:1px solid #fecdd3; padding:5px 10px; font-size:11.5px; font-weight:700; border-radius:6px; cursor:pointer;">
+                    <i class="ti ti-lock"></i> Close Hiring
+                  </button>
+                {% else %}
+                  <button type="button" 
+                          onclick="toggleJobLiveStatus('{{ job.id }}', 'LIVE')" 
+                          title="Click to Reopen Hiring / Make Live" 
+                          class="btn-admin" 
+                          style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; padding:5px 10px; font-size:11.5px; font-weight:700; border-radius:6px; cursor:pointer;">
+                    <i class="ti ti-check"></i> Reopen Hiring
+                  </button>
+                {% endif %}
+
+                <!-- View on Live Site -->
+                <a href="/job/{{ job.id }}/" target="_blank" class="btn-admin" style="background:#f1f5f9; color:#334155; padding:6px 9px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center;" title="View on live website">
+                  <i class="ti ti-external-link" style="font-size:14px;"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- EXPANDABLE APPLICANTS DRAWER ROW -->
+          {% if job.applicants_count > 0 %}
+          <tr class="applicants-drawer-row" id="drawerRow_{{ job.id }}" style="display:none;">
+            <td colspan="8" class="applicants-drawer-cell">
+              <div class="applicants-inner-card">
+                <div class="applicants-inner-head">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="ti ti-users" style="color:#38bdf8;"></i>
+                    <span>Candidates Applied for "{{ job.title }}" ({{ job.applicants_count }})</span>
+                  </div>
+                  <span style="font-size:11.5px; font-weight:500; color:#cbd5e1;">Review candidate details and resumes</span>
+                </div>
+
+                <div style="overflow-x:auto;">
+                  <table class="applicants-sub-table">
+                    <thead>
+                      <tr>
+                        <th>APPLICANT ID</th>
+                        <th>CANDIDATE NAME</th>
+                        <th>CONTACT DETAILS</th>
+                        <th>EXPERIENCE</th>
+                        <th>APPLIED DATE</th>
+                        <th>APPLICATION STATUS</th>
+                        <th style="text-align:right;">RESUME / ACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for app in job.applicants %}
+                      <tr>
+                        <td><strong style="color:#64748b;">#{{ app.id }}</strong></td>
+                        <td>
+                          <div style="font-weight:700; color:#0f172a; font-size:13px;">{{ app.name }}</div>
+                        </td>
+                        <td>
+                          <div style="font-size:12px; color:#334155;">{{ app.email }}</div>
+                          <div style="font-size:11.5px; color:#64748b;">{{ app.phone }}</div>
+                        </td>
+                        <td>
+                          <span style="font-size:12px; color:#475569;">{{ app.experience }}</span>
+                        </td>
+                        <td>
+                          <span style="font-size:12px; color:#64748b;">{{ app.applied_on }}</span>
+                        </td>
+                        <td>
+                          <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700; padding:4px 8px; border-radius:6px; font-size:11.5px;">
+                            {{ app.status }}
+                          </span>
+                        </td>
+                        <td style="text-align:right;">
+                          <div style="display:inline-flex; align-items:center; gap:8px;">
+                            {% if app.resume_url %}
+                              <a href="{{ app.resume_url }}" target="_blank" class="btn-view-resume">
+                                <i class="ti ti-file-text"></i> View Resume
+                              </a>
+                            {% else %}
+                              <span style="color:#94a3b8; font-size:11px; font-style:italic;">No resume</span>
+                            {% endif %}
+                            <a href="/admin-panel/candidates/all/?search={{ app.name|urlencode }}" class="btn-admin" style="background:#f1f5f9; color:#334155; padding:4px 8px; font-size:11px; font-weight:600; text-decoration:none; border-radius:6px;">
+                              Open Profile
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endif %}
+          {% empty %}
+          <tr>
+            <td colspan="8" style="text-align:center; padding:40px 20px; color:#64748b;">
+              <div style="width:50px; height:50px; border-radius:50%; background:#f1f5f9; color:#94a3b8; display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; font-size:24px;">
+                <i class="ti ti-briefcase-off"></i>
+              </div>
+              <h4 style="font-size:15px; font-weight:700; color:#0f172a; margin-bottom:4px;">No Jobs Posted Yet</h4>
+              <p style="font-size:13px; color:#64748b; margin-bottom:14px;">This employer has not posted any jobs yet.</p>
+              <a href="/admin-panel/companies/job-openings/" class="btn-admin" style="background:#2563eb; color:#ffffff; font-size:12.5px; font-weight:700; padding:8px 16px; text-decoration:none; border-radius:8px;">
+                <i class="ti ti-plus"></i> Post First Job
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Footer / Count -->
+    <div style="padding:14px 20px; border-top:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:#64748b; background:#fafbfc;">
+      <div>Showing <span id="visibleJobsCount">{{ total_jobs }}</span> of {{ total_jobs }} jobs posted by <strong>{{ company_name }}</strong></div>
+      <div style="font-size:12px; color:#94a3b8;">SVG Consultancy • Employer Job Management</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- JAVASCRIPT LOGIC -->
+<script>
+  let currentFilter = 'all';
+
+  // Toggle Export Dropdown
+  function toggleExportMenu(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('exportMenuDropdown');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  }
+  document.addEventListener('click', () => {
+    const menu = document.getElementById('exportMenuDropdown');
+    if (menu) menu.style.display = 'none';
+  });
+
+  // Toggle Applicants Drawer
+  function toggleApplicantsDrawer(jobId) {
+    const row = document.getElementById(`drawerRow_${jobId}`);
+    const chev = document.getElementById(`drawerChev_${jobId}`);
+    if (!row) return;
+
+    if (row.style.display === 'none' || row.style.display === '') {
+      row.style.display = 'table-row';
+      if (chev) chev.style.transform = 'rotate(180deg)';
+    } else {
+      row.style.display = 'none';
+      if (chev) chev.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  // Filter Jobs Table
+  function setJobFilter(filter) {
+    currentFilter = filter;
+
+    // Update Tab UI
+    document.querySelectorAll('.jobs-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.emp-kpi-card').forEach(c => c.classList.remove('active-tab'));
+
+    if (filter === 'all') {
+      document.getElementById('tabAll')?.classList.add('active');
+      document.getElementById('kpiCardAll')?.classList.add('active-tab');
+    } else if (filter === 'live') {
+      document.getElementById('tabLive')?.classList.add('active');
+      document.getElementById('kpiCardLive')?.classList.add('active-tab');
+    } else if (filter === 'hiring') {
+      document.getElementById('tabHiring')?.classList.add('active');
+      document.getElementById('kpiCardHiring')?.classList.add('active-tab');
+    } else if (filter === 'closed') {
+      document.getElementById('tabClosed')?.classList.add('active');
+      document.getElementById('kpiCardClosed')?.classList.add('active-tab');
+    } else if (filter === 'pending') {
+      document.getElementById('tabPending')?.classList.add('active');
+    }
+
+    filterJobsTable();
+  }
+
+  function filterJobsTable() {
+    const searchVal = (document.getElementById('jobSearchInput')?.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.job-main-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const title = row.getAttribute('data-title') || '';
+      const cat = row.getAttribute('data-category') || '';
+      const loc = row.getAttribute('data-location') || '';
+      const isLive = row.getAttribute('data-is-live') === '1';
+      const isHiring = row.getAttribute('data-is-hiring') === '1';
+      const isClosed = row.getAttribute('data-is-closed') === '1';
+      const isPending = row.getAttribute('data-is-pending') === '1';
+      const jobId = row.getAttribute('data-job-id');
+
+      let matchesFilter = true;
+      if (currentFilter === 'live' && !isLive) matchesFilter = false;
+      if (currentFilter === 'hiring' && !isHiring) matchesFilter = false;
+      if (currentFilter === 'closed' && !isClosed) matchesFilter = false;
+      if (currentFilter === 'pending' && !isPending) matchesFilter = false;
+
+      let matchesSearch = true;
+      if (searchVal) {
+        matchesSearch = title.includes(searchVal) || cat.includes(searchVal) || loc.includes(searchVal);
+      }
+
+      if (matchesFilter && matchesSearch) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+        // Also hide drawer if open
+        const drawer = document.getElementById(`drawerRow_${jobId}`);
+        if (drawer) drawer.style.display = 'none';
+      }
+    });
+
+    const countEl = document.getElementById('visibleJobsCount');
+    if (countEl) countEl.innerText = visibleCount;
+  }
+
+  // Toggle Live / Closed Status via API
+  async function toggleJobLiveStatus(jobId, newStatus) {
+    if (!confirm(`Are you sure you want to change this job's status to '${newStatus}'?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/status/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        if (typeof showAdminToast === 'function') {
+          showAdminToast(`Job status updated to ${newStatus} successfully!`, true);
+        }
+        setTimeout(() => window.location.reload(), 800);
+      } else {
+        if (typeof showAdminToast === 'function') {
+          showAdminToast(data.message || 'Failed to update status', false);
+        } else {
+          alert(data.message || 'Failed to update status');
+        }
+      }
+    } catch(err) {
+      console.error(err);
+      if (typeof showAdminToast === 'function') {
+        showAdminToast('Network error while updating job status', false);
+      } else {
+        alert('Network error while updating job status');
+      }
+    }
+  }
+
+  // Export to Excel (.xlsx) using SheetJS
+  function exportToExcel() {
+    if (typeof XLSX === 'undefined') {
+      alert('SheetJS library is loading. Please try again.');
+      return;
+    }
+
+    const table = document.getElementById('employerJobsTable');
+    if (!table) return;
+
+    // Clone table and remove expandable drawers and actions column for clean export
+    const clone = table.cloneNode(true);
+    clone.querySelectorAll('.applicants-drawer-row').forEach(el => el.remove());
+    clone.querySelectorAll('tr').forEach(r => {
+      const cells = r.querySelectorAll('th, td');
+      if (cells.length > 7) {
+        cells[cells.length - 1].remove(); // Remove actions column
+      }
+    });
+
+    const wb = XLSX.utils.table_to_book(clone, { sheet: "Posted Jobs" });
+    const filename = `{{ company_name|slugify }}_posted_jobs_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  }
+
+  // Export to CSV
+  function exportToCSV() {
+    const table = document.getElementById('employerJobsTable');
+    if (!table) return;
+
+    let csv = [];
+    const rows = table.querySelectorAll('tr.job-main-row');
+
+    // Headers
+    csv.push(['Job ID', 'Job Title', 'Category', 'Location', 'Salary', 'Live Status', 'Hiring Status', 'Applicants Count', 'Posted Date'].join(','));
+
+    rows.forEach(row => {
+      if (row.style.display === 'none') return;
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 7) return;
+
+      const jobId = cells[0].innerText.replace('#', '').trim();
+      const title = cells[1].querySelector('div')?.innerText.trim() || '';
+      const cat = row.getAttribute('data-category') || '';
+      const loc = cells[2].innerText.replace(/\n/g, ' ').trim();
+      const live = cells[3].innerText.trim();
+      const hiring = cells[4].innerText.trim();
+      const applicants = cells[5].innerText.trim();
+      const posted = cells[6].innerText.replace(/\n/g, ' ').trim();
+
+      csv.push([
+        `"${jobId}"`,
+        `"${title}"`,
+        `"${cat}"`,
+        `"${loc}"`,
+        `"${live}"`,
+        `"${hiring}"`,
+        `"${applicants}"`,
+        `"${posted}"`
+      ].join(','));
+    });
+
+    const blob = new Blob(["\uFEFF" + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `{{ company_name|slugify }}_posted_jobs_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+</script>
+{% endblock %}

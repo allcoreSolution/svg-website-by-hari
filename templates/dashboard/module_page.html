@@ -695,12 +695,11 @@
                         <span class="badge" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #2563eb;" title="Unread"></span>
                       {% endif %}
                       {% if item.model == 'company' or module_key == 'companies' or item.model == 'employer_account' or registration_type == 'employer' %}
-                        <a href="javascript:void(0)" 
+                        <a href="/admin-panel/companies/{{ item.raw_id }}/jobs/" 
                            class="employer-company-name-link" 
                            data-raw-id="{{ item.raw_id }}"
                            data-model="{{ item.model|default:'company' }}"
                            data-name="{{ item.title|default:item.name|escape }}"
-                           onclick="event.preventDefault(); event.stopPropagation(); openEmployerJobsModal('{{ item.raw_id }}', '{{ item.model|default:'company' }}', '{{ item.title|default:item.name|escapejs }}'); return false;" 
                            style="color:#2563eb; font-weight:700; text-decoration:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:color 0.2s ease;"
                            onmouseover="this.style.color='#1d4ed8'; this.style.textDecoration='underline';"
                            onmouseout="this.style.color='#2563eb'; this.style.textDecoration='none';"
@@ -929,9 +928,9 @@
                           </button>
 
                           {% if item.model == 'company' or module_key == 'companies' or item.model == 'employer_account' or registration_type == 'employer' %}
-                            <button type="button" class="dropdown-item-btn" style="color: #2563eb; font-weight: 600;" onclick="openEmployerJobsModal('{{ item.raw_id }}', '{{ item.model|default:'company' }}', '{{ item.title|default:item.name|escapejs }}')">
+                            <a href="/admin-panel/companies/{{ item.raw_id }}/jobs/" class="dropdown-item-btn" style="color: #2563eb; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 8px;">
                               <i class="ti ti-briefcase" style="color: #2563eb;"></i> View Posted Jobs &amp; Applicants
-                            </button>
+                            </a>
                           {% endif %}
 
                           {% if section_key == 'candidates_selected' or item.status == 'Selected' or item.status == 'Offer Released' %}
@@ -1492,7 +1491,7 @@
           <a id="btnViewCompContacts" href="/admin-panel/companies/contacts/" class="btn-admin" style="background:#16a34a; color:#ffffff; font-size:13.5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px;">
             <i class="ti ti-address-book" style="font-size:17px;"></i> View Company Contacts
           </a>
-          <button type="button" id="btnViewCompPostedJobs" class="btn-admin" style="background:#4650d6; color:#ffffff; font-size:13.5px; font-weight:600; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px; box-shadow:0 4px 12px rgba(70,80,214,0.25);" onclick="document.getElementById('viewCandidateModal').style.display='none'; openEmployerJobsModal(document.getElementById('viewModalRawId').value, 'company', document.getElementById('viewCompProfName').textContent);">
+          <button type="button" id="btnViewCompPostedJobs" class="btn-admin" style="background:#4650d6; color:#ffffff; font-size:13.5px; font-weight:600; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px; box-shadow:0 4px 12px rgba(70,80,214,0.25);" onclick="window.location.href='/admin-panel/companies/' + document.getElementById('viewModalRawId').value + '/jobs/';">
             <i class="ti ti-briefcase" style="font-size:17px;"></i> View Posted Jobs &amp; Applicants
           </button>
         </div>

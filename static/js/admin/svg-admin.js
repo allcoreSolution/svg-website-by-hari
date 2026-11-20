@@ -640,6 +640,17 @@ window.openEmployerJobsModal = async function(rawId, model, name) {
   }
 };
 
+// Dedicated navigation for Employer Posted Jobs & Hiring Status Page
+window.openEmployerJobsModal = function(rawId, model, name) {
+  if (rawId) {
+    window.location.href = `/admin-panel/companies/${rawId}/jobs/`;
+  } else if (name) {
+    window.location.href = `/admin-panel/companies/detail/?name=${encodeURIComponent(name)}`;
+  } else {
+    window.location.href = '/admin-panel/companies/all/';
+  }
+};
+
 // Delegated click listener for employer company name links
 document.addEventListener('click', (e) => {
   const link = e.target.closest('.employer-company-name-link');
@@ -647,14 +658,13 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
     const rawId = link.getAttribute('data-raw-id') || link.dataset.rawId;
-    const model = link.getAttribute('data-model') || link.dataset.model || 'company';
     const name = link.getAttribute('data-name') || link.dataset.name || link.innerText.trim();
-    window.openEmployerJobsModal(rawId, model, name);
-  } else {
-    // Backdrop click to close modal
-    const modal = document.getElementById('employerJobsModal');
-    if (modal && modal.style.display === 'flex' && e.target === modal) {
-      window.closeEmployerJobsModal();
+    if (rawId) {
+      window.location.href = `/admin-panel/companies/${rawId}/jobs/`;
+    } else if (name) {
+      window.location.href = `/admin-panel/companies/detail/?name=${encodeURIComponent(name)}`;
+    } else {
+      window.location.href = '/admin-panel/companies/all/';
     }
   }
 });
