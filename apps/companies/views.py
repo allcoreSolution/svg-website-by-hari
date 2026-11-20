@@ -1009,3 +1009,125 @@ def approve_publish_company_enquiry_api(request, id):
         "job": job.to_dict()
     })
 
+
+# ==========================================
+# ADMIN EMPLOYER / COMPANY POSTED JOBS & APPLICANTS API
+# ==========================================
+
+@admin_required
+def admin_company_jobs_api(request, id):
+    from django.db.models import Q
+    from apps.accounts.models import EmployerAccount
+    from apps.candidates.models import Applicant
+
+    # 1. Resolve Company or EmployerAccount
+    company = Company.objects.filter(id=id).first()
+    employer_account = None
+
+    if not company:
+        employer_account = EmployerAccount.objects.filter(id=id).first()
+        if employer_account and employer_account.company:
+            company = employer_account.company
+
+    if not company and not employer_account:
+        return JsonResponse({"status": "error", "message": "Employer or Company not found."}, status=404)
+
+    # If company found, also find all associated employer accounts
+    employers = []
+    if company:
+        employers = list(EmployerAccount.objects.filter(
+            Q(company=company) | Q(company_name__iexact=company.name)
+        ))
+        if not employer_account and employers:
+            employer_account = employers[0]
+    elif employer_account:
+        employers = [employer_account]
+
+    company_name = company.name if company else (employer_account.company_name if employer_account else "")
+
+    # 2. Match all jobs posted by this employer/company
+    job_query = Q()
+    if company:
+        job_query |= Q(company=company)
+        job_query |= Q(requirement__company=company)
+    if employers:
+        job_query |= Q(employer__in=employers)
+    if company_name:
+        job_query |= Q(employer__company_name__iexact=company_name)
+        job_query |= Q(company__name__iexact=company_name)
+
+    jobs = Job.objects.filter(job_query).distinct().order_by('-created_at')
+
+    # 3. Format Jobs and Applicants
+    jobs_data = []
+    total_applicants = 0
+
+    for job in jobs:
+        apps = Applicant.objects.filter(job=job).order_by('-applied_on', '-id')
+        app_count = apps.count()
+        total_applicants += app_count
+
+        applicants_list = []
+        for app in apps:
+            applicants_list.append({
+                "id": f"APP-{app.id}",
+                "raw_id": app.id,
+                "full_name": app.full_name,
+                "email": app.email,
+                "phone": app.phone,
+                "city": app.city or "N/A",
+                "qualification": app.qualification or "N/A",
+                "experience": f"{app.experience} years" if app.experience else "Fresher",
+                "status": app.status or "Application Submitted",
+                "approval_status": app.approval_status or "Pending",
+                "applied_on": app.applied_on.strftime("%d %b %Y, %I:%M %p") if app.applied_on else "N/A",
+                "resume_url": f"/media/{app.resume}" if (app.resume and not app.resume.startswith('http') and not app.resume.startswith('/')) else (app.resume or ""),
+            })
+
+        jobs_data.append({
+            "id": f"JOB-{job.id}",
+            "raw_id": job.id,
+            "title": job.title,
+            "category": job.category or "General",
+            "department": job.department or "General",
+            "location": job.location or "Lucknow",
+            "employment_type": job.employment_type or "Full Time",
+            "salary": job.salary or "Competitive",
+            "experience": job.experience or "Any",
+            "vacancies": job.vacancies or "1",
+            "status": job.status or "LIVE",
+            "created_at": job.created_at.strftime("%d %b %Y") if job.created_at else "N/A",
+            "applicants_count": app_count,
+            "applicants": applicants_list
+        })
+
+    # Prepare company profile summary
+    primary_contact = None
+    if company:
+        primary_contact = company.contacts.filter(is_primary=True).first() or company.contacts.first()
+
+    return JsonResponse({
+        "status": "success",
+        "company": {
+            "id": f"CMP-{company.id}" if company else f"EMP-{employer_account.id}",
+            "raw_id": company.id if company else employer_account.id,
+            "name": company_name,
+            "industry": (company.industry if company else employer_account.industry) or "Corporate Employer",
+            "email": company.email if company else (employer_account.email if employer_account else ""),
+            "phone": company.phone if company else (employer_account.phone if employer_account else ""),
+            "city": (company.city if company else employer_account.city) or "Lucknow",
+            "state": (company.state if company else employer_account.state) or "Uttar Pradesh",
+            "website": (company.website if company else employer_account.website) or "",
+            "address": (company.address if company else employer_account.address) or "",
+            "status": (company.status if company else employer_account.status) or "Active",
+            "primary_contact_name": primary_contact.name if primary_contact else (employer_account.contact_name if employer_account else "N/A"),
+            "primary_contact_designation": primary_contact.designation if primary_contact else "Recruiter / HR"
+        },
+        "stats": {
+            "total_jobs": len(jobs_data),
+            "active_jobs": sum(1 for j in jobs_data if j["status"] in ["LIVE", "Active", "Live"]),
+            "total_applicants": total_applicants
+        },
+        "jobs": jobs_data
+    })
+

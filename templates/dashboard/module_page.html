@@ -574,7 +574,20 @@
                       {% if module_key == 'enquiries' and not item.is_read %}
                         <span class="badge" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #2563eb;" title="Unread"></span>
                       {% endif %}
-                      <span>{{ item.title }}</span>
+                      {% if item.model == 'company' or module_key == 'companies' or item.model == 'employer_account' or registration_type == 'employer' %}
+                        <a href="javascript:void(0)" 
+                           class="employer-company-name-link" 
+                           onclick="openEmployerJobsModal('{{ item.raw_id }}', '{{ item.model|default:'company' }}', '{{ item.title|default:item.name|escapejs }}')" 
+                           style="color:#2563eb; font-weight:700; text-decoration:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:color 0.2s ease;"
+                           onmouseover="this.style.color='#1d4ed8'; this.style.textDecoration='underline';"
+                           onmouseout="this.style.color='#2563eb'; this.style.textDecoration='none';"
+                           title="Click to view all jobs posted by {{ item.title|default:item.name }} & candidate applications">
+                          <span>{{ item.title }}</span>
+                          <i class="ti ti-briefcase" style="font-size:13px; color:#2563eb; opacity:0.85;"></i>
+                        </a>
+                      {% else %}
+                        <span>{{ item.title }}</span>
+                      {% endif %}
                       {% if item.model == 'applicant' and not item.has_owner_employer %}
                         <span class="status-badge" style="background:#fef3c7; color:#d97706; font-size:10px; padding:1px 6px;" title="This job has no owner employer assigned"><i class="ti ti-alert-triangle"></i> No Owner Employer</span>
                       {% endif %}
@@ -791,6 +804,12 @@
                                   data-requirements-count="{{ item.requirements_count }}">
                             <i class="ti ti-eye" style="color: #4650d6;"></i> View Details &amp; Profile
                           </button>
+
+                          {% if item.model == 'company' or module_key == 'companies' or item.model == 'employer_account' or registration_type == 'employer' %}
+                            <button type="button" class="dropdown-item-btn" style="color: #2563eb; font-weight: 600;" onclick="openEmployerJobsModal('{{ item.raw_id }}', '{{ item.model|default:'company' }}', '{{ item.title|default:item.name|escapejs }}')">
+                              <i class="ti ti-briefcase" style="color: #2563eb;"></i> View Posted Jobs &amp; Applicants
+                            </button>
+                          {% endif %}
 
                           {% if section_key == 'candidates_selected' or item.status == 'Selected' or item.status == 'Offer Released' %}
                             <button type="button" class="dropdown-item-btn" style="color: #2563eb;" onclick="openAdminCreateOfferModal('{{ item.raw_id }}', '{{ item.name|escapejs }}', '{{ item.company_name|escapejs }}', '{{ item.category|escapejs }}')">
@@ -1350,6 +1369,9 @@
           <a id="btnViewCompContacts" href="/admin-panel/companies/contacts/" class="btn-admin" style="background:#16a34a; color:#ffffff; font-size:13.5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px;">
             <i class="ti ti-address-book" style="font-size:17px;"></i> View Company Contacts
           </a>
+          <button type="button" id="btnViewCompPostedJobs" class="btn-admin" style="background:#4650d6; color:#ffffff; font-size:13.5px; font-weight:600; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px; box-shadow:0 4px 12px rgba(70,80,214,0.25);" onclick="document.getElementById('viewCandidateModal').style.display='none'; openEmployerJobsModal(document.getElementById('viewModalRawId').value, 'company', document.getElementById('viewCompProfName').textContent);">
+            <i class="ti ti-briefcase" style="font-size:17px;"></i> View Posted Jobs &amp; Applicants
+          </button>
         </div>
       </div>
     </div>
@@ -1828,7 +1850,289 @@
   </div>
 </div>
 
+<!-- EMPLOYER POSTED JOBS & APPLICANTS MODAL -->
+<div id="employerJobsModal" class="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); z-index:99999; align-items:center; justify-content:center; backdrop-filter:blur(3px); padding:20px;">
+  <div style="background:#ffffff; border-radius:18px; width:100%; max-width:980px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden;">
+    <!-- Modal Header -->
+    <div style="padding:18px 24px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; background:#ffffff;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:46px; height:46px; border-radius:12px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+          <i class="ti ti-building"></i>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <h3 id="ejmCompName" style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">Employer Name</h3>
+            <span id="ejmCompStatus" class="status-badge status-badge-active" style="font-size:11px;">Active</span>
+          </div>
+          <p id="ejmCompSub" style="font-size:12.5px; color:#64748b; margin:2px 0 0 0;">Company Profile &amp; Job Postings Overview</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeEmployerJobsModal()" style="background:none; border:none; font-size:22px; color:#64748b; cursor:pointer; padding:6px; border-radius:8px; display:flex; align-items:center; justify-content:center;" title="Close Modal">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body (Scrollable) -->
+    <div style="padding:22px 24px; overflow-y:auto; flex:1;">
+      <!-- Company Quick Details & Stats Card -->
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:16px 20px; margin-bottom:20px;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:12px; margin-bottom:14px;">
+          <div>
+            <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; display:block;">PRIMARY CONTACT</span>
+            <span id="ejmContact" style="font-size:13.5px; font-weight:600; color:#1e293b;">-</span>
+          </div>
+          <div>
+            <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; display:block;">EMAIL &amp; PHONE</span>
+            <span id="ejmEmailPhone" style="font-size:13px; color:#334155;">-</span>
+          </div>
+          <div>
+            <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; display:block;">LOCATION</span>
+            <span id="ejmLocation" style="font-size:13px; color:#334155;">-</span>
+          </div>
+          <div>
+            <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; display:block;">INDUSTRY</span>
+            <span id="ejmIndustry" style="font-size:13px; color:#334155;">-</span>
+          </div>
+        </div>
+
+        <!-- Metric Badges -->
+        <div style="display:flex; flex-wrap:wrap; gap:10px; border-top:1px dashed #cbd5e1; padding-top:12px;">
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
+            <i class="ti ti-briefcase" style="color:#2563eb; font-size:16px;"></i>
+            <span style="font-size:12.5px; color:#475569;">Total Jobs Posted:</span>
+            <strong id="ejmTotalJobsCount" style="font-size:14px; color:#0f172a;">0</strong>
+          </div>
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
+            <i class="ti ti-check" style="color:#16a34a; font-size:16px;"></i>
+            <span style="font-size:12.5px; color:#475569;">Active / Live Jobs:</span>
+            <strong id="ejmActiveJobsCount" style="font-size:14px; color:#16a34a;">0</strong>
+          </div>
+          <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
+            <i class="ti ti-users" style="color:#1d4ed8; font-size:16px;"></i>
+            <span style="font-size:12.5px; color:#1e40af;">Total Candidate Applications:</span>
+            <strong id="ejmTotalApplicantsCount" style="font-size:14px; color:#1d4ed8;">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Title -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+        <h4 style="font-size:15px; font-weight:800; color:#0f172a; margin:0; display:flex; align-items:center; gap:8px;">
+          <i class="ti ti-list" style="color:#2563eb;"></i> Jobs Posted by this Employer &amp; Candidate Applications
+        </h4>
+        <span id="ejmJobsSubheading" style="font-size:12px; color:#64748b;">Showing active &amp; previous job postings</span>
+      </div>
+
+      <!-- Loading State -->
+      <div id="ejmLoading" style="text-align:center; padding:50px 20px; display:block;">
+        <i class="ti ti-loader rotate" style="font-size:36px; color:#2563eb; display:inline-block;"></i>
+        <p style="margin-top:12px; color:#64748b; font-size:13.5px; font-weight:600;">Fetching jobs and candidate applications...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="ejmEmpty" style="display:none; text-align:center; padding:45px 20px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:14px;">
+        <div style="width:54px; height:54px; border-radius:50%; background:#e2e8f0; color:#64748b; display:inline-flex; align-items:center; justify-content:center; font-size:26px; margin-bottom:12px;">
+          <i class="ti ti-briefcase-off"></i>
+        </div>
+        <h5 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 6px 0;">No Jobs Posted Yet</h5>
+        <p style="font-size:13px; color:#64748b; max-width:420px; margin:0 auto;">This employer has not posted any jobs yet. When jobs are created by or assigned to this employer, they will appear here with live candidate application details.</p>
+      </div>
+
+      <!-- Jobs & Applicants Container -->
+      <div id="ejmJobsContainer" style="display:none; flex-direction:column; gap:14px;">
+        <!-- Dynamic Job Cards injected here -->
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div style="padding:14px 24px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <span style="font-size:12px; color:#64748b;">Click <strong>"View Applied Candidates"</strong> on any job card to see candidate details.</span>
+      <button type="button" onclick="closeEmployerJobsModal()" class="btn-admin btn-admin-secondary" style="padding:8px 18px; font-size:13px;">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
+// Employer Jobs & Applicants Modal Functions
+window.openEmployerJobsModal = async function(rawId, model, name) {
+  const modal = document.getElementById('employerJobsModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  document.getElementById('ejmCompName').textContent = name || 'Employer Details';
+  document.getElementById('ejmCompStatus').textContent = 'Loading...';
+  document.getElementById('ejmContact').textContent = 'Loading...';
+  document.getElementById('ejmEmailPhone').textContent = 'Loading...';
+  document.getElementById('ejmLocation').textContent = 'Loading...';
+  document.getElementById('ejmIndustry').textContent = 'Loading...';
+  document.getElementById('ejmTotalJobsCount').textContent = '...';
+  document.getElementById('ejmActiveJobsCount').textContent = '...';
+  document.getElementById('ejmTotalApplicantsCount').textContent = '...';
+  
+  document.getElementById('ejmLoading').style.display = 'block';
+  document.getElementById('ejmEmpty').style.display = 'none';
+  const container = document.getElementById('ejmJobsContainer');
+  container.style.display = 'none';
+  container.innerHTML = '';
+
+  try {
+    const res = await fetch(`/api/admin/companies/${rawId}/jobs/`);
+    const data = await res.json();
+    document.getElementById('ejmLoading').style.display = 'none';
+
+    if (res.ok && data.status === 'success') {
+      const comp = data.company || {};
+      document.getElementById('ejmCompName').textContent = comp.name || name || 'Employer';
+      document.getElementById('ejmCompStatus').textContent = comp.status || 'Active';
+      document.getElementById('ejmContact').textContent = `${comp.primary_contact_name || 'N/A'} (${comp.primary_contact_designation || 'Contact Person'})`;
+      document.getElementById('ejmEmailPhone').textContent = `${comp.email || 'N/A'} • ${comp.phone || 'N/A'}`;
+      document.getElementById('ejmLocation').textContent = `${comp.city || 'N/A'}, ${comp.state || ''}`.replace(/^, |, $/g, '');
+      document.getElementById('ejmIndustry').textContent = comp.industry || 'Corporate Employer';
+
+      const stats = data.stats || { total_jobs: 0, active_jobs: 0, total_applicants: 0 };
+      document.getElementById('ejmTotalJobsCount').textContent = stats.total_jobs;
+      document.getElementById('ejmActiveJobsCount').textContent = stats.active_jobs;
+      document.getElementById('ejmTotalApplicantsCount').textContent = stats.total_applicants;
+
+      if (!data.jobs || data.jobs.length === 0) {
+        document.getElementById('ejmEmpty').style.display = 'block';
+      } else {
+        container.innerHTML = data.jobs.map(job => {
+          const isLive = (job.status === 'LIVE' || job.status === 'Active' || job.status === 'Approved');
+          const isPending = (job.status && job.status.toUpperCase().includes('PENDING'));
+          const statusColor = isLive ? '#16a34a' : (isPending ? '#d97706' : '#64748b');
+          const statusBg = isLive ? '#dcfce7' : (isPending ? '#fef3c7' : '#f1f5f9');
+
+          let applicantsListHtml = '';
+          if (job.applicants && job.applicants.length > 0) {
+            applicantsListHtml = `
+              <div id="ejm_apps_${job.raw_id}" style="display:none; margin-top:14px; border-top:1px dashed #cbd5e1; padding-top:14px; background:#f8fafc; border-radius:10px; padding:14px;">
+                <div style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+                  <span style="display:flex; align-items:center; gap:6px; color:#2563eb;">
+                    <i class="ti ti-user-check"></i> Candidates Who Applied (${job.applicants_count})
+                  </span>
+                  <a href="/admin-panel/candidates/all/?job_id=${job.raw_id}" target="_blank" style="font-size:11.5px; color:#2563eb; text-decoration:none; font-weight:600;">
+                    Manage in Candidate Tracker &rarr;
+                  </a>
+                </div>
+                <div style="overflow-x:auto;">
+                  <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:620px;">
+                    <thead>
+                      <tr style="border-bottom:1.5px solid #cbd5e1; color:#475569; font-size:11px; text-transform:uppercase; text-align:left; background:#f1f5f9;">
+                        <th style="padding:8px 10px; border-radius:4px 0 0 4px;">ID / Ref</th>
+                        <th style="padding:8px 10px;">Candidate Name</th>
+                        <th style="padding:8px 10px;">Contact (Email / Phone)</th>
+                        <th style="padding:8px 10px;">City & Experience</th>
+                        <th style="padding:8px 10px;">Applied Date</th>
+                        <th style="padding:8px 10px;">Status</th>
+                        <th style="padding:8px 10px; text-align:right; border-radius:0 4px 4px 0;">Resume</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${job.applicants.map(app => `
+                        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff;">
+                          <td style="padding:8px 10px; font-weight:700; color:#3b82f6;">${app.id}</td>
+                          <td style="padding:8px 10px; font-weight:700; color:#0f172a;">${app.full_name}</td>
+                          <td style="padding:8px 10px; color:#334155; line-height:1.3;">
+                            <div>${app.email}</div>
+                            <small style="color:#64748b; font-weight:500;">${app.phone}</small>
+                          </td>
+                          <td style="padding:8px 10px; color:#334155; line-height:1.3;">
+                            <div>${app.city}</div>
+                            <small style="color:#64748b;">${app.experience}</small>
+                          </td>
+                          <td style="padding:8px 10px; color:#64748b; white-space:nowrap;">${app.applied_on}</td>
+                          <td style="padding:8px 10px;">
+                            <span class="status-badge" style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:600; padding:2px 8px; border-radius:12px; display:inline-block;">
+                              ${app.status || 'Applied'}
+                            </span>
+                          </td>
+                          <td style="padding:8px 10px; text-align:right;">
+                            ${app.resume_url ? `
+                              <a href="${app.resume_url}" target="_blank" class="btn btn-sm" style="padding:3px 9px; font-size:11px; background:#2563eb; color:#ffffff; border-radius:4px; text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
+                                <i class="ti ti-file-text"></i> Resume
+                              </a>
+                            ` : `<span style="color:#94a3b8; font-size:11px;">No file</span>`}
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          }
+
+          return `
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:all 0.2s ease;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <span style="font-size:16px; font-weight:800; color:#0f172a;">${job.title}</span>
+                    <span style="font-size:11px; font-weight:700; color:#475569; background:#f1f5f9; padding:2px 8px; border-radius:4px; border:1px solid #e2e8f0;">${job.id}</span>
+                    <span class="status-badge" style="background:${statusBg}; color:${statusColor}; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px; border:1px solid rgba(0,0,0,0.05);">${job.status}</span>
+                  </div>
+                  <div style="font-size:12.5px; color:#64748b; margin-top:6px; display:flex; flex-wrap:wrap; gap:12px;">
+                    <span><i class="ti ti-category" style="color:#2563eb;"></i> ${job.category}</span>
+                    <span><i class="ti ti-map-pin" style="color:#ef4444;"></i> ${job.location}</span>
+                    <span><i class="ti ti-clock" style="color:#8b5cf6;"></i> ${job.employment_type}</span>
+                    <span><i class="ti ti-coin" style="color:#16a34a;"></i> ${job.salary}</span>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span style="font-size:11.5px; color:#64748b;"><i class="ti ti-calendar"></i> Posted: <strong>${job.created_at}</strong></span>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid #f1f5f9; flex-wrap:wrap; gap:8px;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <span style="background:${job.applicants_count > 0 ? '#eff6ff' : '#f8fafc'}; color:${job.applicants_count > 0 ? '#1d4ed8' : '#64748b'}; font-size:13px; font-weight:700; padding:6px 14px; border-radius:20px; border:1px solid ${job.applicants_count > 0 ? '#bfdbfe' : '#e2e8f0'}; display:inline-flex; align-items:center; gap:6px;">
+                    <i class="ti ti-users"></i> ${job.applicants_count} Candidate${job.applicants_count === 1 ? '' : 's'} Applied
+                  </span>
+                  ${job.applicants_count > 0 ? `
+                    <button type="button" class="btn-admin" style="font-size:12px; font-weight:600; padding:6px 14px; background:#f8fafc; color:#1e293b; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(0,0,0,0.03);" onclick="toggleJobApplicants('ejm_apps_${job.raw_id}', this)">
+                      <i class="ti ti-chevron-down"></i> View Applied Candidates (${job.applicants_count})
+                    </button>
+                  ` : ''}
+                </div>
+                <div>
+                  <a href="/admin-panel/candidates/all/?job_id=${job.raw_id}" target="_blank" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                    <i class="ti ti-external-link"></i> Candidate Tracker
+                  </a>
+                </div>
+              </div>
+              ${applicantsListHtml}
+            </div>
+          `;
+        }).join('');
+        container.style.display = 'flex';
+      }
+    } else {
+      document.getElementById('ejmEmpty').style.display = 'block';
+    }
+  } catch (err) {
+    console.error('Error fetching company jobs:', err);
+    document.getElementById('ejmLoading').style.display = 'none';
+    document.getElementById('ejmEmpty').style.display = 'block';
+  }
+};
+
+window.closeEmployerJobsModal = function() {
+  const modal = document.getElementById('employerJobsModal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.toggleJobApplicants = function(elId, btn) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const isHidden = (el.style.display === 'none' || !el.style.display);
+  el.style.display = isHidden ? 'block' : 'none';
+  if (btn) {
+    btn.innerHTML = `<i class="${isHidden ? 'ti ti-chevron-up' : 'ti ti-chevron-down'}"></i> ${isHidden ? 'Hide Applied Candidates' : 'View Applied Candidates'}`;
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   // Mobile Sidebar Toggle
   const mobileBtn = document.getElementById('mobileMenuBtn');
