@@ -90,9 +90,69 @@
             <button type="button" class="btn-admin btn-admin-secondary" onclick="this.disabled=true; this.innerHTML='<i class=\'ti ti-loader spin-fast\'></i> Refreshing...'; window.location.reload();">
               <i class="ti ti-refresh"></i> Refresh
             </button>
-            <button type="button" class="btn-admin btn-admin-secondary" onclick="window.print();">
-              <i class="ti ti-download"></i> Export
-            </button>
+            <!-- Multi-Format Export Dropdown -->
+            <div class="admin-export-dropdown" style="position:relative; display:inline-block;">
+              <button type="button" class="btn-admin btn-admin-secondary" onclick="toggleAdminExportMenu(this, event)" style="display:inline-flex; align-items:center; gap:6px;">
+                <i class="ti ti-download"></i> <span>Export</span> <i class="ti ti-chevron-down" style="font-size:11px; opacity:0.8;"></i>
+              </button>
+              <div class="admin-export-menu" style="display:none; position:absolute; right:0; top:calc(100% + 6px); background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,0.15); min-width:230px; z-index:99999; padding:6px 0; overflow:hidden;">
+                <div style="padding:8px 14px 4px; font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Choose Export Format</div>
+                
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('xlsx')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-file-spreadsheet"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">Excel Sheet (.xlsx)</strong>
+                    <span style="font-size:11px; color:#64748b;">Formatted data sheet</span>
+                  </div>
+                </a>
+
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('csv')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-file-text"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">CSV Document (.csv)</strong>
+                    <span style="font-size:11px; color:#64748b;">Universal data file</span>
+                  </div>
+                </a>
+
+                <div style="height:1px; background:#f1f5f9; margin:4px 0;"></div>
+
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('pdf')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-file-type-pdf"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">PDF Document (.pdf)</strong>
+                    <span style="font-size:11px; color:#64748b;">Print / Save as PDF</span>
+                  </div>
+                </a>
+
+                <div style="height:1px; background:#f1f5f9; margin:4px 0;"></div>
+
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('png')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#f3e8ff; color:#7c3aed; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-photo"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">PNG Image (.png)</strong>
+                    <span style="font-size:11px; color:#64748b;">High resolution image</span>
+                  </div>
+                </a>
+
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('jpg')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#ffedd5; color:#ea580c; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-photo-circle"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">JPG Image (.jpg)</strong>
+                    <span style="font-size:11px; color:#64748b;">Standard image format</span>
+                  </div>
+                </a>
+              </div>
+            </div>
             {% if section_key == 'internship_providers' %}
               <button type="button" class="btn-admin btn-admin-primary" onclick="document.getElementById('providerEditId').value=''; document.getElementById('quickAddProviderForm').reset(); document.getElementById('providerModalTitle').textContent='Add New Internship Provider'; document.getElementById('quickAddProviderModal').style.display='flex';">
                 <i class="ti ti-plus"></i> Add Provider
@@ -134,9 +194,69 @@
               <i class="ti ti-file-export"></i> Export CSV
             </a>
           {% else %}
-            <button type="button" class="btn-admin btn-admin-secondary" onclick="window.print();">
-              <i class="ti ti-download"></i> Export
-            </button>
+            <!-- Multi-Format Export Dropdown -->
+            <div class="admin-export-dropdown" style="position:relative; display:inline-block;">
+              <button type="button" class="btn-admin btn-admin-secondary" onclick="toggleAdminExportMenu(this, event)" style="display:inline-flex; align-items:center; gap:6px;">
+                <i class="ti ti-download"></i> <span>Export</span> <i class="ti ti-chevron-down" style="font-size:11px; opacity:0.8;"></i>
+              </button>
+              <div class="admin-export-menu" style="display:none; position:absolute; right:0; top:calc(100% + 6px); background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,0.15); min-width:230px; z-index:99999; padding:6px 0; overflow:hidden;">
+                <div style="padding:8px 14px 4px; font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Choose Export Format</div>
+                
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('xlsx')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-file-spreadsheet"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">Excel Sheet (.xlsx)</strong>
+                    <span style="font-size:11px; color:#64748b;">Formatted data sheet</span>
+                  </div>
+                </a>
+
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('csv')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-file-text"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">CSV Document (.csv)</strong>
+                    <span style="font-size:11px; color:#64748b;">Universal data file</span>
+                  </div>
+                </a>
+
+                <div style="height:1px; background:#f1f5f9; margin:4px 0;"></div>
+
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('pdf')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-file-type-pdf"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">PDF Document (.pdf)</strong>
+                    <span style="font-size:11px; color:#64748b;">Print / Save as PDF</span>
+                  </div>
+                </a>
+
+                <div style="height:1px; background:#f1f5f9; margin:4px 0;"></div>
+
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('png')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#f3e8ff; color:#7c3aed; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-photo"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">PNG Image (.png)</strong>
+                    <span style="font-size:11px; color:#64748b;">High resolution image</span>
+                  </div>
+                </a>
+
+                <a href="javascript:void(0)" onclick="triggerAdminTableExport('jpg')" style="display:flex; align-items:center; gap:10px; padding:8px 14px; font-size:13px; color:#1e293b; text-decoration:none; transition:background 0.15s ease;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='transparent';">
+                  <div style="width:28px; height:28px; border-radius:6px; background:#ffedd5; color:#ea580c; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="ti ti-photo-circle"></i>
+                  </div>
+                  <div>
+                    <strong style="display:block; font-size:13px; font-weight:600; color:#0f172a;">JPG Image (.jpg)</strong>
+                    <span style="font-size:11px; color:#64748b;">Standard image format</span>
+                  </div>
+                </a>
+              </div>
+            </div>
           {% endif %}
           {% if module_key == 'companies' %}
             {% if section_key != 'companies_add' %}

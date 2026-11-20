@@ -180,3 +180,238 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', closeAdminActionDropdowns);
 });
 
+/* =========================================================
+   7. MULTI-FORMAT TABLE EXPORT ENGINE (Excel, CSV, PDF, PNG, JPG)
+   ========================================================= */
+
+window.closeAdminExportMenus = function() {
+  document.querySelectorAll('.admin-export-menu').forEach(menu => {
+    menu.style.display = 'none';
+  });
+};
+
+window.toggleAdminExportMenu = function(btn, event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  const wrapper = btn.closest('.admin-export-dropdown');
+  const menu = wrapper ? wrapper.querySelector('.admin-export-menu') : null;
+  if (!menu) return;
+
+  const isAlreadyOpen = (menu.style.display === 'block');
+  window.closeAdminExportMenus();
+  if (window.closeAdminActionDropdowns) window.closeAdminActionDropdowns();
+
+  if (!isAlreadyOpen) {
+    menu.style.display = 'block';
+  }
+};
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.admin-export-dropdown')) {
+    window.closeAdminExportMenus();
+  }
+});
+
+window.triggerAdminTableExport = function(format, customSelector, customFileName) {
+  window.closeAdminExportMenus();
+
+  // 1. Determine Title and Clean Base File Name
+  const titleEl = document.querySelector('.module-title-group h3') || 
+                  document.querySelector('.admin-header-title') || 
+                  document.querySelector('h1, h2, h3');
+  let baseName = customFileName || (titleEl ? titleEl.textContent.trim() : 'SVG_Consultancy_Export');
+  baseName = baseName.replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').toLowerCase();
+  if (baseName.startsWith('_')) baseName = baseName.substring(1);
+  if (baseName.endsWith('_')) baseName = baseName.substring(0, baseName.length - 1);
+  const today = new Date().toISOString().split('T')[0];
+  const fileName = `${baseName}_${today}`;
+
+  // 2. Handle PDF via Clean Print Dialog
+  if (format === 'pdf') {
+    if (window.showAdminToast) window.showAdminToast('Opening Print / Save as PDF dialog...', true);
+    setTimeout(() => {
+      window.print();
+    }, 200);
+    return;
+  }
+
+  // 3. Find Table Element
+  const table = customSelector ? document.querySelector(customSelector) : (document.querySelector('.admin-table') || document.querySelector('table'));
+  if (!table) {
+    if (window.showAdminToast) window.showAdminToast('No data table found to export.', false);
+    return;
+  }
+
+  // 4. Handle High-Resolution PNG & JPG Image Export
+  if (format === 'png' || format === 'jpg' || format === 'jpeg') {
+    const isJpg = (format === 'jpg' || format === 'jpeg');
+    const toastMsg = isJpg ? 'Generating high-quality JPG image...' : 'Generating high-resolution PNG image...';
+    if (window.showAdminToast) window.showAdminToast(toastMsg, true);
+
+    const performCapture = () => {
+      if (typeof html2canvas === 'undefined') {
+        if (window.showAdminToast) window.showAdminToast('Image export library loading failed. Please refresh and try again.', false);
+        return;
+      }
+
+      // Best capture target: table or its immediate responsive container
+      const targetWrap = table.closest('.table-responsive-wrap') || table;
+      
+      html2canvas(targetWrap, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false,
+        ignoreElements: (el) => {
+          if (!el || !el.classList) return false;
+          return (
+            el.classList.contains('action-dropdown-wrapper') ||
+            el.classList.contains('dropdown-menu-popup') ||
+            el.classList.contains('admin-export-menu') ||
+            (el.tagName === 'BUTTON' && el.textContent.includes('Refresh'))
+          );
+        }
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `${fileName}.${isJpg ? 'jpg' : 'png'}`;
+        link.href = isJpg ? canvas.toDataURL('image/jpeg', 0.95) : canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        if (window.showAdminToast) window.showAdminToast(`${isJpg ? 'JPG' : 'PNG'} image downloaded successfully!`, true);
+      }).catch(err => {
+        console.error('Image capture error:', err);
+        if (window.showAdminToast) window.showAdminToast('Failed to export image. Please try again.', false);
+      });
+    };
+
+    if (typeof html2canvas === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      script.onload = performCapture;
+      script.onerror = () => {
+        if (window.showAdminToast) window.showAdminToast('Failed to load image library.', false);
+      };
+      document.head.appendChild(script);
+    } else {
+      performCapture();
+    }
+    return;
+  }
+
+  // 5. Extract Structured Table Data for Excel (.xlsx) & CSV
+  const ths = Array.from(table.querySelectorAll('thead th'));
+  const validColIndices = [];
+  const headers = [];
+
+  ths.forEach((th, idx) => {
+    const text = th.innerText.trim();
+    // Exclude Actions column
+    if (!text.toLowerCase().includes('action') && (idx < ths.length - 1 || th.style.textAlign !== 'right')) {
+      headers.push(text || `Column ${idx + 1}`);
+      validColIndices.push(idx);
+    }
+  });
+
+  const rows = [];
+  const trs = table.querySelectorAll('tbody tr');
+  trs.forEach(tr => {
+    if (tr.querySelector('.table-empty') || tr.cells.length < validColIndices.length) return;
+
+    const rowData = [];
+    validColIndices.forEach(idx => {
+      const cell = tr.cells[idx];
+      if (!cell) {
+        rowData.push('');
+        return;
+      }
+      const clone = cell.cloneNode(true);
+      clone.querySelectorAll('.action-dropdown-wrapper, .dropdown-menu-popup, button, script, noscript, style').forEach(el => el.remove());
+
+      // Format title + subtitle cleanly if present
+      const subDiv = clone.querySelector('div[style*="font-size: 11.5px"], div[style*="color: #64748b"], div[style*="color:#64748b"]');
+      let cellText = '';
+      if (subDiv) {
+        const subText = (subDiv.innerText || subDiv.textContent || '').trim();
+        subDiv.remove();
+        const mainText = (clone.innerText || clone.textContent || '').trim();
+        cellText = mainText ? `${mainText} (${subText.replace(/\s+/g, ' ')})` : subText;
+      } else {
+        cellText = clone.innerText || clone.textContent || '';
+      }
+      cellText = cellText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+      rowData.push(cellText);
+    });
+
+    if (rowData.length > 0 && rowData.some(val => val.length > 0)) {
+      rows.push(rowData);
+    }
+  });
+
+  if (rows.length === 0) {
+    if (window.showAdminToast) window.showAdminToast('No records found in table to export.', false);
+    return;
+  }
+
+  // 6. Handle Native Excel (.xlsx) Export
+  if (format === 'xlsx' || format === 'excel') {
+    const performXlsxExport = () => {
+      if (typeof XLSX !== 'undefined') {
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        
+        // Dynamic column widths for readability
+        ws['!cols'] = headers.map((h, i) => {
+          const maxL = Math.max(h.length, ...rows.map(r => (r[i] ? String(r[i]).length : 0)));
+          return { wch: Math.min(Math.max(maxL + 4, 14), 50) };
+        });
+
+        XLSX.utils.book_append_sheet(wb, ws, "Data Export");
+        XLSX.writeFile(wb, `${fileName}.xlsx`);
+        if (window.showAdminToast) window.showAdminToast('Excel spreadsheet (.xlsx) downloaded successfully!', true);
+      } else {
+        exportAsCsvFallback();
+      }
+    };
+
+    if (typeof XLSX === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      script.onload = performXlsxExport;
+      script.onerror = () => exportAsCsvFallback();
+      document.head.appendChild(script);
+    } else {
+      performXlsxExport();
+    }
+    return;
+  }
+
+  // 7. Handle Universal CSV Export
+  if (format === 'csv') {
+    exportAsCsvFallback();
+    return;
+  }
+
+  function exportAsCsvFallback() {
+    const csvLines = [];
+    csvLines.push(headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(','));
+    rows.forEach(r => {
+      csvLines.push(r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','));
+    });
+    const csvContent = '\uFEFF' + csvLines.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${fileName}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    if (window.showAdminToast) window.showAdminToast('CSV document downloaded successfully!', true);
+  }
+};
+
+
