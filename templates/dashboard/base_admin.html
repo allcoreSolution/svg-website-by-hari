@@ -605,7 +605,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <!-- Admin JS Script -->
-<script src="{% static 'js/admin/svg-admin.js' %}?v=4.5"></script>
+<script src="{% static 'js/admin/svg-admin.js' %}?v=4.6"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('adminSidebar');
@@ -759,6 +759,110 @@
 <div id="adminGlobalToast" style="position:fixed; top:24px; right:24px; z-index:999999; display:none; align-items:center; gap:10px; background:#0f172a; color:#ffffff; padding:12px 20px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.25); font-size:13.5px; font-weight:600; border-left:4px solid #22c55e; transition:opacity 0.3s ease, transform 0.3s ease; transform:translateY(-10px); opacity:0; pointer-events:none;">
   <i class="ti ti-check" style="color:#22c55e; font-size:18px;"></i>
   <span id="adminGlobalToastText"></span>
+</div>
+
+<!-- EMPLOYER POSTED JOBS & APPLICANTS MODAL (Universal Admin Modal) -->
+<div id="employerJobsModal" class="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); z-index:999999; align-items:center; justify-content:center; backdrop-filter:blur(3px); padding:20px;">
+  <div style="background:#ffffff; border-radius:18px; width:100%; max-width:980px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden;">
+    <!-- Modal Header -->
+    <div style="padding:18px 24px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; background:#ffffff;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:46px; height:46px; border-radius:12px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+          <i class="ti ti-building"></i>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <h3 id="ejmCompName" style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">Employer Name</h3>
+            <span id="ejmCompStatus" class="status-badge status-badge-active" style="font-size:11px;">Active</span>
+          </div>
+          <p id="ejmCompSub" style="font-size:12.5px; color:#64748b; margin:2px 0 0 0;">Company Profile &amp; Job Postings Overview</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeEmployerJobsModal()" style="background:none; border:none; font-size:22px; color:#64748b; cursor:pointer; padding:6px; border-radius:8px; display:flex; align-items:center; justify-content:center;" title="Close Modal">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body (Scrollable) -->
+    <div style="padding:22px 24px; overflow-y:auto; flex:1;">
+      <!-- Company Quick Details & Stats Card -->
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:16px 20px; margin-bottom:20px;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:12px; margin-bottom:14px;">
+          <div>
+            <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; display:block;">PRIMARY CONTACT</span>
+            <span id="ejmContact" style="font-size:13.5px; font-weight:600; color:#1e293b;">-</span>
+          </div>
+          <div>
+            <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; display:block;">EMAIL &amp; PHONE</span>
+            <span id="ejmEmailPhone" style="font-size:13px; color:#334155;">-</span>
+          </div>
+          <div>
+            <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; display:block;">LOCATION</span>
+            <span id="ejmLocation" style="font-size:13px; color:#334155;">-</span>
+          </div>
+          <div>
+            <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; display:block;">INDUSTRY</span>
+            <span id="ejmIndustry" style="font-size:13px; color:#334155;">-</span>
+          </div>
+        </div>
+
+        <!-- Metric Badges -->
+        <div style="display:flex; flex-wrap:wrap; gap:10px; border-top:1px dashed #cbd5e1; padding-top:12px;">
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
+            <i class="ti ti-briefcase" style="color:#2563eb; font-size:16px;"></i>
+            <span style="font-size:12.5px; color:#475569;">Total Jobs Posted:</span>
+            <strong id="ejmTotalJobsCount" style="font-size:14px; color:#0f172a;">0</strong>
+          </div>
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
+            <i class="ti ti-check" style="color:#16a34a; font-size:16px;"></i>
+            <span style="font-size:12.5px; color:#475569;">Active / Live Jobs:</span>
+            <strong id="ejmActiveJobsCount" style="font-size:14px; color:#16a34a;">0</strong>
+          </div>
+          <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
+            <i class="ti ti-users" style="color:#1d4ed8; font-size:16px;"></i>
+            <span style="font-size:12.5px; color:#1e40af;">Total Candidate Applications:</span>
+            <strong id="ejmTotalApplicantsCount" style="font-size:14px; color:#1d4ed8;">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Title -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+        <h4 style="font-size:15px; font-weight:800; color:#0f172a; margin:0; display:flex; align-items:center; gap:8px;">
+          <i class="ti ti-list" style="color:#2563eb;"></i> Jobs Posted by this Employer &amp; Candidate Applications
+        </h4>
+        <span id="ejmJobsSubheading" style="font-size:12px; color:#64748b;">Showing active &amp; previous job postings</span>
+      </div>
+
+      <!-- Loading State -->
+      <div id="ejmLoading" style="text-align:center; padding:50px 20px; display:block;">
+        <i class="ti ti-loader rotate" style="font-size:36px; color:#2563eb; display:inline-block;"></i>
+        <p style="margin-top:12px; color:#64748b; font-size:13.5px; font-weight:600;">Fetching jobs and candidate applications...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="ejmEmpty" style="display:none; text-align:center; padding:45px 20px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:14px;">
+        <div style="width:54px; height:54px; border-radius:50%; background:#e2e8f0; color:#64748b; display:inline-flex; align-items:center; justify-content:center; font-size:26px; margin-bottom:12px;">
+          <i class="ti ti-briefcase-off"></i>
+        </div>
+        <h5 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 6px 0;">No Jobs Posted Yet</h5>
+        <p style="font-size:13px; color:#64748b; max-width:420px; margin:0 auto;">This employer has not posted any jobs yet. When jobs are created by or assigned to this employer, they will appear here with live candidate application details.</p>
+      </div>
+
+      <!-- Jobs & Applicants Container -->
+      <div id="ejmJobsContainer" style="display:none; flex-direction:column; gap:14px;">
+        <!-- Dynamic Job Cards injected here -->
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div style="padding:14px 24px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <span style="font-size:12px; color:#64748b;">Click <strong>"View Applied Candidates"</strong> on any job card to see candidate details.</span>
+      <button type="button" onclick="closeEmployerJobsModal()" class="btn-admin btn-admin-secondary" style="padding:8px 18px; font-size:13px;">
+        Close
+      </button>
+    </div>
+  </div>
 </div>
 {% block extra_js %}{% endblock %}
 

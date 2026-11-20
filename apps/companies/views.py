@@ -1015,19 +1015,30 @@ def approve_publish_company_enquiry_api(request, id):
 # ==========================================
 
 @admin_required
-def admin_company_jobs_api(request, id):
+def admin_company_jobs_api(request, id=None):
     from django.db.models import Q
     from apps.accounts.models import EmployerAccount
     from apps.candidates.models import Applicant
 
+    name_query = request.GET.get('name', '').strip()
+
     # 1. Resolve Company or EmployerAccount
-    company = Company.objects.filter(id=id).first()
+    company = None
     employer_account = None
 
-    if not company:
-        employer_account = EmployerAccount.objects.filter(id=id).first()
-        if employer_account and employer_account.company:
-            company = employer_account.company
+    if id:
+        company = Company.objects.filter(id=id).first()
+        if not company:
+            employer_account = EmployerAccount.objects.filter(id=id).first()
+            if employer_account and employer_account.company:
+                company = employer_account.company
+
+    if not company and not employer_account and name_query:
+        company = Company.objects.filter(name__iexact=name_query).first()
+        if not company:
+            employer_account = EmployerAccount.objects.filter(company_name__iexact=name_query).first()
+            if employer_account and employer_account.company:
+                company = employer_account.company
 
     if not company and not employer_account:
         return JsonResponse({"status": "error", "message": "Employer or Company not found."}, status=404)

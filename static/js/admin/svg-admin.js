@@ -414,4 +414,250 @@ window.triggerAdminTableExport = function(format, customSelector, customFileName
   }
 };
 
+/* =========================================================
+   8. EMPLOYER POSTED JOBS & APPLICANTS MODAL CONTROLLER
+   ========================================================= */
+
+window.closeEmployerJobsModal = function() {
+  const modal = document.getElementById('employerJobsModal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.toggleJobApplicants = function(elId, btn) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const isHidden = (el.style.display === 'none' || !el.style.display);
+  el.style.display = isHidden ? 'block' : 'none';
+  if (btn) {
+    btn.innerHTML = `<i class="${isHidden ? 'ti ti-chevron-up' : 'ti ti-chevron-down'}"></i> ${isHidden ? 'Hide Applied Candidates' : 'View Applied Candidates'}`;
+  }
+};
+
+window.openEmployerJobsModal = async function(rawId, model, name) {
+  console.log('openEmployerJobsModal invoked:', { rawId, model, name });
+  const modal = document.getElementById('employerJobsModal');
+  if (!modal) {
+    console.error('employerJobsModal DOM element not found!');
+    if (window.showAdminToast) window.showAdminToast('Employer modal is initializing, please try again.', false);
+    return;
+  }
+
+  // Display modal immediately with loading state
+  modal.style.display = 'flex';
+  const setText = (id, txt) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  };
+
+  setText('ejmCompName', name || 'Employer Details');
+  setText('ejmCompStatus', 'Active');
+  setText('ejmContact', 'Loading contact info...');
+  setText('ejmEmailPhone', 'Loading...');
+  setText('ejmLocation', 'Loading...');
+  setText('ejmIndustry', 'Loading...');
+  setText('ejmTotalJobsCount', '...');
+  setText('ejmActiveJobsCount', '...');
+  setText('ejmTotalApplicantsCount', '...');
+
+  const loadingEl = document.getElementById('ejmLoading');
+  const emptyEl = document.getElementById('ejmEmpty');
+  const container = document.getElementById('ejmJobsContainer');
+  if (loadingEl) loadingEl.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (container) {
+    container.style.display = 'none';
+    container.innerHTML = '';
+  }
+
+  // Build target query URLs (primary by ID, secondary fallback by name)
+  let primaryUrl = '';
+  if (rawId && rawId !== 'None' && String(rawId).trim() !== '' && !isNaN(parseInt(rawId))) {
+    primaryUrl = `/api/admin/companies/${rawId}/jobs/`;
+  } else if (name && name.trim() !== '') {
+    primaryUrl = `/api/admin/companies/jobs/?name=${encodeURIComponent(name.trim())}`;
+  } else {
+    primaryUrl = `/api/admin/companies/0/jobs/`;
+  }
+
+  try {
+    let res = await fetch(primaryUrl);
+    let data = null;
+    
+    // If lookup by ID failed or returned 404, fallback to search by company name
+    if (!res.ok && name && name.trim() !== '') {
+      console.warn(`Primary lookup ${primaryUrl} returned ${res.status}. Trying fallback by name: ${name}`);
+      const fallbackUrl = `/api/admin/companies/jobs/?name=${encodeURIComponent(name.trim())}`;
+      const fallbackRes = await fetch(fallbackUrl);
+      if (fallbackRes.ok) {
+        res = fallbackRes;
+      }
+    }
+
+    if (res.ok) {
+      data = await res.json();
+    } else {
+      console.error('Fetch company jobs failed with status:', res.status);
+    }
+
+    if (loadingEl) loadingEl.style.display = 'none';
+
+    if (data && data.status === 'success') {
+      const comp = data.company || {};
+      setText('ejmCompName', comp.name || name || 'Employer');
+      setText('ejmCompStatus', comp.status || 'Active');
+      setText('ejmContact', `${comp.primary_contact_name || 'N/A'} (${comp.primary_contact_designation || 'Contact Person'})`);
+      setText('ejmEmailPhone', `${comp.email || 'N/A'} • ${comp.phone || 'N/A'}`);
+      setText('ejmLocation', `${comp.city || 'N/A'}, ${comp.state || ''}`.replace(/^, |, $/g, ''));
+      setText('ejmIndustry', comp.industry || 'Corporate Employer');
+
+      const stats = data.stats || { total_jobs: 0, active_jobs: 0, total_applicants: 0 };
+      setText('ejmTotalJobsCount', stats.total_jobs);
+      setText('ejmActiveJobsCount', stats.active_jobs);
+      setText('ejmTotalApplicantsCount', stats.total_applicants);
+
+      if (!data.jobs || data.jobs.length === 0) {
+        if (emptyEl) emptyEl.style.display = 'block';
+      } else {
+        if (container) {
+          container.innerHTML = data.jobs.map(job => {
+            const isLive = (job.status === 'LIVE' || job.status === 'Active' || job.status === 'Approved');
+            const isPending = (job.status && job.status.toUpperCase().includes('PENDING'));
+            const statusColor = isLive ? '#16a34a' : (isPending ? '#d97706' : '#64748b');
+            const statusBg = isLive ? '#dcfce7' : (isPending ? '#fef3c7' : '#f1f5f9');
+
+            let applicantsListHtml = '';
+            if (job.applicants && job.applicants.length > 0) {
+              applicantsListHtml = `
+                <div id="ejm_apps_${job.raw_id}" style="display:none; margin-top:14px; border-top:1px dashed #cbd5e1; padding-top:14px; background:#f8fafc; border-radius:10px; padding:14px;">
+                  <div style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+                    <span style="display:flex; align-items:center; gap:6px; color:#2563eb;">
+                      <i class="ti ti-user-check"></i> Candidates Who Applied (${job.applicants_count})
+                    </span>
+                    <a href="/admin-panel/candidates/all/?job_id=${job.raw_id}" target="_blank" style="font-size:11.5px; color:#2563eb; text-decoration:none; font-weight:600;">
+                      Manage in Candidate Tracker &rarr;
+                    </a>
+                  </div>
+                  <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:620px;">
+                      <thead>
+                        <tr style="border-bottom:1.5px solid #cbd5e1; color:#475569; font-size:11px; text-transform:uppercase; text-align:left; background:#f1f5f9;">
+                          <th style="padding:8px 10px; border-radius:4px 0 0 4px;">ID / Ref</th>
+                          <th style="padding:8px 10px;">Candidate Name</th>
+                          <th style="padding:8px 10px;">Contact (Email / Phone)</th>
+                          <th style="padding:8px 10px;">City & Experience</th>
+                          <th style="padding:8px 10px;">Applied Date</th>
+                          <th style="padding:8px 10px;">Status</th>
+                          <th style="padding:8px 10px; text-align:right; border-radius:0 4px 4px 0;">Resume</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${job.applicants.map(app => `
+                          <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff;">
+                            <td style="padding:8px 10px; font-weight:700; color:#3b82f6;">${app.id}</td>
+                            <td style="padding:8px 10px; font-weight:700; color:#0f172a;">${app.full_name}</td>
+                            <td style="padding:8px 10px; color:#334155; line-height:1.3;">
+                              <div>${app.email}</div>
+                              <small style="color:#64748b; font-weight:500;">${app.phone}</small>
+                            </td>
+                            <td style="padding:8px 10px; color:#334155; line-height:1.3;">
+                              <div>${app.city}</div>
+                              <small style="color:#64748b;">${app.experience}</small>
+                            </td>
+                            <td style="padding:8px 10px; color:#64748b; white-space:nowrap;">${app.applied_on}</td>
+                            <td style="padding:8px 10px;">
+                              <span class="status-badge" style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:600; padding:2px 8px; border-radius:12px; display:inline-block;">
+                                ${app.status || 'Applied'}
+                              </span>
+                            </td>
+                            <td style="padding:8px 10px; text-align:right;">
+                              ${app.resume_url ? `
+                                <a href="${app.resume_url}" target="_blank" class="btn btn-sm" style="padding:3px 9px; font-size:11px; background:#2563eb; color:#ffffff; border-radius:4px; text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
+                                  <i class="ti ti-file-text"></i> Resume
+                                </a>
+                              ` : `<span style="color:#94a3b8; font-size:11px;">No file</span>`}
+                            </td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              `;
+            }
+
+            return `
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:all 0.2s ease;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                  <div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                      <span style="font-size:16px; font-weight:800; color:#0f172a;">${job.title}</span>
+                      <span style="font-size:11px; font-weight:700; color:#475569; background:#f1f5f9; padding:2px 8px; border-radius:4px; border:1px solid #e2e8f0;">${job.id}</span>
+                      <span class="status-badge" style="background:${statusBg}; color:${statusColor}; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px; border:1px solid rgba(0,0,0,0.05);">${job.status}</span>
+                    </div>
+                    <div style="font-size:12.5px; color:#64748b; margin-top:6px; display:flex; flex-wrap:wrap; gap:12px;">
+                      <span><i class="ti ti-category" style="color:#2563eb;"></i> ${job.category}</span>
+                      <span><i class="ti ti-map-pin" style="color:#ef4444;"></i> ${job.location}</span>
+                      <span><i class="ti ti-clock" style="color:#8b5cf6;"></i> ${job.employment_type}</span>
+                      <span><i class="ti ti-coin" style="color:#16a34a;"></i> ${job.salary}</span>
+                    </div>
+                  </div>
+                  <div style="text-align:right;">
+                    <span style="font-size:11.5px; color:#64748b;"><i class="ti ti-calendar"></i> Posted: <strong>${job.created_at}</strong></span>
+                  </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid #f1f5f9; flex-wrap:wrap; gap:8px;">
+                  <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <span style="background:${job.applicants_count > 0 ? '#eff6ff' : '#f8fafc'}; color:${job.applicants_count > 0 ? '#1d4ed8' : '#64748b'}; font-size:13px; font-weight:700; padding:6px 14px; border-radius:20px; border:1px solid ${job.applicants_count > 0 ? '#bfdbfe' : '#e2e8f0'}; display:inline-flex; align-items:center; gap:6px;">
+                      <i class="ti ti-users"></i> ${job.applicants_count} Candidate${job.applicants_count === 1 ? '' : 's'} Applied
+                    </span>
+                    ${job.applicants_count > 0 ? `
+                      <button type="button" class="btn-admin" style="font-size:12px; font-weight:600; padding:6px 14px; background:#f8fafc; color:#1e293b; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(0,0,0,0.03);" onclick="toggleJobApplicants('ejm_apps_${job.raw_id}', this)">
+                        <i class="ti ti-chevron-down"></i> View Applied Candidates (${job.applicants_count})
+                      </button>
+                    ` : ''}
+                  </div>
+                  <div>
+                    <a href="/admin-panel/candidates/all/?job_id=${job.raw_id}" target="_blank" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                      <i class="ti ti-external-link"></i> Candidate Tracker
+                    </a>
+                  </div>
+                </div>
+                ${applicantsListHtml}
+              </div>
+            `;
+          }).join('');
+          container.style.display = 'flex';
+        }
+      }
+    } else {
+      if (emptyEl) emptyEl.style.display = 'block';
+    }
+  } catch (err) {
+    console.error('Error fetching company jobs:', err);
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'block';
+  }
+};
+
+// Delegated click listener for employer company name links
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('.employer-company-name-link');
+  if (link) {
+    e.preventDefault();
+    e.stopPropagation();
+    const rawId = link.getAttribute('data-raw-id') || link.dataset.rawId;
+    const model = link.getAttribute('data-model') || link.dataset.model || 'company';
+    const name = link.getAttribute('data-name') || link.dataset.name || link.innerText.trim();
+    window.openEmployerJobsModal(rawId, model, name);
+  } else {
+    // Backdrop click to close modal
+    const modal = document.getElementById('employerJobsModal');
+    if (modal && modal.style.display === 'flex' && e.target === modal) {
+      window.closeEmployerJobsModal();
+    }
+  }
+});
+
+
 

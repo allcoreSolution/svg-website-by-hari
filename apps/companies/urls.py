@@ -53,6 +53,8 @@ urlpatterns = [
     path('api/admin/jobs/<int:id>/', views.admin_job_detail_api),
 
     # Admin Employer / Company Posted Jobs & Applications Overview
+    path('api/admin/companies/jobs', views.admin_company_jobs_api, name='admin_company_jobs_query_api'),
+    path('api/admin/companies/jobs/', views.admin_company_jobs_api),
     path('api/admin/companies/<int:id>/jobs', views.admin_company_jobs_api, name='admin_company_jobs_api'),
     path('api/admin/companies/<int:id>/jobs/', views.admin_company_jobs_api),
     path('api/admin/employers/<int:id>/jobs', views.admin_company_jobs_api),
