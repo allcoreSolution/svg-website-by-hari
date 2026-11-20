@@ -635,7 +635,69 @@
 
       setTimeout(updateArrows, 60);
     }
+
+    // Global Candidate Portal Toast Notification System
+    let candToastTimer = null;
+    window.showCandidateToast = function(msg, isSuccess = true) {
+      const toast = document.getElementById('candGlobalToast');
+      const toastText = document.getElementById('candGlobalToastText');
+      const toastIconWrap = document.getElementById('candToastIconWrap');
+      const toastIcon = document.getElementById('candToastIcon');
+      if (!toast || !toastText) return;
+
+      if (candToastTimer) {
+        clearTimeout(candToastTimer);
+        candToastTimer = null;
+      }
+
+      toastText.textContent = msg || (isSuccess ? 'Action completed successfully.' : 'An error occurred.');
+      
+      if (isSuccess) {
+        toast.style.borderLeftColor = '#22c55e';
+        if (toastIconWrap) toastIconWrap.style.background = 'rgba(34, 197, 94, 0.2)';
+        if (toastIcon) {
+          toastIcon.className = 'ti ti-check';
+          toastIcon.style.color = '#22c55e';
+        }
+      } else {
+        toast.style.borderLeftColor = '#ef4444';
+        if (toastIconWrap) toastIconWrap.style.background = 'rgba(239, 68, 68, 0.2)';
+        if (toastIcon) {
+          toastIcon.className = 'ti ti-alert-triangle';
+          toastIcon.style.color = '#ef4444';
+        }
+      }
+
+      toast.style.display = 'flex';
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+      });
+
+      candToastTimer = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-15px)';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 350);
+      }, 3500);
+    };
+
+    // Replace native blocking alert in Candidate Portal with non-blocking toast
+    window.alert = function(msg) {
+      const isSuccess = !/error|failed|please|fill|invalid|already|pending|denied/i.test(msg || '');
+      window.showCandidateToast(msg, isSuccess);
+    };
   </script>
+
+  <!-- Global Candidate Toast Container -->
+  <div id="candGlobalToast" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: none; align-items: center; gap: 12px; background: #0f172a; color: #ffffff; padding: 13px 20px; border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,0.28); font-size: 14px; font-weight: 600; border-left: 5px solid #22c55e; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(-15px); opacity: 0; pointer-events: none; max-width: 440px;">
+    <div id="candToastIconWrap" style="width: 28px; height: 28px; border-radius: 50%; background: rgba(34, 197, 94, 0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <i id="candToastIcon" class="ti ti-check" style="color: #22c55e; font-size: 18px;"></i>
+    </div>
+    <span id="candGlobalToastText" style="line-height: 1.45;"></span>
+  </div>
+
   {% block extra_js %}{% endblock %}
 </body>
 </html>

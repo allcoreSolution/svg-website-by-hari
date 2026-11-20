@@ -506,15 +506,27 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' || data.success) {
-          alert(data.message || '✓ Application submitted successfully!');
+          if (typeof showSvToast === 'function') {
+            showSvToast(data.message || 'Application submitted successfully!', true);
+          } else {
+            alert(data.message || '✓ Application submitted successfully!');
+          }
           applyForm.reset();
           if (applyModal) applyModal.style.display = 'none';
         } else {
-          alert(data.message || 'Error submitting application.');
+          if (typeof showSvToast === 'function') {
+            showSvToast(data.message || 'Error submitting application.', false);
+          } else {
+            alert(data.message || 'Error submitting application.');
+          }
         }
       })
       .catch(err => {
-        alert('Network error while submitting application. Please try again.');
+        if (typeof showSvToast === 'function') {
+          showSvToast('Network error while submitting application. Please try again.', false);
+        } else {
+          alert('Network error while submitting application. Please try again.');
+        }
       })
       .finally(() => {
         if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Application'; }

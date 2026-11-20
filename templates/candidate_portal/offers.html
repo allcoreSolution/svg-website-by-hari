@@ -167,13 +167,13 @@
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        alert(data.message || '✓ Offer accepted successfully! Congratulations on your joining.');
+        showCandidateToast(data.message || 'Offer accepted successfully! Congratulations on your joining.', true);
         loadOffers();
       } else {
-        alert(data.message || 'Failed to accept offer.');
+        showCandidateToast(data.message || 'Failed to accept offer.', false);
       }
     } catch (e) {
-      alert('Network error while accepting offer.');
+      showCandidateToast('Network error while accepting offer.', false);
     }
   }
 

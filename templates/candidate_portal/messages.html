@@ -144,7 +144,7 @@
         // Refresh unread count badge in header
         fetchUnreadCount();
       } else {
-        alert(data.message || 'Failed to load message.');
+        showCandidateToast(data.message || 'Failed to load message.', false);
       }
     } catch(e) {
       console.error('Error fetching message detail', e);

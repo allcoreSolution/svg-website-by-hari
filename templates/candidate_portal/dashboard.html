@@ -1277,7 +1277,7 @@
         renderFeedList();
         renderJobDetail();
       } else {
-        alert(data.message || 'Error updating saved job.');
+        showCandidateToast(data.message || 'Error updating saved job.', false);
       }
     } catch(err) {
       console.error('Error saving job:', err);
@@ -1297,7 +1297,7 @@
       }).catch(() => {});
     } else {
       navigator.clipboard.writeText(`${shareText}\n${window.location.href}`).then(() => {
-        alert('Job link copied to clipboard!');
+        showCandidateToast('Job link copied to clipboard!', true);
       });
     }
   }
@@ -1305,7 +1305,7 @@
   // Quick Apply Modal & Submission
   function openApplyModal(jobId) {
     if (!isCandidateApproved) {
-      alert('Your candidate registration is currently pending admin approval. You can apply once approved.');
+      showCandidateToast('Your candidate registration is currently pending admin approval. You can apply once approved.', false);
       return;
     }
 
@@ -1313,7 +1313,7 @@
     if (!job) return;
 
     if (job.is_applied) {
-      alert('You have already applied for this position.');
+      showCandidateToast('You have already applied for this position.', false);
       return;
     }
 
@@ -1322,7 +1322,7 @@
     document.getElementById('applyModalCompany').innerText = job.company_name;
     document.getElementById('applyModalLocation').innerHTML = `<i class="fa-solid fa-location-dot me-1"></i>${escapeHtml(job.location)}`;
 
-    const applyModal = new bootstrap.Modal(document.getElementById('quickApplyModal'));
+    const applyModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('quickApplyModal'));
     applyModal.show();
   }
 
@@ -1334,7 +1334,7 @@
     const resumeFileInput = document.getElementById('applyResumeFile');
 
     if (!candidateHasResume && (!resumeFileInput.files || resumeFileInput.files.length === 0)) {
-      alert('Please select and attach your resume file (PDF or DOCX) to apply.');
+      showCandidateToast('Please select and attach your resume file (PDF or DOCX) to apply.', false);
       return;
     }
 
@@ -1362,8 +1362,16 @@
       btn.innerHTML = `<i class="fa-solid fa-paper-plane me-1"></i> Submit Application`;
 
       if (res.ok && data.status === 'success') {
-        // Close modal
-        bootstrap.Modal.getInstance(document.getElementById('quickApplyModal'))?.hide();
+        // Close modal smoothly
+        const modalEl = document.getElementById('quickApplyModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+
+        // Reset form
+        document.getElementById('applyCoverLetter').value = '';
+        if (resumeFileInput) resumeFileInput.value = '';
 
         // Mark as applied
         const job = getJobById(parseInt(jobId));
@@ -1378,15 +1386,15 @@
         renderFeedList();
         renderJobDetail();
 
-        alert(data.message || 'Application submitted successfully! Your application has been sent for admin review.');
+        showCandidateToast(data.message || 'Application submitted successfully! Your application has been sent for review.', true);
       } else {
-        alert(data.message || 'Failed to submit application.');
+        showCandidateToast(data.message || 'Failed to submit application.', false);
       }
     } catch(err) {
       btn.disabled = false;
       btn.innerHTML = `<i class="fa-solid fa-paper-plane me-1"></i> Submit Application`;
       console.error('Application submission error:', err);
-      alert('A network error occurred while submitting your application.');
+      showCandidateToast('A network error occurred while submitting your application.', false);
     }
   }
 </script>
