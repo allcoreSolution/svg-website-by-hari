@@ -21493,6 +21493,7 @@ def admin_employer_jobs_view(request, company_id=None):
     Hiring Active, Hiring Closed/Ended, Candidates Applied),
     and the comprehensive jobs list with applicants details.
     """
+    import re
     from django.db.models import Q
     from apps.companies.models import Company
     from apps.accounts.models import EmployerAccount, AdminUser
@@ -21631,18 +21632,63 @@ def admin_employer_jobs_view(request, company_id=None):
                 'resume_url': resume_url,
             })
 
+        # Format experience
+        raw_exp = str(job.experience or '').strip()
+        if raw_exp in ['0', '0 Years', '0 yrs', '0 yr', '']:
+            clean_exp = "Fresher"
+        elif raw_exp.isdigit():
+            clean_exp = f"{raw_exp}+ Yrs"
+        else:
+            clean_exp = raw_exp
+
+        # Format salary
+        raw_sal = str(job.salary or '').strip()
+        if raw_sal.isdigit():
+            clean_sal = f"₹{int(raw_sal):,} / mo"
+        elif raw_sal:
+            clean_sal = raw_sal
+        else:
+            clean_sal = "Negotiable"
+
+        # Format category
+        raw_cat = str(job.category or '').strip()
+        if raw_cat.lower() == 'it':
+            clean_cat = "IT & Software"
+        elif raw_cat:
+            clean_cat = raw_cat.title()
+        else:
+            clean_cat = "General"
+
+        # Format location
+        raw_loc = str(job.location or '').strip()
+        if not raw_loc:
+            clean_loc = f"{city}, {state}"
+        else:
+            clean_loc = re.sub(r'([a-zA-Z0-9])([A-Z][a-z]+)', r'\1, \2', raw_loc)
+
+        # Format deadline
+        raw_deadline = str(job.deadline or '').strip()
+        if raw_deadline.isdigit():
+            clean_deadline = f"{raw_deadline} Days"
+        elif raw_deadline:
+            clean_deadline = raw_deadline
+        else:
+            clean_deadline = "Open"
+
         jobs_list.append({
             'id': job.id,
             'ref_id': f"JOB-{job.id}",
             'title': job.title,
-            'category': job.category or "General",
+            'category': clean_cat,
+            'raw_category': job.category or "General",
             'department': job.department or "",
-            'location': job.location or f"{city}, {state}",
+            'location': clean_loc,
             'employment_type': job.employment_type or "Full Time",
-            'salary': job.salary or "Negotiable",
+            'salary': clean_sal,
+            'raw_salary': job.salary or "Negotiable",
             'vacancies': job.vacancies or "1",
-            'experience': job.experience or "Fresher / Experienced",
-            'deadline': job.deadline or "Open Until Filled",
+            'experience': clean_exp,
+            'deadline': clean_deadline,
             'status': job.status,
             'is_live': is_live,
             'is_pending': is_pending,
